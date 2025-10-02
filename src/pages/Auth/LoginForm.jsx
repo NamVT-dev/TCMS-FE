@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, BookOpen } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 
 const LoginForm = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -123,12 +125,14 @@ const LoginForm = () => {
           {/* Sign Up Link */}
           <p className="text-center text-sm text-gray-600">
             Chưa có tài khoản?{" "}
-            <a
-              href="#"
-              className="text-purple-600 hover:text-purple-800 font-semibold transition-colors"
+            <button
+              onClick={() => navigate("/register")}
+              className="inline-block px-3 py-1 text-purple-600 hover:text-white font-semibold 
+    hover:bg-purple-600 rounded-lg transition-all duration-200 ease-in-out 
+    hover:shadow-md active:transform active:translate-y-0.5"
             >
               Đăng ký ngay
-            </a>
+            </button>
           </p>
         </div>
       </div>
