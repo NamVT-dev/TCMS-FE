@@ -1,6 +1,11 @@
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Navbar from '../../components/Layout/Navbar';
 import AdminSidebar from '../../components/Layout/AdminSidebar';
+import AdminOverview from '../../components/Admin/AdminOverview/AdminOverview';
+import AdminViewStudentList from '../../components/Admin/AdminManageUser/AdminManagerSudent/AdminViewSudentList';
+import AdminViewTeacherList from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherList';
+import AdminViewParentList from '../../components/Admin/AdminManageUser/AdminManageParent/AdminViewParentList';
 
 const AdminDashboard = () => {
   return (
@@ -11,18 +16,25 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex pt-16"> {/* pt-16 to offset fixed navbar */}
+      <div className="flex pt-16">
         {/* Sidebar */}
-        <div className="fixed left-0 h-[calc(100vh-64px)]"> {/* 64px is navbar height */}
+        <div className="fixed left-0 h-[calc(100vh-64px)]">
           <div className="h-full rounded-tr-[32px] overflow-hidden">
             <AdminSidebar />
           </div>
         </div>
 
         {/* Dashboard Content */}
-        <div className="flex-1 ml-72 p-6"> {/* ml-72 matches sidebar width */}
-          {/* Add your dashboard content here */}
-          <h1 className="text-2xl font-semibold text-gray-800">Dashboard Content</h1>
+        <div className="flex-1 ml-72 p-6">
+          <Routes>
+          
+            <Route path="/overview" element={<AdminOverview />} />
+            <Route path="/users/students" element={<AdminViewStudentList />} />
+            <Route path="/users/teachers" element={<AdminViewTeacherList />} />
+            <Route path="/users/parents" element={<AdminViewParentList />} />
+
+            {/* Add other routes here matching your sidebar paths */}
+          </Routes>
         </div>
       </div>
     </div>
