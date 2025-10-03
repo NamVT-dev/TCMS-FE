@@ -119,8 +119,8 @@ const AdminViewParentList = () => {
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-purple-600 font-semibold text-sm">
+                      <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <span className="text-yellow-600 font-semibold text-sm">
                           {parent.name.charAt(0)}
                         </span>
                       </div>
