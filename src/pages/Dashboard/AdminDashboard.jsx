@@ -6,6 +6,8 @@ import AdminOverview from '../../components/Admin/AdminOverview/AdminOverview';
 import AdminViewStudentList from '../../components/Admin/AdminManageUser/AdminManagerSudent/AdminViewSudentList';
 import AdminViewTeacherList from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherList';
 import AdminViewParentList from '../../components/Admin/AdminManageUser/AdminManageParent/AdminViewParentList';
+import AdminViewClassList from '../../components/Admin/AdminManageClass/AdminViewClassList';
+import AdminCreateClass from '../../components/Admin/AdminManageClass/AdminCreateClass';
 
 const AdminDashboard = () => {
   return (
@@ -32,6 +34,8 @@ const AdminDashboard = () => {
             <Route path="/users/students" element={<AdminViewStudentList />} />
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
             <Route path="/users/parents" element={<AdminViewParentList />} />
+            <Route path="/classes" element={<AdminViewClassList />} />
+            <Route path="/create/class" element={<AdminCreateClass />} />
 
             {/* Add other routes here matching your sidebar paths */}
           </Routes>
