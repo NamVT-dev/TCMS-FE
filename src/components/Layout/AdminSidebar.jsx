@@ -6,7 +6,7 @@ import {
     BookOpen, BookOpenCheck, BookCopy, FileText,
     Building2, DoorOpen, Building, Wrench,
     Wallet, Receipt, Coins, BadgeDollarSign, PieChart,
-    BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus
+    BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus, 
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath }) => {
@@ -91,6 +91,7 @@ const AdminSidebar = () => {
                 { name: "Học viên", path: "/admin/users/students", icon: UserCircle },
                 { name: "Giáo viên", path: "/admin/users/teachers", icon: GraduationCap },
                 { name: "Phụ huynh", path: "/admin/users/parents", icon: Users2 },
+                { name: "Xếp lớp học viên", path: "/admin/users/enrollments", icon: UserCog }
             ]
         },
         {
