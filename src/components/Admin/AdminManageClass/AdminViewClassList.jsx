@@ -136,7 +136,7 @@ const AdminViewClassList = () => {
 
                     {/* Add Class Button */}
                     <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-md hover:shadow-lg">
-                        <Link to="/admin/create/class" className="block w-full h-full">
+                        <Link to="/admin/classes/create" className="block w-full h-full">
                             + Tạo lớp
                         </Link>
                     </button>

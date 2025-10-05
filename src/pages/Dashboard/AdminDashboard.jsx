@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from '../../components/Layout/Navbar';
 import AdminSidebar from '../../components/Layout/AdminSidebar';
@@ -12,6 +13,7 @@ import AdminViewRoomList from '../../components/Admin/AdminManageRoom/AdminViewR
 import AdminViewEnrollmentList from '../../components/Admin/AdminManageUser/AdminManageEnrollment/AdminViewEnrollList';
 
 const AdminDashboard = () => {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar - Fixed at top */}
@@ -22,23 +24,28 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex pt-16">
         {/* Sidebar */}
-        <div className="fixed left-0 h-[calc(100vh-64px)]">
+        <div className={`fixed left-0 h-[calc(100vh-64px)] transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'w-20' : 'w-72'
+          }`}>
           <div className="h-full rounded-tr-[32px] overflow-hidden">
-            <AdminSidebar />
+            <AdminSidebar
+              isCollapsed={isSidebarCollapsed}
+              onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            />
           </div>
         </div>
 
         {/* Dashboard Content */}
-        <div className="flex-1 ml-72 p-6">
+        <div className={`flex-1 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-20' : 'ml-72'
+          } p-6`}>
           <Routes>
-          
+
             <Route path="/overview" element={<AdminOverview />} />
             <Route path="/users/students" element={<AdminViewStudentList />} />
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
             <Route path="/users/parents" element={<AdminViewParentList />} />
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
             <Route path="/classes" element={<AdminViewClassList />} />
-            <Route path="/create/class" element={<AdminCreateClass />} />
+            <Route path="/classes/create" element={<AdminCreateClass />} />
             <Route path="/facility/rooms" element={<AdminViewRoomList />} />
 
             {/* Add other routes here matching your sidebar paths */}

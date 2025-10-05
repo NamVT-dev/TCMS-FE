@@ -6,10 +6,11 @@ import {
     BookOpen, BookOpenCheck, BookCopy, FileText,
     Building2, DoorOpen, Building, Wrench,
     Wallet, Receipt, Coins, BadgeDollarSign, PieChart,
-    BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus, 
+    BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus,
+    ChevronLeft, Shield
 } from "lucide-react";
 
-const SidebarItem = ({ icon: Icon, title, items, currentPath }) => {
+const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     // Tự động mở menu cha nếu currentPath nằm trong items
@@ -19,23 +20,39 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath }) => {
         }
     }, [currentPath, items]);
 
+    if (isCollapsed) {
+        return (
+            <div className="mb-2">
+                <div className="group relative">
+                    <div
+                        className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 cursor-pointer"
+                        title={title}
+                    >
+                        <div className="flex justify-center">
+                            <div className="p-2 rounded-lg bg-gray-100">
+                                <Icon className="w-5 h-5 text-gray-600" />
+                            </div>
+                        </div>
+                    </div>
+                    {/* Tooltip */}
+                    <div className="hidden group-hover:block absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded whitespace-nowrap z-50">
+                        {title}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="mb-2">
-            {/* Nút cha */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 ${isOpen ? "bg-gray-100" : ""
                     }`}
             >
                 <div className="flex items-center space-x-3">
-                    <div
-                        className={`p-2 rounded-lg ${isOpen ? "bg-purple-100" : "bg-gray-100"
-                            }`}
-                    >
-                        <Icon
-                            className={`w-5 h-5 ${isOpen ? "text-purple-600" : "text-gray-600"
-                                }`}
-                        />
+                    <div className={`p-2 rounded-lg ${isOpen ? "bg-purple-100" : "bg-gray-100"}`}>
+                        <Icon className={`w-5 h-5 ${isOpen ? "text-purple-600" : "text-gray-600"}`} />
                     </div>
                     <span className={`font-medium ${isOpen ? "text-purple-600" : ""}`}>
                         {title}
@@ -47,18 +64,17 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath }) => {
                 />
             </button>
 
-            {/* Sub menu */}
             {isOpen && items && (
                 <div className="ml-14 mt-2 space-y-1">
                     {items.map((item, index) => {
-                        const isActive = currentPath === item.path; // so sánh đường dẫn hiện tại
+                        const isActive = currentPath === item.path;
                         return (
                             <Link
                                 key={index}
                                 to={item.path}
                                 className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${isActive
-                                        ? "bg-purple-100 text-purple-600 font-medium"
-                                        : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                                    ? "bg-purple-100 text-purple-600 font-medium"
+                                    : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
                                     }`}
                             >
                                 {item.icon && <item.icon className="w-4 h-4" />}
@@ -72,7 +88,9 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath }) => {
     );
 };
 
-const AdminSidebar = () => {
+
+
+const AdminSidebar = ({ isCollapsed, onToggle }) => {
     const location = useLocation();
     const currentPath = location.pathname; // đường dẫn hiện tại
 
@@ -99,7 +117,7 @@ const AdminSidebar = () => {
             title: "Quản lý lớp học",
             items: [
                 { name: "Danh sách lớp", path: "/admin/classes", icon: ListChecks },
-                { name: "Tạo lớp học", path: "/admin/create/class", icon: CopyPlus },
+                { name: "Tạo lớp học", path: "/admin/classes/create", icon: CopyPlus },
                 { name: "Thời khóa biểu", path: "/admin/classes/schedule", icon: CalendarDays },
                 { name: "Điểm danh", path: "/admin/classes/attendance", icon: ClipboardList }
             ]
@@ -144,7 +162,42 @@ const AdminSidebar = () => {
     ];
 
     return (
-        <div className="w-72 h-full bg-white border-r border-gray-200 flex flex-col">
+        <div className={`${isCollapsed ? 'w-20' : 'w-72'
+            } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
+            {/* Toggle Button */}
+            <button
+                onClick={onToggle}
+                className="absolute -right-3 top-6 bg-white border border-gray-200 rounded-full p-1.5 hover:bg-gray-50 z-50"
+            >
+                {isCollapsed ? (
+                    <ChevronRight className="w-4 h-4 text-gray-600" />
+                ) : (
+                    <ChevronLeft className="w-4 h-4 text-gray-600" />
+                )}
+            </button>
+
+            {/* Header Section */}
+            <div className="p-4 border-b border-gray-200">
+                {isCollapsed ? (
+                    <div className="flex justify-center">
+                        <Shield className="w-8 h-8 text-purple-600" />
+                    </div>
+                ) : (
+                    <div className="flex items-center space-x-3 bg-purple-50 p-3 rounded-lg">
+                        <Shield className="w-8 h-8 text-purple-600" />
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-800">
+                                Admin Portal
+                            </h2>
+                            <p className="text-sm text-gray-500">
+                                System Management
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Menu Items */}
             <div className="flex-1 overflow-y-auto scrollbar-thin">
                 <div className="p-4 space-y-2">
                     {menuItems.map((item, index) => (
@@ -154,6 +207,7 @@ const AdminSidebar = () => {
                             title={item.title}
                             items={item.items}
                             currentPath={currentPath}
+                            isCollapsed={isCollapsed}
                         />
                     ))}
                 </div>
