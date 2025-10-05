@@ -52,7 +52,7 @@ const TeacherViewSchedule = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-8">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-6xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-10xl mx-auto">
         {/* Title */}
         <h1 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">
           Thời khóa biểu giảng dạy
