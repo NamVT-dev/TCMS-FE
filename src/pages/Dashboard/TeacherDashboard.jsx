@@ -6,6 +6,7 @@ import TeacherSidebar from '../../components/Layout/TeacherSidebar';
 import TeacherOverview from '../../components/Teacher/TeacherOverview/TeacherOverview';
 import TeacherViewUpdateProfile from '../../components/Teacher/TeacherInformation/TeacherViewUpdateProfile';
 import TeacherRegisterSchedule from '../../components/Teacher/TeacherInformation/TeacherRegisterSchedule ';
+import TeacherViewSchedule from '../../components/Teacher/TeacherWork/TeacherTimtable/TeacherViewScheduel';
 
 const TeacherDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -39,6 +40,7 @@ const TeacherDashboard = () => {
             <Route path="/overview" element={<TeacherOverview />} />
             <Route path="/profile" element={<TeacherViewUpdateProfile />} />
             <Route path="/work-schedule" element={<TeacherRegisterSchedule />} />
+            <Route path="/timetable" element={<TeacherViewSchedule />} />
           </Routes>
         </div>
       </div>

@@ -187,10 +187,10 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
                         <Shield className="w-8 h-8 text-purple-600" />
                         <div>
                             <h2 className="text-lg font-semibold text-gray-800">
-                                Admin Portal
+                                Chào mừng, Admin
                             </h2>
                             <p className="text-sm text-gray-500">
-                                System Management
+                                Quản lý hệ thống
                             </p>
                         </div>
                     </div>
