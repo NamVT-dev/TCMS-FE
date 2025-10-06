@@ -7,7 +7,7 @@ import {
     Building2, DoorOpen, Building, Wrench,
     Wallet, Receipt, Coins, BadgeDollarSign, PieChart,
     BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus,
-    ChevronLeft, Shield
+    ChevronLeft, ShieldUser,
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -180,11 +180,11 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             <div className="p-4 border-b border-gray-200">
                 {isCollapsed ? (
                     <div className="flex justify-center">
-                        <Shield className="w-8 h-8 text-purple-600" />
+                        <ShieldUser className="w-8 h-8 text-purple-600" />
                     </div>
                 ) : (
                     <div className="flex items-center space-x-3 bg-purple-50 p-3 rounded-lg">
-                        <Shield className="w-8 h-8 text-purple-600" />
+                        <ShieldUser className="w-8 h-8 text-purple-600" />
                         <div>
                             <h2 className="text-lg font-semibold text-gray-800">
                                 Chào mừng, Admin

@@ -1,0 +1,54 @@
+import React from 'react'
+import { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Navbar from '../../components/Layout/Navbar';
+import StudentSidebar from '../../components/Layout/StudentSidebar';
+import StudentProfile from '../../components/Student/StudentInformation/StudentProfile';
+import StudentViewSchedule from '../../components/Student/StudentLearn/StudentViewSchedule';
+import StudentOverview from '../../components/Student/StudentOverview/StudentOverview';
+import StudentChangePassword from '../../components/Student/StudentInformation/StudentChangePassword';
+import StudentMarkRecord from '../../components/Student/StudentLearn/StudentMarkRecord';
+import StudentViewClass from '../../components/Student/StudentLearn/StudentViewClass';
+const StudentDashboard = () => {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar - Fixed at top */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Navbar />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex pt-16">
+        {/* Sidebar */}
+        <div className={`fixed left-0 h-[calc(100vh-64px)] transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'w-20' : ''
+        }`}>
+          <div className="h-full rounded-tr-[32px] overflow-hidden">
+            <StudentSidebar 
+              isCollapsed={isSidebarCollapsed} 
+              onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+            />
+          </div>
+        </div>
+
+        {/* Dashboard Content */}
+        <div className={`flex-1 transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'ml-20' : 'ml-72'
+        } p-6`}>
+          <Routes>
+            <Route path="/overview" element={<StudentOverview />} />
+            <Route path="/profile" element={<StudentProfile />} />
+            <Route path="/change-password" element={<StudentChangePassword />} />
+            <Route path="/schedule" element={<StudentViewSchedule />} />
+            <Route path="/mark-record" element={<StudentMarkRecord />} />
+            <Route path="/class" element={<StudentViewClass />} />
+          </Routes>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default StudentDashboard;
