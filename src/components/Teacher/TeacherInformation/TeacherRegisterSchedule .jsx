@@ -16,7 +16,7 @@ const TeacherRegisterSchedule = () => {
         "Thứ 5": { evening: true },
         "Thứ 6": { evening: true },
         "Thứ 7": { morning: true, afternoon: false, evening: true },
-        "CN": { morning: true },
+        "Chủ nhật": { morning: true },
     });
 
     const [isEditing, setIsEditing] = useState(false);
