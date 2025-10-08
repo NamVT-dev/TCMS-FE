@@ -1,17 +1,18 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+import useAuth from "../../hooks/useAuth";
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password });
+    await login(email, password);
   };
 
   return (
