@@ -20,9 +20,9 @@ axios.interceptors.response.use(
 );
 
 export const authService = {
-  login: (email, password) =>
-    axios.post(
-      `${import.meta.env.REACT_APP_BACKEND_URL}auth/login`,
+  login: (email, password) => {
+    return axios.post(
+      `${import.meta.env.VITE_API_URL}auth/login`,
       {
         email,
         password,
@@ -30,11 +30,12 @@ export const authService = {
       {
         withCredentials: true,
       }
-    ),
+    );
+  },
 
   signup: (name, email, phoneNumber, dob, password, passwordConfirm) =>
     axios.post(
-      `${import.meta.env.REACT_APP_BACKEND_URL}auth/signup`,
+      `${import.meta.env.VITE_API_URL}auth/signup`,
       {
         name,
         email,
@@ -49,34 +50,28 @@ export const authService = {
     ),
 
   logout: () =>
-    axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}auth/logout`, {
+    axios.get(`${import.meta.env.VITE_API_URL}auth/logout`, {
       withCredentials: true,
     }),
 
   confirmEmail: (pin) =>
-    axios.get(
-      `${import.meta.env.REACT_APP_BACKEND_URL}auth/confirmEmail/${pin}`,
-      {
-        withCredentials: true,
-      }
-    ),
+    axios.get(`${import.meta.env.VITE_API_URL}auth/confirmEmail/${pin}`, {
+      withCredentials: true,
+    }),
 
   resendConfirmEmail: () =>
-    axios.get(
-      `${import.meta.env.REACT_APP_BACKEND_URL}auth/resendConfirmEmail`,
-      {
-        withCredentials: true,
-      }
-    ),
+    axios.get(`${import.meta.env.VITE_API_URL}auth/resendConfirmEmail`, {
+      withCredentials: true,
+    }),
 
   forgotPassword: (email) =>
-    axios.post(`${import.meta.env.REACT_APP_BACKEND_URL}auth/forgotPassword`, {
+    axios.post(`${import.meta.env.VITE_API_URL}auth/forgotPassword`, {
       email,
     }),
 
   resetPassword: (email, token, password, passwordConfirm) =>
     axios.post(
-      `${import.meta.env.REACT_APP_BACKEND_URL}auth/resetPassword`,
+      `${import.meta.env.VITE_API_URL}auth/resetPassword`,
       {
         email,
         token,
@@ -89,13 +84,13 @@ export const authService = {
 
 export const userService = {
   getMe: () =>
-    axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}auth/profile`, {
+    axios.get(`${import.meta.env.VITE_API_URL}auth/profile`, {
       withCredentials: true,
     }),
 
   updatePassword: (passwordCurrent, password, passwordConfirm) =>
     axios.patch(
-      `${import.meta.env.REACT_APP_BACKEND_URL}auth/updatePassword`,
+      `${import.meta.env.VITE_API_URL}auth/updatePassword`,
       {
         passwordCurrent,
         password,
@@ -106,31 +101,25 @@ export const userService = {
       }
     ),
   updateProfile: (data) => {
-    return axios.patch(
-      `${import.meta.env.REACT_APP_BACKEND_URL}auth/profile`,
-      data,
-      {
-        withCredentials: true,
-      }
-    );
+    return axios.patch(`${import.meta.env.VITE_API_URL}auth/profile`, data, {
+      withCredentials: true,
+    });
   },
 };
 
 export function getTours(params) {
-  return axios.get(`${import.meta.env.REACT_APP_BACKEND_URL}tours`, {
+  return axios.get(`${import.meta.env.VITE_API_URL}tours`, {
     params,
   });
 }
 
 export function getTourBySlug(slug) {
-  return axios.get(
-    `${import.meta.env.REACT_APP_BACKEND_URL}tours/detail/${slug}`
-  );
+  return axios.get(`${import.meta.env.VITE_API_URL}tours/detail/${slug}`);
 }
 
 export function getBookingSession(tourId, numberOfPeople, startDate) {
   return axios.post(
-    `${import.meta.env.REACT_APP_BACKEND_URL}bookings/checkout-session`,
+    `${import.meta.env.VITE_API_URL}bookings/checkout-session`,
     {
       tourId,
       numberOfPeople,
