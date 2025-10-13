@@ -2,75 +2,77 @@ import axios from "axios";
 
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 10000,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+    baseURL: import.meta.env.VITE_API_URL,
+    timeout: 10000,
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json'
+    }
 });
 
 
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
 );
 
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+    (response) => response,
+    (error) => {
+        if (error.response.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
 );
 
 
 
 const api = {
-  // --- Nhóm API Xác thực ---
-  auth: {
-    
-    login: (credentials) => axiosInstance.post('auth/login', credentials),
+    // --- Nhóm API Xác thực ---
+    auth: {
 
-    signup: (data) => axiosInstance.post('auth/signup', data),
+        login: (credentials) => axiosInstance.post('auth/login', credentials),
 
-    logout: () => axiosInstance.get('auth/logout'),
-    
-    confirmEmail: (pin) => axiosInstance.get(`auth/confirmEmail/${pin}`),
+        signup: (data) => axiosInstance.post('auth/signup', data),
 
-    resendConfirmEmail: () => axiosInstance.get('auth/resendConfirmEmail'),
+        logout: () => axiosInstance.get('auth/logout'),
 
-    forgotPassword: (email) => axiosInstance.post('auth/forgotPassword', { email }),
-    
-    resetPassword: (data) => axiosInstance.post('auth/resetPassword', data),
-  },
-  
-  // --- Nhóm API Người dùng ---
-  user: {
-    getMe: () => axiosInstance.get('auth/profile'),
+        confirmEmail: (pin) => axiosInstance.get(`auth/confirmEmail/${pin}`),
 
-    updatePassword: (data) => axiosInstance.patch('auth/updatePassword', data),
+        resendConfirmEmail: () => axiosInstance.get('auth/resendConfirmEmail'),
 
-    updateProfile: (data) => axiosInstance.patch('auth/profile', data),
-  },
+        forgotPassword: (email) => axiosInstance.post('auth/forgotPassword', { email }),
 
-  admin: {
-    getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
-    // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
-  },
-  // --- Thêm các nhóm API khác ở đây khi cần ---
- 
+        resetPassword: (data) => axiosInstance.post('auth/resetPassword', data),
+    },
+
+    // --- Nhóm API Người dùng ---
+    user: {
+        getMe: () => axiosInstance.get('auth/profile'),
+
+        updatePassword: (data) => axiosInstance.patch('auth/updatePassword', data),
+
+        updateProfile: (data) => axiosInstance.patch('auth/profile', data),
+    },
+
+    admin: {
+        getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
+        getRooms: (params) => axiosInstance.get('/admin/rooms', { params }),
+
+        // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
+    },
+    // --- Thêm các nhóm API khác ở đây khi cần ---
+
 };
 
 export default api;

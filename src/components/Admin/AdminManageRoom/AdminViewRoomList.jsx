@@ -1,56 +1,71 @@
-import React, { useState } from "react";
-import { Search, Edit, Trash2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, Edit, Trash2, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
+import api from "../../../utils/api";
+
 
 const AdminViewRoomList = () => {
+  const [rooms, setRooms] = useState([]);
+  const [pagination, setPagination] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Sample data
-  const [rooms] = useState([
-    {
-      id: 1,
-      name: "P201",
-      capacity: 30,
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "P305",
-      capacity: 25,
-      status: "Unactive",
-    },
-    {
-      id: 3,
-      name: "P102",
-      capacity: 40,
-      status: "Active",
-    },
-  ]);
+  useEffect(() => {
+    const fetchRooms = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = {
+          page: currentPage,
+          search: searchTerm,
+        };
 
-  const filteredRooms = rooms.filter(
-    (room) =>
-      room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.capacity.toString().includes(searchTerm.toLowerCase())
-  );
+        // Gọi API
+        const response = await api.admin.getRooms(params);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-700";
-      case "Unactive":
-        return "bg-red-100 text-red-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
+        console.log("get data:", response.data.data.rooms);
 
-  const handleEdit = (id) => {
-    console.log("View room detail:", id);
-  };
-  const handleDelete = (id) => {
-    console.log("Delete room:", id);
-  }
+        setRooms(response.data.data.rooms);
+        setPagination({
+          page: response.data.page,
+          totalPages: response.data.totalPages,
+          total: response.data.total,
+          results: response.data.results,
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Không thể tải dữ liệu phòng học.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    const debounceFetch = setTimeout(() => fetchRooms(), 500);
+    return () => clearTimeout(debounceFetch);
+  }, [currentPage, searchTerm]);
 
+  // Hàm tiện ích để render trạng thái hoạt động
+    const getStatusColor = (isActive) => {
+        if (isActive === 'active') {
+            return 'bg-green-100 text-green-800';
+        } else if (isActive === 'closed') {
+            return 'bg-red-100 text-red-800';
+        }
+        return 'bg-red-100 text-red-800';
+    };
+
+  // === EVENT HANDLERS ===
+  const handleView = (id) => console.log("View room detail:", id);
+  const handleEdit = (id) => console.log("Edit room:", id);
+  const handleDelete = (id) => console.log("Delete room:", id);
+
+  // === LOADING / ERROR ===
+  if (loading)
+    return <div className="p-6 text-center">Đang tải dữ liệu...</div>;
+  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+
+  // === RENDER ===
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -61,17 +76,20 @@ const AdminViewRoomList = () => {
         <p className="text-gray-600">Quản lý phòng học và tình trạng sử dụng</p>
       </div>
 
-      {/* Search & Create Button */}
+      {/* Search + Create Button */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
-          {/* Search */}
+          {/* Search Box */}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Tìm kiếm theo tên phòng hoặc chỗ học..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
             />
           </div>
@@ -96,7 +114,7 @@ const AdminViewRoomList = () => {
                   Tên phòng
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
-                  Chỗ học
+                  Sức chứa
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">
                   Trạng thái
@@ -107,61 +125,93 @@ const AdminViewRoomList = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredRooms.map((room) => (
-                <tr
-                  key={room.id}
-                  className="hover:bg-gray-50 transition-colors duration-150"
-                >
-                  <td className="px-6 py-4">{room.name}</td>
-                  <td className="px-6 py-4">{room.capacity}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                        room.status
-                      )}`}
-                    >
-                      {room.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => handleEdit(room.id)}
-                      className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
-                    >
-                      <Edit className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(room.id)}
-                      className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+              {rooms.length > 0 ? (
+                rooms.map((room) => (
+                  <tr
+                    key={room._id}
+                    className="hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    <td className="px-6 py-4">{room.name}</td>
+                    <td className="px-6 py-4">{room.capacity}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                          room.status
+                        )}`}
+                      >
+                        {room.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center space-x-3">
+                        <button
+                          onClick={() => handleView(room._id)}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Xem chi tiết"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(room._id)}
+                          className="text-green-600 hover:text-green-800"
+                          title="Chỉnh sửa"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(room._id)}
+                          className="text-red-600 hover:text-red-800"
+                          title="Xóa"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
+                    Không có dữ liệu phòng học
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
-        <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-          <div className="text-sm text-gray-700">
-            Hiển thị <span className="font-medium">1</span> đến{" "}
-            <span className="font-medium">{filteredRooms.length}</span> trong tổng số{" "}
-            <span className="font-medium">{rooms.length}</span> phòng
+        {pagination.totalPages > 1 && (
+          <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+            <div className="text-sm text-gray-700">
+              Hiển thị <span className="font-medium">{pagination.results}</span>{" "}
+              trong tổng số{" "}
+              <span className="font-medium">{pagination.total}</span> phòng
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Trước
+              </button>
+              <span className="px-3 py-1 text-sm">
+                Trang {pagination.page} / {pagination.totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                disabled={currentPage === pagination.totalPages}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Sau
+              </button>
+            </div>
           </div>
-          <div className="flex space-x-2">
-            <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100">
-              Trước
-            </button>
-            <button className="px-3 py-1 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700">
-              1
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100">
-              Sau
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
