@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { authService, userService } from "../utils/axiosInstance";
+import { authService, userService } from "../utils/apiPaths";
 import { useNavigate } from "react-router-dom";
 const UserContext = createContext();
 
@@ -9,35 +9,99 @@ export const UserProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await userService.getMe();
-        const user = res.data.data.data;
-        if (user) {
-          setUser(user);
-        }
-        setLoading(false);
-      } catch (error) {
-        throw new Error(
-          error.response?.data?.message ||
-            "Không lấy được thông tin người dùng!"
-        );
-      }
+  const token = localStorage.getItem('token');
+  const savedUser = localStorage.getItem('user');
+  
+  if (!token || !savedUser) {
+    // Nếu không có token hoặc user data, và không ở trang login
+    if (window.location.pathname !== '/login') {
+      navigate('/login', { replace: true });
     }
-    fetchUser();
-  }, []);
+    return;
+  }
+
+  try {
+    const userData = JSON.parse(savedUser);
+    setUser(userData);
+    
+    // Chỉ redirect khi ở trang login hoặc trang chủ
+    if (window.location.pathname === '/login' || window.location.pathname === '/') {
+      const { role } = userData;
+      const roleRoutes = {
+        admin: '/admin/overview',
+        teacher: '/teacher/overview',
+        student: '/student/overview',
+        parent: '/parent/overview'
+      };
+
+      navigate(roleRoutes[role] || '/login', { replace: true });
+    }
+  } catch (error) {
+    console.error('Error parsing user data:', error);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login', { replace: true });
+  }
+}, [navigate]);
+
+  useEffect(() => {
+  async function fetchUser() {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found, skipping user fetch');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Fetching user profile...');
+      const res = await userService.getMe();
+      const userData = res.data.data.data;
+      if (userData) {
+        console.log('User profile loaded:', userData);
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+  fetchUser();
+}, []);
 
   const login = async (email, password) => {
-    try {
-      const res = await authService.login(email, password);
-      if (res.data.status === "success") {
-        setUser(res.data.data.user);
-        return res.data.data.user;
-      }
-    } catch (err) {
-      throw new Error(err.response?.data?.message || "Không thể đăng nhập");
+  try {
+    console.log('Attempting login...', { email });
+    const response = await authService.login(email, password);
+
+    if (response?.data?.data?.user) {
+      const userData = response.data.data.user;
+      const { role } = userData;
+      
+      // Lưu data trước
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', response.data.token);
+      setUser(userData);
+
+      // Sau đó mới navigate
+      const roleRoutes = {
+        admin: '/admin/overview',
+        teacher: '/teacher/overview',
+        student: '/student/overview',
+        parent: '/parent/overview'
+      };
+
+      navigate(roleRoutes[role] || '/login', { replace: true });
+      return response;
     }
-  };
+
+    throw new Error('Invalid response format');
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
+};
 
   const signup = async (name, email, password, passwordConfirm) => {
     try {

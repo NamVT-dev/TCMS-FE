@@ -16,17 +16,19 @@ export const useAuth = () => {
   const [error, setError] = useState(null);
 
   const handleLogin = async (email, password) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      return await login(email, password);
-    } catch (err) {
-      setError(err.message);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  try {
+    setIsLoading(true);
+    setError(null);
+    const response = await login(email, password);
+    return response;
+  } catch (err) {
+    console.error('Login error:', err);
+    setError(err.response?.data?.message || err.message || 'Login failed');
+    return false;
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleLogout = async () => {
     setIsLoading(true);
