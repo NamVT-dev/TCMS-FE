@@ -65,6 +65,10 @@ const api = {
     updateProfile: (data) => axiosInstance.patch('auth/profile', data),
   },
 
+  admin: {
+    getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
+    // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
+  },
   // --- Thêm các nhóm API khác ở đây khi cần ---
  
 };
