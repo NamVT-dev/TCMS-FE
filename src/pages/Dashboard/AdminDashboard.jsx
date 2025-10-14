@@ -11,6 +11,7 @@ import AdminViewClassList from '../../components/Admin/AdminManageClass/AdminVie
 import AdminCreateClass from '../../components/Admin/AdminManageClass/AdminCreateClass';
 import AdminViewRoomList from '../../components/Admin/AdminManageRoom/AdminViewRoomList';
 import AdminViewEnrollmentList from '../../components/Admin/AdminManageUser/AdminManageEnrollment/AdminViewEnrollList';
+import AdminViewCourseList from '../../components/Admin/AdminManageCourse/AdminViewCourseList';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -47,7 +48,8 @@ const AdminDashboard = () => {
             <Route path="/classes" element={<AdminViewClassList />} />
             <Route path="/classes/create" element={<AdminCreateClass />} />
             <Route path="/facility/rooms" element={<AdminViewRoomList />} />
-
+            <Route path="/courses" element={<AdminViewCourseList />} />
+            
             {/* Add other routes here matching your sidebar paths */}
           </Routes>
         </div>

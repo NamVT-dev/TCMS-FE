@@ -67,7 +67,17 @@ const api = {
 
     admin: {
         getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
+
+        // API quản lý phòng học
         getRooms: (params) => axiosInstance.get('/admin/rooms', { params }),
+        createRoom: (data) => axiosInstance.post('/admin/rooms', data),
+        updateRoom: (id, data) => axiosInstance.put(`/admin/rooms/update/${id}`, data),
+
+        // API quản lý khóa học
+        getCourse: (params) => axiosInstance.get('/admin/courses', { params }),
+        createCourse: (data) => axiosInstance.post('/admin/courses', data),
+        getCourseById: (id) => axiosInstance.get(`/admin/courses/${id}`),
+        updateCourseById: (id, data) => axiosInstance.patch(`/admin/courses/update/${id}`, data)
 
         // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
     },
