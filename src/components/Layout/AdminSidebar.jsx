@@ -7,7 +7,7 @@ import {
     Building2, DoorOpen, Building, Wrench,
     Wallet, Receipt, Coins, BadgeDollarSign, PieChart,
     BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus,
-    ChevronLeft, ShieldUser,
+    ChevronLeft, ShieldUser, Clock1
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -136,7 +136,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             title: "Quản lý trung tâm",
             items: [
                 { name: "Phòng học", path: "/admin/facility/rooms", icon: DoorOpen },
-                { name: "Cơ sở vật chất", path: "/admin/facility/infrastructure", icon: Building },
+                { name: "Thời gian hoạt động", path: "/admin/facility/working-hours", icon: Clock1 },
                 { name: "Thiết bị", path: "/admin/facility/equipment", icon: Wrench }
             ]
         },

@@ -69,10 +69,22 @@ const api = {
     getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
 
     getTeacherDetail: (id) => axiosInstance.get(`/admin/teachers/${id}`),
+    
+    center: {
+       getConfig: () => axiosInstance.get("/admin/center/config"),
+
+      updateConfig: (data) => axiosInstance.patch("/admin/center/config", data),
+    }
     // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
   },
-  // --- Thêm các nhóm API khác ở đây khi cần ---
- 
+
+  teacher: {
+    
+    getShiftConfig: () => axiosInstance.get('/teacher/shift'),
+    registerShift: (scheduleData) => axiosInstance.patch('/teacher/register-shift', scheduleData),
+    
+  
+  },
 };
 
 export default api;
