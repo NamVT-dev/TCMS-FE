@@ -67,6 +67,8 @@ const api = {
 
   admin: {
     getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
+
+    getTeacherDetail: (id) => axiosInstance.get(`/admin/teachers/${id}`),
     // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
   },
   // --- Thêm các nhóm API khác ở đây khi cần ---

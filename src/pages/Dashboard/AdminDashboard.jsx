@@ -42,6 +42,7 @@ const AdminDashboard = () => {
             <Route path="/overview" element={<AdminOverview />} />
             <Route path="/users/students" element={<AdminViewStudentList />} />
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
+            
             <Route path="/users/parents" element={<AdminViewParentList />} />
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
             <Route path="/classes" element={<AdminViewClassList />} />
