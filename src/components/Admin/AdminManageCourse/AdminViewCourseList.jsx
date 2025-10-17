@@ -3,7 +3,9 @@ import { Search, Trash2, Eye, Edit } from "lucide-react";
 import api from "../../../utils/api";
 import AdminCreateCourseModal from "./AdminCreateCourseModal";
 import AdminCourseDetailModal from "./AdminCourseDetailModal";
-
+import showToast from "../../../utils/showToast";
+import { Modal } from "antd";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 const AdminViewCourseList = () => {
     const [courses, setCourse] = useState([]);
@@ -26,16 +28,50 @@ const AdminViewCourseList = () => {
     const [openDetail, setOpenDetail] = useState(false);
     const [detailMode, setDetailMode] = useState("view"); // "view" | "edit"
     const [courseId, setCourseId] = useState(null);
+    const [modal, contextHolder] = Modal.useModal();
 
     const handleView = (id) => {
         setCourseId(id);
         setDetailMode("view");
         setOpenDetail(true);
     };
+
     const handleEdit = (id) => {
         setCourseId(id);
         setDetailMode("edit");
         setOpenDetail(true);
+    };
+
+    const handleDelete = (id) => {
+        modal.confirm({
+            title: "Xác nhận xóa khóa học?",
+            icon: <ExclamationCircleFilled />,
+            content: "Thao tác này không thể hoàn tác.",
+            okText: "Xóa",
+            cancelText: "Hủy",
+            okType: "danger",
+            getContainer: false,
+            zIndex: 2000,
+            async onOk() {
+                const toastId = showToast.loading("Đang xóa khóa học...");
+                try {
+                    await api.admin.deleteCourseById(id);
+                    showToast.updateSuccess(toastId, "Xóa khóa học thành công!");
+                    // Nếu xóa xong trang hiện tại không còn item nào và không phải trang 1 -> lùi về trang trước
+                    if (courses.length === 1 && currentPage > 1) {
+                        setCurrentPage((p) => p - 1);
+                    } else {
+                        fetchCourse();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast.updateError(
+                        toastId,
+                        err?.response?.data?.message || "Xóa khóa học thất bại!"
+                    );
+                }
+            },
+        });
     };
 
     const fetchCourse = useCallback(async () => {
@@ -69,13 +105,12 @@ const AdminViewCourseList = () => {
         return () => clearTimeout(debounce);
     }, [fetchCourse]);
 
-    const handleDelete = (id) => console.log("Delete course:", id);
-
     if (loading) return <div className="p-6 text-center">Đang tải dữ liệu...</div>;
     if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
+            {contextHolder}
             {/* Header */}
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Danh sách khóa học</h1>
@@ -148,7 +183,7 @@ const AdminViewCourseList = () => {
                                                 <button onClick={() => handleEdit(course._id)} className="text-green-600 hover:text-green-800" title="Chỉnh sửa">
                                                     <Edit className="w-5 h-5" />
                                                 </button>
-                                                <button onClick={() => handleDelete(course._id)} title="Xóa">
+                                                <button onClick={() => handleDelete(course._id)} className="text-red-600 hover:text-red-800" title="Xóa">
                                                     <Trash2 className="text-red-600 hover:text-red-800 w-5 h-5" />
                                                 </button>
                                             </div>

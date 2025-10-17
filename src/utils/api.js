@@ -77,7 +77,8 @@ const api = {
         getCourse: (params) => axiosInstance.get('/admin/courses', { params }),
         createCourse: (data) => axiosInstance.post('/admin/courses', data),
         getCourseById: (id) => axiosInstance.get(`/admin/courses/${id}`),
-        updateCourseById: (id, data) => axiosInstance.patch(`/admin/courses/update/${id}`, data)
+        updateCourseById: (id, data) => axiosInstance.patch(`/admin/courses/update/${id}`, data),
+        deleteCourseById: (id) => axiosInstance.delete(`/admin/courses/${id}/delete`)
 
         // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
     },
