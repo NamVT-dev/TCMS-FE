@@ -85,7 +85,8 @@ const api = {
     
     getShiftConfig: () => axiosInstance.get('/teacher/shift'),
     registerShift: (scheduleData) => axiosInstance.patch('/teacher/register-shift', scheduleData),
-    
+    getTeachCategories: () => axiosInstance.get('/teacher/categories'),
+    registerCategories: (categories) => axiosInstance.patch('/teacher/register-categories', { categories }),
   
   },
 };
