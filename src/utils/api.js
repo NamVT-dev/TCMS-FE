@@ -71,7 +71,8 @@ const api = {
         // API quản lý phòng học
         getRooms: (params) => axiosInstance.get('/admin/rooms', { params }),
         createRoom: (data) => axiosInstance.post('/admin/rooms', data),
-        updateRoom: (id, data) => axiosInstance.put(`/admin/rooms/update/${id}`, data),
+        updateRoom: (id, data) => axiosInstance.patch(`/admin/rooms/update/${id}`, data),
+        deleteRoomById: (id) => axiosInstance.delete(`/admin/rooms/${id}/delete`),
 
         // API quản lý khóa học
         getCourse: (params) => axiosInstance.get('/admin/courses', { params }),
