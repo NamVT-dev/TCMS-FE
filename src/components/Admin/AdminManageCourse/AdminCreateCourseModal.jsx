@@ -9,7 +9,7 @@ const AdminCreateCourseModal = ({ open, onClose, onSuccess }) => {
     const [submitting, setSubmitting] = useState(false);
     const handleOk = () => form.submit();
 
-    const LEVEL_OPTIONS = ["BEGINNER", "INTERMEDIATE", "ADVANCED"];
+    const LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced"];
     const CATEGORY_OPTIONS = ["IELTS", "TOEIC"];
     const { TextArea } = Input;
 

@@ -53,8 +53,8 @@ const AdminCourseDetailModal = ({ open, courseId, mode = "view", onClose, onUpda
                 name: values.name,
                 description: values.description?.trim(),
                 price: Number(values.price),
-                category: values.categories,
-                level: values.levels,
+                category: values.category,
+                level: values.level,
                 session: Number(values.session),
                 durationInMinutes: Number(values.durationInMinutes),
             });
