@@ -44,7 +44,7 @@ const api = {
     
     login: (credentials) => axiosInstance.post('auth/login', credentials),
 
-    signup: (data) => axiosInstance.post('auth/signup', data),
+    signup: (data) => axiosInstance.post('/auth/signup', data),
 
     logout: () => axiosInstance.get('auth/logout'),
     

@@ -12,37 +12,46 @@ export const UserProvider = ({ children }) => {
 
   
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (!token || !savedUser) {
-      if (window.location.pathname !== '/login') {
-        navigate('/login', { replace: true });
-      }
-      return;
-    }
+  const token = localStorage.getItem("token");
+  const savedUser = localStorage.getItem("user");
+  const currentPath = window.location.pathname;
 
-    try {
-      const userData = JSON.parse(savedUser);
-      setUser(userData);
-      
-      if (window.location.pathname === '/login' || window.location.pathname === '/') {
-        const { role } = userData;
-        const roleRoutes = {
-          admin: '/admin/overview',
-          teacher: '/teacher/overview',
-          student: '/student/overview',
-          parent: '/parent/overview'
-        };
-        navigate(roleRoutes[role] || '/login', { replace: true });
-      }
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      navigate('/login', { replace: true });
+  // ✅ Các route public (cho phép khi chưa đăng nhập)
+  const publicRoutes = ["/", "/login", "/register", "/about", "/contact", "/verify-otp"];
+
+  // ❌ Nếu chưa đăng nhập
+  if (!token || !savedUser) {
+    // Nếu không nằm trong publicRoutes → chuyển về "/"
+    if (!publicRoutes.includes(currentPath)) {
+      navigate("/", { replace: true });
     }
-  }, [navigate]);
+    return;
+  }
+
+  // ✅ Nếu đã đăng nhập
+  try {
+    const userData = JSON.parse(savedUser);
+    setUser(userData);
+
+    // Nếu đang ở các route public → tự redirect theo role
+    if (["/login", "/", "/register"].includes(currentPath)) {
+      const { role } = userData;
+      const roleRoutes = {
+        admin: "/admin/overview",
+        teacher: "/teacher/overview",
+        student: "/student/overview",
+        parent: "/parent/overview",
+      };
+      navigate(roleRoutes[role] || "/", { replace: true });
+    }
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/", { replace: true });
+  }
+}, [navigate]);
+
 
   
   useEffect(() => {
