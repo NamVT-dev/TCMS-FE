@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { KeyRound, RefreshCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
@@ -11,7 +11,22 @@ const VerifyOtp = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [timer, setTimer] = useState(60); // 60s countdown
+  const [canResend, setCanResend] = useState(false);
   const email = localStorage.getItem("pendingEmail");
+
+  // Countdown logic
+  useEffect(() => {
+    let interval;
+    if (!canResend && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (timer === 0) {
+      setCanResend(true);
+    }
+    return () => clearInterval(interval);
+  }, [timer, canResend]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -45,10 +60,13 @@ const VerifyOtp = () => {
   };
 
   const handleResend = async () => {
+    if (!canResend) return;
     setResending(true);
     try {
       await api.auth.resendConfirmEmail();
       toast.success("Đã gửi lại mã OTP!");
+      setCanResend(false);
+      setTimer(60); // reset timer
     } catch {
       toast.error("Không thể gửi lại mã OTP. Vui lòng thử lại sau.");
     } finally {
@@ -64,13 +82,21 @@ const VerifyOtp = () => {
           <h2 className="text-2xl font-bold text-gray-800">Xác minh Email</h2>
           <p className="text-gray-500 text-center text-sm">
             Mã OTP đã được gửi đến email{" "}
-            <span className="text-purple-600 font-semibold">{email || "(Không rõ email)"}</span>
+            <span className="text-purple-600 font-semibold">
+              {email || "(Không rõ email)"}
+            </span>
           </p>
         </div>
 
         {/* Thông báo */}
-        {message && <p className="text-green-600 text-center font-medium">{message}</p>}
-        {error && <p className="text-red-500 text-center font-medium">{error}</p>}
+        {message && (
+          <p className="text-green-600 text-center font-medium mb-2">
+            {message}
+          </p>
+        )}
+        {error && (
+          <p className="text-red-500 text-center font-medium mb-2">{error}</p>
+        )}
 
         <form onSubmit={handleVerify} className="space-y-4">
           <input
@@ -97,11 +123,19 @@ const VerifyOtp = () => {
         <div className="text-center mt-4">
           <button
             onClick={handleResend}
-            disabled={resending}
-            className="flex items-center justify-center gap-2 text-purple-600 hover:text-purple-800 text-sm font-medium"
+            disabled={!canResend || resending}
+            className={`flex items-center justify-center gap-2 text-sm font-medium ${
+              canResend
+                ? "text-purple-600 hover:text-purple-800"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
           >
             <RefreshCcw className="w-4 h-4" />
-            {resending ? "Đang gửi lại..." : "Gửi lại mã OTP"}
+            {resending
+              ? "Đang gửi lại..."
+              : canResend
+              ? "Gửi lại mã OTP"
+              : `Gửi lại sau ${timer}s`}
           </button>
         </div>
       </div>
