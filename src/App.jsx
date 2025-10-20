@@ -25,7 +25,7 @@ const App = () => {
             <Route
               path="/student/*"
               element={
-                <ProtectedRoute allowedRoles={['student']}>
+                <ProtectedRoute allowedRoles={['member']}>
                   <StudentDashboard />
                 </ProtectedRoute>
               }

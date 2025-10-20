@@ -2,6 +2,7 @@ import axios from "axios";
 
 
 
+
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
@@ -66,6 +67,8 @@ const api = {
     updateProfile: (data) => axiosInstance.patch('auth/profile', data),
 
     registerTest: (testData) => axiosInstance.post('test/register-test', testData),
+
+    getCourseCategories: () => axiosInstance.get('categories'),
   },
 
   admin: {

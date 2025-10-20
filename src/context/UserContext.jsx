@@ -39,7 +39,7 @@ export const UserProvider = ({ children }) => {
       const roleRoutes = {
         admin: "/admin/overview",
         teacher: "/teacher/overview",
-        student: "/student/overview",
+        member: "/student/overview",
         parent: "/parent/overview",
       };
       navigate(roleRoutes[role] || "/", { replace: true });
@@ -98,7 +98,7 @@ export const UserProvider = ({ children }) => {
         const roleRoutes = {
           admin: '/admin/overview',
           teacher: '/teacher/overview',
-          student: '/student/overview',
+          member: '/student/overview',
           parent: '/parent/overview'
         };
         navigate(roleRoutes[role] || '/login', { replace: true });
