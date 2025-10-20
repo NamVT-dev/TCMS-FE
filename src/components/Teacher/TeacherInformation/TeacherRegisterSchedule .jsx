@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../utils/api";
 
-
-
 const DAY_NAMES = [
   { id: 0, label: "CN" },
   { id: 1, label: "T2" },
@@ -13,27 +11,24 @@ const DAY_NAMES = [
   { id: 6, label: "T7" },
 ];
 
-const DEFAULT_SHIFT_KEYS = ["morning", "afternoon", "evening"];
 const SHIFT_LABELS = {
   morning: "Buổi sáng",
   afternoon: "Buổi chiều",
   evening: "Buổi tối",
 };
 
-const todayISO = () => new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+const todayISO = () => new Date().toISOString().slice(0, 10);
 
-// helper: ensure slot has {effective: {start:'', end:''}, shifts: []}
 const normalizeSlots = (rawSlots = []) =>
   (rawSlots || []).map((s) => ({
-    dayOfWeek:
-      typeof s.dayOfWeek === "number" ? s.dayOfWeek : Number(s.dayOfWeek || 0),
+    dayOfWeek: typeof s.dayOfWeek === "number" ? s.dayOfWeek : Number(s.dayOfWeek || 0),
     shifts: Array.isArray(s.shifts) ? s.shifts.slice() : [],
     effective:
       s.effective && (s.effective.start || s.effective.end)
         ? {
-          start: s.effective.start ? s.effective.start.slice(0, 10) : "",
-          end: s.effective.end ? s.effective.end.slice(0, 10) : "",
-        }
+            start: s.effective.start ? s.effective.start.slice(0, 10) : "",
+            end: s.effective.end ? s.effective.end.slice(0, 10) : "",
+          }
         : { start: "", end: "" },
   }));
 
@@ -42,47 +37,34 @@ export default function TeacherRegisterSchedule() {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState(null);
 
-  // Data
-  const [categories, setCategories] = useState([]); // all categories from API
-  const [selectedCategories, setSelectedCategories] = useState([]); // teacher's
-  const [slots, setSlots] = useState([]); // teacher availability slots
-  const [centerConfig, setCenterConfig] = useState(null); // getShiftConfig
+  const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [slots, setSlots] = useState([]);
+  const [centerConfig, setCenterConfig] = useState(null);
 
-  // --- initial load: teacher data + (optional) categories & config ---
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       setError(null);
       try {
-        // get teacher + basic categories & config if possible (we'll try all)
         const [meRes, catRes, cfgRes] = await Promise.allSettled([
           api.user.getMe(),
           api.teacher.getTeachCategories(),
           api.teacher.getShiftConfig(),
         ]);
 
-        // teacher
         if (meRes.status === "fulfilled") {
           const teacher = meRes.value?.data?.data?.data || {};
           setSelectedCategories(teacher.teachCategories || []);
           setSlots(normalizeSlots(teacher.availability || []));
-        } else {
-          // if fails, still continue (show empty)
-          console.error("getMe failed", meRes.reason);
         }
 
-        // categories
         if (catRes.status === "fulfilled") {
           setCategories(catRes.value?.data?.data?.categories || []);
-        } else {
-          console.warn("getTeachCategories failed", catRes.reason);
         }
 
-        // center config
         if (cfgRes.status === "fulfilled") {
           setCenterConfig(cfgRes.value?.data?.data?.config || null);
-        } else {
-          console.warn("getShiftConfig failed", cfgRes.reason);
         }
       } catch (err) {
         console.error(err);
@@ -95,86 +77,79 @@ export default function TeacherRegisterSchedule() {
     load();
   }, []);
 
-  // --- helpers to edit slots/categories ---
+  // Toggle môn giảng dạy
   const toggleCategory = (cat) =>
-    setSelectedCategories((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
 
-  // toggle day: add slot if not exist, remove if exists
+  // Thêm / xóa ngày
   const toggleDay = (dayId) => {
     if (!editing) return;
     setSlots((prev) => {
       const exists = prev.some((s) => s.dayOfWeek === dayId);
       if (exists) return prev.filter((s) => s.dayOfWeek !== dayId);
-      return [...prev, { dayOfWeek: dayId, shifts: [], effective: { start: "", end: "" } }];
+
+      // Lấy shift mặc định từ centerConfig cho ngày này
+      const defaultShifts =
+        centerConfig?.dayShifts?.find((d) => d.dayOfWeek === dayId)?.shifts || [];
+
+      return [
+        ...prev,
+        {
+          dayOfWeek: dayId,
+          shifts: defaultShifts,
+          effective: { start: todayISO(), end: "" },
+        },
+      ];
     });
   };
 
-  // toggle shift in a day
+  // Toggle ca trong ngày
   const toggleShift = (dayId, shiftKey) => {
     if (!editing) return;
     setSlots((prev) =>
       prev.map((s) =>
         s.dayOfWeek === dayId
           ? {
-            ...s,
-            shifts: s.shifts.includes(shiftKey) ? s.shifts.filter((sh) => sh !== shiftKey) : [...s.shifts, shiftKey],
-          }
+              ...s,
+              shifts: s.shifts.includes(shiftKey)
+                ? s.shifts.filter((sh) => sh !== shiftKey)
+                : [...s.shifts, shiftKey],
+            }
           : s
       )
     );
   };
 
-  // change effective date
   const setEffective = (dayId, field, value) => {
     if (!editing) return;
-    setSlots((prev) => prev.map((s) => (s.dayOfWeek === dayId ? { ...s, effective: { ...s.effective, [field]: value } } : s)));
+    setSlots((prev) =>
+      prev.map((s) =>
+        s.dayOfWeek === dayId
+          ? { ...s, effective: { ...s.effective, [field]: value } }
+          : s
+      )
+    );
   };
 
-  // determine which shift keys to render (based on center config if any)
-  const shiftKeysToRender = () => {
-    if (centerConfig && Array.isArray(centerConfig.shifts)) {
-      // prefer the order from centerConfig
-      return centerConfig.shifts.map((s) => s.name);
-    }
-    return DEFAULT_SHIFT_KEYS;
-  };
-
-  // check whether a slot should be shown as "active now" in the current calendar (if effective exists)
-  const slotIsCurrentlyActive = (slot) => {
-    if (!slot) return false;
-    // if no effective set -> treat always active
-    const start = slot.effective?.start || "";
-    const end = slot.effective?.end || "";
-    if (!start && !end) return true;
-    const today = todayISO();
-    if (start && today < start) return false;
-    if (end && today > end) return false;
-    return true;
-  };
-
-  // format payload for registerShift: include effective only if any
   const buildShiftPayloadSlots = () =>
     slots.map((s) => {
       const out = { dayOfWeek: s.dayOfWeek, shifts: s.shifts || [] };
-      if (s.effective && (s.effective.start || s.effective.end)) out.effective = { ...s.effective };
+      if (s.effective && (s.effective.start || s.effective.end))
+        out.effective = { ...s.effective };
       return out;
     });
 
-  // Save changes
   const handleSave = async () => {
     setLoading(true);
     try {
-      // categories
       await api.teacher.registerCategories(selectedCategories);
-      // shifts (with effective)
       await api.teacher.registerShift({ slots: buildShiftPayloadSlots() });
-
-      // reload teacher data to reflect changes
       const meRes = await api.user.getMe();
       const teacher = meRes?.data?.data?.data || {};
       setSelectedCategories(teacher.teachCategories || []);
       setSlots(normalizeSlots(teacher.availability || []));
-
       setEditing(false);
       alert("Đã lưu thay đổi.");
     } catch (err) {
@@ -185,7 +160,6 @@ export default function TeacherRegisterSchedule() {
     }
   };
 
-  // Cancel: reload teacher data to discard changes
   const handleCancel = async () => {
     setLoading(true);
     try {
@@ -202,29 +176,48 @@ export default function TeacherRegisterSchedule() {
     }
   };
 
-  // Derived lists
-  // showDays: order days by 0..6, find slots present
-  const slotsByDayId = Object.fromEntries((slots || []).map((s) => [s.dayOfWeek, s]));
-  const currentVisibleSlots = (slots || []).filter((s) => slotIsCurrentlyActive(s)).sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+  const slotIsCurrentlyActive = (slot) => {
+    if (!slot) return false;
+    const start = slot.effective?.start || "";
+    const end = slot.effective?.end || "";
+    const today = todayISO();
+    if (!start && !end) return true;
+    if (start && today < start) return false;
+    if (end && today > end) return false;
+    return true;
+  };
+
+  const slotsByDayId = Object.fromEntries(
+    (slots || []).map((s) => [s.dayOfWeek, s])
+  );
+
+  const currentVisibleSlots = (slots || [])
+    .filter((s) => slotIsCurrentlyActive(s))
+    .sort((a, b) => a.dayOfWeek - b.dayOfWeek);
 
   if (loading) return <div className="p-8 text-center text-gray-600">Đang tải...</div>;
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
 
-  const shiftKeys = shiftKeysToRender();
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow p-6">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">{editing ? "Cập nhật lịch giảng dạy" : "Lịch giảng dạy"}</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          {editing ? "Cập nhật lịch giảng dạy" : "Lịch giảng dạy"}
+        </h2>
 
-        {/* --- categories (teachCategories) --- */}
+        {/* --- Môn giảng dạy --- */}
         <section className="mb-6">
           <h3 className="text-lg font-medium text-gray-700 mb-2">Môn giảng dạy</h3>
           {!editing ? (
-            selectedCategories && selectedCategories.length ? (
+            selectedCategories?.length ? (
               <div className="flex flex-wrap gap-2">
                 {selectedCategories.map((c) => (
-                  <span key={c} className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-sm">{c}</span>
+                  <span
+                    key={c}
+                    className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-sm"
+                  >
+                    {c}
+                  </span>
                 ))}
               </div>
             ) : (
@@ -232,8 +225,11 @@ export default function TeacherRegisterSchedule() {
             )
           ) : (
             <div className="flex flex-wrap gap-3">
-              {(categories || []).map((c) => (
-                <label key={c} className="flex items-center gap-2 px-3 py-1 border rounded hover:bg-sky-50 cursor-pointer">
+              {categories.map((c) => (
+                <label
+                  key={c}
+                  className="flex items-center gap-2 px-3 py-1 border rounded hover:bg-sky-50 cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     checked={selectedCategories.includes(c)}
@@ -247,16 +243,25 @@ export default function TeacherRegisterSchedule() {
           )}
         </section>
 
-        {/* --- choose days --- */}
+        {/* --- Chọn ngày --- */}
         <section className="mb-6">
           <h3 className="text-lg font-medium text-gray-700 mb-2">Chọn ngày trong tuần</h3>
           <div className="flex flex-wrap gap-3">
             {DAY_NAMES.filter(
-              d => !centerConfig?.activeDaysOfWeek || centerConfig.activeDaysOfWeek.includes(d.id)
+              (d) =>
+                !centerConfig?.activeDaysOfWeek ||
+                centerConfig.activeDaysOfWeek.includes(d.id)
             ).map((d) => {
               const isActive = !!slotsByDayId[d.id];
               return (
-                <label key={d.id} className={`flex items-center gap-2 px-3 py-1 rounded-lg cursor-pointer border ${isActive ? "bg-sky-600 text-white border-sky-600" : "bg-white text-gray-700 border-gray-200"}`}>
+                <label
+                  key={d.id}
+                  className={`flex items-center gap-2 px-3 py-1 rounded-lg cursor-pointer border ${
+                    isActive
+                      ? "bg-sky-600 text-white border-sky-600"
+                      : "bg-white text-gray-700 border-gray-200"
+                  }`}
+                >
                   <input
                     type="checkbox"
                     checked={isActive}
@@ -271,11 +276,9 @@ export default function TeacherRegisterSchedule() {
           </div>
         </section>
 
-        {/* --- cards for each selected day (only show selected ones) --- */}
+        {/* --- Thiết lập theo ngày --- */}
         <section className="mb-6">
           <h3 className="text-lg font-medium text-gray-700 mb-3">Thiết lập theo ngày đã chọn</h3>
-
-          {/* if no selected days */}
           {slots.length === 0 && <p className="text-gray-500">Chưa có ngày nào được chọn.</p>}
 
           <div className="space-y-4">
@@ -283,7 +286,12 @@ export default function TeacherRegisterSchedule() {
               .slice()
               .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
               .map((slot) => {
-                const dayLabel = DAY_NAMES.find((d) => d.id === slot.dayOfWeek)?.label || slot.dayOfWeek;
+                const dayLabel = DAY_NAMES.find((d) => d.id === slot.dayOfWeek)?.label;
+                // shift khả dụng theo config
+                const availableShifts =
+                  centerConfig?.dayShifts?.find((d) => d.dayOfWeek === slot.dayOfWeek)?.shifts ||
+                  [];
+
                 return (
                   <div key={slot.dayOfWeek} className="bg-gray-50 border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
@@ -293,23 +301,32 @@ export default function TeacherRegisterSchedule() {
 
                     {/* shifts */}
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {shiftKeys.map((sk) => {
-                        const checked = (slot.shifts || []).includes(sk);
-                        const allowedByCenter = centerConfig?.activeDaysOfWeek ? centerConfig.activeDaysOfWeek.includes(slot.dayOfWeek) : true;
-                        // if center disables that day entirely, we still allow editing - but you might want stricter behavior
-                        return (
-                          <label key={sk} className={`px-3 py-1 rounded-lg border cursor-pointer ${checked ? "bg-sky-600 text-white border-sky-600" : "bg-white text-gray-700 border-gray-200"}`}>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() => toggleShift(slot.dayOfWeek, sk)}
-                              disabled={!editing || !allowedByCenter}
-                              className="hidden"
-                            />
-                            <span className="text-sm">{SHIFT_LABELS[sk] || sk}</span>
-                          </label>
-                        );
-                      })}
+                      {availableShifts.length === 0 ? (
+                        <p className="text-gray-500 text-sm">Không có ca nào cho ngày này.</p>
+                      ) : (
+                        availableShifts.map((sk) => {
+                          const checked = slot.shifts.includes(sk);
+                          return (
+                            <label
+                              key={sk}
+                              className={`px-3 py-1 rounded-lg border cursor-pointer ${
+                                checked
+                                  ? "bg-sky-600 text-white border-sky-600"
+                                  : "bg-white text-gray-700 border-gray-200"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleShift(slot.dayOfWeek, sk)}
+                                disabled={!editing}
+                                className="hidden"
+                              />
+                              <span className="text-sm">{SHIFT_LABELS[sk] || sk}</span>
+                            </label>
+                          );
+                        })
+                      )}
                     </div>
 
                     {/* effective */}
@@ -318,7 +335,9 @@ export default function TeacherRegisterSchedule() {
                         <div className="text-sm text-gray-600 mb-1">Bắt đầu (start)</div>
                         <input
                           value={slot.effective?.start || ""}
-                          onChange={(e) => setEffective(slot.dayOfWeek, "start", e.target.value)}
+                          onChange={(e) =>
+                            setEffective(slot.dayOfWeek, "start", e.target.value)
+                          }
                           type="date"
                           disabled={!editing}
                           className="w-full border rounded px-3 py-2"
@@ -328,7 +347,9 @@ export default function TeacherRegisterSchedule() {
                         <div className="text-sm text-gray-600 mb-1">Kết thúc (end)</div>
                         <input
                           value={slot.effective?.end || ""}
-                          onChange={(e) => setEffective(slot.dayOfWeek, "end", e.target.value)}
+                          onChange={(e) =>
+                            setEffective(slot.dayOfWeek, "end", e.target.value)
+                          }
                           type="date"
                           disabled={!editing}
                           className="w-full border rounded px-3 py-2"
@@ -341,21 +362,23 @@ export default function TeacherRegisterSchedule() {
           </div>
         </section>
 
-        {/* --- Lịch hiện tại (only show slots active today within effective) --- */}
+        {/* --- Lịch hiện tại --- */}
         <section className="mb-6">
-          <h3 className="text-lg font-medium text-gray-700 mb-2">Lịch hiện tại (những ngày đang có hiệu lực)</h3>
+          <h3 className="text-lg font-medium text-gray-700 mb-2">Lịch hiện tại (đang có hiệu lực)</h3>
           {currentVisibleSlots.length === 0 ? (
-            <p className="text-gray-500">Hiện không có lịch nào đang trong khoảng hiệu lực.</p>
+            <p className="text-gray-500">Hiện không có lịch nào trong khoảng hiệu lực.</p>
           ) : (
             <div className="grid gap-3">
               {currentVisibleSlots.map((s) => {
-                const dayLabel = DAY_NAMES.find((d) => d.id === s.dayOfWeek)?.label || s.dayOfWeek;
+                const dayLabel = DAY_NAMES.find((d) => d.id === s.dayOfWeek)?.label;
                 return (
                   <div key={s.dayOfWeek} className="flex items-center justify-between border rounded px-4 py-2 bg-white">
                     <div>
                       <div className="text-sm font-medium text-gray-800">{dayLabel}</div>
                       <div className="text-sm text-gray-600">
-                        {s.shifts && s.shifts.length ? s.shifts.map((k) => SHIFT_LABELS[k] || k).join(", ") : "Không có ca"}
+                        {s.shifts.length
+                          ? s.shifts.map((k) => SHIFT_LABELS[k] || k).join(", ")
+                          : "Không có ca"}
                       </div>
                     </div>
                     <div className="text-sm text-gray-500">
@@ -370,7 +393,7 @@ export default function TeacherRegisterSchedule() {
           )}
         </section>
 
-        {/* buttons */}
+        {/* --- Buttons --- */}
         <div className="flex justify-end gap-3">
           {!editing ? (
             <button
@@ -381,8 +404,18 @@ export default function TeacherRegisterSchedule() {
             </button>
           ) : (
             <>
-              <button onClick={handleCancel} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Hủy</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700">Lưu thay đổi</button>
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
+              >
+                Lưu thay đổi
+              </button>
             </>
           )}
         </div>
