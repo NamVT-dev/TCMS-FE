@@ -52,16 +52,29 @@ const AdminViewTimeWorkingCenter = () => {
     }
   };
 
-  // ✅ Toggle chọn ngày hoạt động
-  const toggleDay = (index) => {
-    setConfig((prev) => {
-      const isActive = prev.activeDaysOfWeek.includes(index);
-      const newDays = isActive
-        ? prev.activeDaysOfWeek.filter((d) => d !== index)
-        : [...prev.activeDaysOfWeek, index];
-      return { ...prev, activeDaysOfWeek: newDays.sort((a, b) => a - b) };
-    });
-  };
+  //  Toggle chọn ngày hoạt động
+
+const toggleDay = (index) => {
+  setConfig((prev) => {
+    const isActive = prev.activeDaysOfWeek.includes(index);
+    let newDays;
+    let newDayShifts = [...prev.dayShifts];
+
+    if (isActive) {
+      
+      newDays = prev.activeDaysOfWeek.filter((d) => d !== index);
+      newDayShifts = newDayShifts.map((d) =>
+        d.dayOfWeek === index ? { ...d, shifts: [] } : d
+      );
+    } else {
+      
+      newDays = [...prev.activeDaysOfWeek, index];
+    }
+
+    return { ...prev, activeDaysOfWeek: newDays.sort((a, b) => a - b), dayShifts: newDayShifts };
+  });
+};
+
 
   // ✅ Cập nhật giờ từng ca
   const handleShiftTimeChange = (shift, field, value) => {
