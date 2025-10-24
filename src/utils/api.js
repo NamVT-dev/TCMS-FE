@@ -1,8 +1,5 @@
 import axios from "axios";
 
-
-
-
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 10000,
@@ -11,7 +8,6 @@ const axiosInstance = axios.create({
         'Content-Type': 'application/json'
     }
 });
-
 
 axiosInstance.interceptors.request.use(
     (config) => {
@@ -23,7 +19,6 @@ axiosInstance.interceptors.request.use(
     },
     (error) => Promise.reject(error)
 );
-
 
 axiosInstance.interceptors.response.use(
     (response) => response,
@@ -37,66 +32,37 @@ axiosInstance.interceptors.response.use(
     }
 );
 
-
-
 const api = {
     // --- Nhóm API Xác thực ---
     auth: {
-
         login: (credentials) => axiosInstance.post('auth/login', credentials),
-
-    signup: (data) => axiosInstance.post('/auth/signup', data),
         signup: (data) => axiosInstance.post('auth/signup', data),
-
         logout: () => axiosInstance.get('auth/logout'),
-
         confirmEmail: (pin) => axiosInstance.get(`auth/confirmEmail/${pin}`),
-
         resendConfirmEmail: () => axiosInstance.get('auth/resendConfirmEmail'),
-
         forgotPassword: (email) => axiosInstance.post('auth/forgotPassword', { email }),
-
         resetPassword: (data) => axiosInstance.post('auth/resetPassword', data),
     },
 
     // --- Nhóm API Người dùng ---
     user: {
         getMe: () => axiosInstance.get('auth/profile'),
-
         updatePassword: (data) => axiosInstance.patch('auth/updatePassword', data),
-
-    updateProfile: (data) => axiosInstance.patch('auth/profile', data),
-
-    registerTest: (testData) => axiosInstance.post('test/register-test', testData),
-
-    getCourseCategories: () => axiosInstance.get('categories'),
-  },
         updateProfile: (data) => axiosInstance.patch('auth/profile', data),
+        registerTest: (testData) => axiosInstance.post('test/register-test', testData),
+        getCourseCategories: () => axiosInstance.get('categories'),
     },
 
-  admin: {
-    getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
-
-    getTeacherDetail: (id) => axiosInstance.get(`/admin/teachers/${id}`),
-    
-    center: {
-       getConfig: () => axiosInstance.get("/admin/center/config"),
-
-      updateConfig: (data) => axiosInstance.patch("/admin/center/config", data),
-    }
-    // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
-  },
-
-  teacher: {
-    
-    getShiftConfig: () => axiosInstance.get('/teacher/shift'),
-    registerShift: (scheduleData) => axiosInstance.patch('/teacher/register-shift', scheduleData),
-    getTeachCategories: () => axiosInstance.get('/teacher/categories'),
-    registerCategories: (categories) => axiosInstance.patch('/teacher/register-categories', { categories }),
-  
-  },
+    // --- Nhóm API Admin ---
     admin: {
         getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
+        getTeacherDetail: (id) => axiosInstance.get(`/admin/teachers/${id}`),
+        
+        // API quản lý cấu hình trung tâm
+        center: {
+            getConfig: () => axiosInstance.get("/admin/center/config"),
+            updateConfig: (data) => axiosInstance.patch("/admin/center/config", data),
+        },
 
         // API quản lý phòng học
         getRooms: (params) => axiosInstance.get('/admin/rooms', { params }),
@@ -109,12 +75,16 @@ const api = {
         createCourse: (data) => axiosInstance.post('/admin/courses', data),
         getCourseById: (id) => axiosInstance.get(`/admin/courses/${id}`),
         updateCourseById: (id, data) => axiosInstance.patch(`/admin/courses/update/${id}`, data),
-        deleteCourseById: (id) => axiosInstance.delete(`/admin/courses/${id}/delete`)
-
-        // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
+        deleteCourseById: (id) => axiosInstance.delete(`/admin/courses/${id}/delete`),
     },
-    // --- Thêm các nhóm API khác ở đây khi cần ---
 
+    // --- Nhóm API Giáo viên ---
+    teacher: {
+        getShiftConfig: () => axiosInstance.get('/teacher/shift'),
+        registerShift: (scheduleData) => axiosInstance.patch('/teacher/register-shift', scheduleData),
+        getTeachCategories: () => axiosInstance.get('/teacher/categories'),
+        registerCategories: (categories) => axiosInstance.patch('/teacher/register-categories', { categories }),
+    },
 };
 
 export default api;
