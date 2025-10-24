@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     const roleRoutes = {
       admin: '/admin/overview',
       teacher: '/teacher/overview',
-      student: '/student/overview',
+      member: '/student/overview',
       parent: '/parent/overview'
     };
 

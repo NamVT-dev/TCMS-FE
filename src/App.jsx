@@ -7,6 +7,7 @@ import AdminDashboard from "./pages/Dashboard/AdminDashboard";
 import HomePage from "./pages/Homepage/HomePage";
 import { UserProvider } from "./context/UserContext";
 import ProtectedRoute from "./hooks/ProtectedRoute";
+import VerifyOtp from "./pages/Auth/VerifyOtp ";
 
 const App = () => {
   return (
@@ -17,12 +18,14 @@ const App = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginForm />} />
             <Route path="/register" element={<RegisterForm />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />  
+
             
             {/* Protected Routes */}
             <Route
               path="/student/*"
               element={
-                <ProtectedRoute allowedRoles={['student']}>
+                <ProtectedRoute allowedRoles={['member']}>
                   <StudentDashboard />
                 </ProtectedRoute>
               }

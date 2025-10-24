@@ -1,6 +1,8 @@
 import axios from "axios";
 
 
+
+
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 10000,
@@ -43,6 +45,7 @@ const api = {
 
         login: (credentials) => axiosInstance.post('auth/login', credentials),
 
+    signup: (data) => axiosInstance.post('/auth/signup', data),
         signup: (data) => axiosInstance.post('auth/signup', data),
 
         logout: () => axiosInstance.get('auth/logout'),
@@ -62,9 +65,36 @@ const api = {
 
         updatePassword: (data) => axiosInstance.patch('auth/updatePassword', data),
 
+    updateProfile: (data) => axiosInstance.patch('auth/profile', data),
+
+    registerTest: (testData) => axiosInstance.post('test/register-test', testData),
+
+    getCourseCategories: () => axiosInstance.get('categories'),
+  },
         updateProfile: (data) => axiosInstance.patch('auth/profile', data),
     },
 
+  admin: {
+    getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
+
+    getTeacherDetail: (id) => axiosInstance.get(`/admin/teachers/${id}`),
+    
+    center: {
+       getConfig: () => axiosInstance.get("/admin/center/config"),
+
+      updateConfig: (data) => axiosInstance.patch("/admin/center/config", data),
+    }
+    // Thêm các hàm khác cho admin ở đây (ví dụ: getStudents, getCourses...)
+  },
+
+  teacher: {
+    
+    getShiftConfig: () => axiosInstance.get('/teacher/shift'),
+    registerShift: (scheduleData) => axiosInstance.patch('/teacher/register-shift', scheduleData),
+    getTeachCategories: () => axiosInstance.get('/teacher/categories'),
+    registerCategories: (categories) => axiosInstance.patch('/teacher/register-categories', { categories }),
+  
+  },
     admin: {
         getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
 

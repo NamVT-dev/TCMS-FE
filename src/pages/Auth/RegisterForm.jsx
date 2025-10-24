@@ -1,197 +1,139 @@
 import React, { useState } from "react";
-import { Eye, EyeOff, Mail, Lock, BookOpen, User, Phone } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, BookOpen, User, Phone, Calendar, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import toast from "react-hot-toast";
 
 const RegisterForm = () => {
   const navigate = useNavigate();
+  const { signup } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(""); // ✅ Thông báo thành công
+  const [error, setError] = useState(""); // ✅ Thông báo lỗi
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    phoneNumber: "",
+    dob: "",
+    role: "student",
     password: "",
-    confirmPassword: "",
+    passwordConfirm: "",
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Register attempt:", formData);
+  const handleChange = (e) => {
+    setError("");
+    setMessage("");
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (formData.password !== formData.passwordConfirm) {
+      setError("Mật khẩu xác nhận không khớp!");
+      toast.error("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+      setMessage("");
+
+      const success = await signup(formData);
+
+      if (success) {
+        toast.success("Đăng ký thành công!");
+        setMessage("✅ Đăng ký thành công! Vui lòng xác thực OTP trong email của bạn...");
+        localStorage.setItem("pendingEmail", formData.email);
+
+        // ⏳ Delay 1.5s rồi điều hướng sang trang nhập OTP
+        setTimeout(() => navigate("/verify-otp"), 1500);
+      } else {
+        setError("Không thể đăng ký. Vui lòng thử lại sau!");
+      }
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || "Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen w-full flex bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900">
-      {/* Left side - Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center">
         <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl px-8 py-10 space-y-6">
-          {/* Logo Section */}
+          {/* Logo */}
           <div className="flex flex-col items-center space-y-3">
             <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full flex items-center justify-center shadow-lg">
-                <BookOpen className="w-10 h-10 text-white" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-full"></div>
-              </div>
+              
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
               TutorCenter
             </h1>
-            <p className="text-gray-500 text-sm tracking-wide">
-              ENGLISH LEARNING CENTER
-            </p>
+            {/* <p className="text-gray-500 text-sm tracking-wide">ENGLISH LEARNING CENTER</p> */}
           </div>
 
-          {/* Welcome Text */}
           <div className="text-center space-y-1">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800">
-              Tạo tài khoản mới!
-            </h2>
-            <p className="text-gray-500 text-sm">
-              Đăng ký để bắt đầu hành trình học tập
-            </p>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800">Tạo tài khoản mới!</h2>
+            <p className="text-gray-500 text-sm">Đăng ký để bắt đầu hành trình học tập</p>
           </div>
 
-          {/* Register Form */}
+          {/* Thông báo */}
+          {message && <p className="text-green-600 text-center font-medium">{message}</p>}
+          {error && <p className="text-red-500 text-center font-medium">{error}</p>}
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 block">
-                Họ và tên
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Nguyễn Văn A"
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  required
-                />
-              </div>
-            </div>
+            <InputField label="Họ và tên" icon={<User />} name="name" type="text"
+              placeholder="Nguyễn Văn A" value={formData.name} onChange={handleChange} required />
+            <InputField label="Email" icon={<Mail />} name="email" type="email"
+              placeholder="your.email@example.com" value={formData.email} onChange={handleChange} required />
+            <InputField label="Số điện thoại" icon={<Phone />} name="phoneNumber" type="tel"
+              placeholder="0123456789" value={formData.phoneNumber} onChange={handleChange} required />
+            <InputField label="Ngày sinh" icon={<Calendar />} name="dob" type="date"
+              value={formData.dob} onChange={handleChange} required />
 
-            {/* Email Input */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 block">
-                Email
-              </label>
+              <label className="text-sm font-medium text-gray-700 block">Vai trò</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <select
+                  name="role"
+                  value={formData.role}
                   onChange={handleChange}
-                  placeholder="your.email@example.com"
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Phone Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 block">
-                Số điện thoại
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="0123456789"
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Password Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 block">
-                Mật khẩu
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
+                  <option value="student">Học viên</option>
+                  <option value="parent">Phụ huynh</option>
+                </select>
               </div>
             </div>
 
-            {/* Confirm Password Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 block">
-                Xác nhận mật khẩu
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-            </div>
+            <PasswordField label="Mật khẩu" name="password" value={formData.password}
+              onChange={handleChange} show={showPassword} setShow={setShowPassword} />
+            <PasswordField label="Xác nhận mật khẩu" name="passwordConfirm" value={formData.passwordConfirm}
+              onChange={handleChange} show={showConfirmPassword} setShow={setShowConfirmPassword} />
 
-            {/* Register Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
-              Đăng ký
+              {loading ? "Đang xử lý..." : "Đăng ký"}
             </button>
           </form>
 
-          {/* Sign In Link */}
           <p className="text-center text-sm text-gray-600">
             Đã có tài khoản?{" "}
             <button
               onClick={() => navigate("/login")}
-              className="inline-block px-3 py-1 text-purple-600 hover:text-white font-semibold 
-              hover:bg-purple-600 rounded-lg transition-all duration-200 ease-in-out 
-              hover:shadow-md active:transform active:translate-y-0.5"
+              className="inline-block px-3 py-1 text-purple-600 hover:text-white font-semibold hover:bg-purple-600 rounded-lg transition-all"
             >
               Đăng nhập ngay
             </button>
@@ -199,16 +141,43 @@ const RegisterForm = () => {
         </div>
       </div>
 
-      {/* Right side - Image */}
       <div className="hidden md:block md:w-1/2">
-        <img
-          src="/images/banner.png"
-          alt="Register Illustration"
-          className="w-full h-full object-cover rounded-l-[32px]"
-        />
+        <img src="/images/banner.png" alt="Register Illustration" className="w-full h-full object-cover rounded-l-[32px]" />
       </div>
     </div>
   );
 };
+
+/* ========== Sub Components ========== */
+const InputField = ({ label, icon, ...props }) => (
+  <div className="space-y-2">
+    <label className="text-sm font-medium text-gray-700 block">{label}</label>
+    <div className="relative">
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{icon}</div>
+      <input {...props} className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500" />
+    </div>
+  </div>
+);
+
+const PasswordField = ({ label, name, value, onChange, show, setShow }) => (
+  <div className="space-y-2">
+    <label className="text-sm font-medium text-gray-700 block">{label}</label>
+    <div className="relative">
+      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <input
+        type={show ? "text" : "password"}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder="••••••••"
+        className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
+        required
+      />
+      <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+        {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+      </button>
+    </div>
+  </div>
+);
 
 export default RegisterForm;

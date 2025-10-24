@@ -11,6 +11,7 @@ import AdminViewClassList from '../../components/Admin/AdminManageClass/AdminVie
 import AdminCreateClass from '../../components/Admin/AdminManageClass/AdminCreateClass';
 import AdminViewRoomList from '../../components/Admin/AdminManageRoom/AdminViewRoomList';
 import AdminViewEnrollmentList from '../../components/Admin/AdminManageUser/AdminManageEnrollment/AdminViewEnrollList';
+import AdminViewTimeWorkingCenter from '../../components/Admin/AdminManageRoom/AdminViewTimeWorkingCenter';
 import AdminViewCourseList from '../../components/Admin/AdminManageCourse/AdminViewCourseList';
 
 const AdminDashboard = () => {
@@ -43,11 +44,14 @@ const AdminDashboard = () => {
             <Route path="/overview" element={<AdminOverview />} />
             <Route path="/users/students" element={<AdminViewStudentList />} />
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
+            
             <Route path="/users/parents" element={<AdminViewParentList />} />
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
             <Route path="/classes" element={<AdminViewClassList />} />
             <Route path="/classes/create" element={<AdminCreateClass />} />
             <Route path="/facility/rooms" element={<AdminViewRoomList />} />
+            <Route path="/facility/working-hours" element={<AdminViewTimeWorkingCenter />} />
+
             <Route path="/courses" element={<AdminViewCourseList />} />
             
             {/* Add other routes here matching your sidebar paths */}
