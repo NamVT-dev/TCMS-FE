@@ -1,84 +1,96 @@
 import { createContext, useEffect, useState } from "react";
-
 import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
 
 const UserContext = createContext();
 
+// 💡 HÀM KIỂM TRA ROUTE ĐỘNG BẰNG REGEX (GIỮ NGUYÊN)
+const isPublicRoute = (path, publicRoutes) => {
+    const regexRoutes = publicRoutes.map(route => {
+        return new RegExp("^" + route.replace(/\//g, "\\/").replace(/:\w+/g, "[^/]+") + "$");
+    });
+    return regexRoutes.some(regex => regex.test(path));
+};
+
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+    // Vẫn cần loading để chặn dashboard khi user chưa tải xong
+    const [loading, setLoading] = useState(true); 
+    const navigate = useNavigate();
 
-  
-  useEffect(() => {
-  const token = localStorage.getItem("token");
-  const savedUser = localStorage.getItem("user");
-  const currentPath = window.location.pathname;
-
-  // ✅ Các route public (cho phép khi chưa đăng nhập)
-  const publicRoutes = ["/", "/login", "/register", "/about", "/contact", "/verify-otp"];
-
-  // ❌ Nếu chưa đăng nhập
-  if (!token || !savedUser) {
-    // Nếu không nằm trong publicRoutes → chuyển về "/"
-    if (!publicRoutes.includes(currentPath)) {
-      navigate("/", { replace: true });
-    }
-    return;
-  }
-
-  // ✅ Nếu đã đăng nhập
-  try {
-    const userData = JSON.parse(savedUser);
-    setUser(userData);
-
-    // Nếu đang ở các route public → tự redirect theo role
-    if (["/login", "/", "/register"].includes(currentPath)) {
-      const { role } = userData;
-      const roleRoutes = {
-        admin: "/admin/overview",
-        teacher: "/teacher/overview",
-        member: "/student/overview",
-        parent: "/parent/overview",
-      };
-      navigate(roleRoutes[role] || "/", { replace: true });
-    }
-  } catch (error) {
-    console.error("Error parsing user data:", error);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/", { replace: true });
-  }
-}, [navigate]);
+    // ✅ Các route public
+   const publicRoutes = [
+  "/",
+  "/login",
+  "/register",
+  "/about",
+  "/contact",
+  "/verify-otp",
+  "/courses/:id"
+];
 
 
-  
-  useEffect(() => {
-    async function fetchUser() {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-      try {
-        console.log('Fetching user profile...');
-        
-        const res = await api.user.getMe();
-        const userData = res.data.data.data;
-        if (userData) {
-          console.log('User profile loaded:', userData);
-          setUser(userData);
-          localStorage.setItem('user', JSON.stringify(userData)); // Đồng bộ lại localStorage
+    // 1. TÁC VỤ KHỞI TẠO ĐƠN LẺ: Gộp logic kiểm tra Auth, Redirect, và Fetch User
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const savedUser = localStorage.getItem("user");
+        const currentPath = window.location.pathname;
+
+        async function fetchUserAndSetup() {
+            if (!token) {
+                // CASE 1: KHÔNG CÓ TOKEN (GUEST)
+                setUser(null);
+                setLoading(false); // 🔑 KEY FIX: Đặt loading = false ngay lập tức cho Guest!
+
+                if (!isPublicRoute(currentPath, publicRoutes)) {
+                    navigate("/", { replace: true });
+                }
+                return;
+            }
+
+            // CASE 2: CÓ TOKEN (MEMBER)
+            try {
+                // Thử tải từ localStorage trước để render nhanh hơn (nếu có)
+                const localUser = JSON.parse(savedUser);
+                setUser(localUser); 
+                
+                // Fetch dữ liệu mới nhất từ server
+                const res = await api.user.getMe();
+                const userData = res.data.data.data;
+                
+                if (userData) {
+                    setUser(userData);
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    
+                    // Logic Redirect sau khi đã đăng nhập
+                    if (["/login", "/", "/register"].includes(currentPath)) { 
+                        const { role } = userData;
+                        const roleRoutes = {
+                            admin: "/admin/overview",
+                            teacher: "/teacher/overview",
+                            member: "/student/overview",
+                            parent: "/parent/overview",
+                        };
+                        navigate(roleRoutes[role] || "/", { replace: true });
+                    }
+                }
+            } catch (error) {
+                // Xử lý lỗi token hết hạn/không hợp lệ
+                console.error('Auth error, clearing session:', error);
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                setUser(null);
+                
+                if (!isPublicRoute(currentPath, publicRoutes)) {
+                     navigate("/", { replace: true }); // Chuyển hướng nếu đang ở private route
+                }
+            } finally {
+                setLoading(false); // 🔑 KEY FIX: Đặt loading = false sau khi API GẤP hoàn tất.
+            }
         }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchUser();
-  }, []);
+        
+        fetchUserAndSetup();
+    }, [navigate]);
 
   const login = async (email, password) => {
     try {

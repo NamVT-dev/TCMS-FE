@@ -8,6 +8,7 @@ import HomePage from "./pages/Homepage/HomePage";
 import { UserProvider } from "./context/UserContext";
 import ProtectedRoute from "./hooks/ProtectedRoute";
 import VerifyOtp from "./pages/Auth/VerifyOtp ";
+import GuestViewCourseDetail from "./pages/Homepage/GuestViewCourseDetail";
 
 const App = () => {
   return (
@@ -19,6 +20,8 @@ const App = () => {
             <Route path="/login" element={<LoginForm />} />
             <Route path="/register" element={<RegisterForm />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />  
+            <Route path="/courses/:id" element={<GuestViewCourseDetail />} />
+
 
             
             {/* Protected Routes */}
