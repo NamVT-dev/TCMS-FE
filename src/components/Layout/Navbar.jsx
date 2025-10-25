@@ -4,6 +4,7 @@ import { BookOpen, User, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
 
+
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -50,7 +51,7 @@ const Navbar = () => {
       buttonText: 'text-purple-700',
     },
     // Member sử dụng màu của Admin
-    member: { 
+    member: {
       from: 'from-purple-600',
       to: 'to-purple-800',
       border: 'border-purple-500',
@@ -72,7 +73,7 @@ const Navbar = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await api.user.getCourses(); 
+        const res = await api.user.getCourses();
         const courses = res.data.data.courses || [];
         const grouped = courses.reduce((acc, course) => {
           const cat = course.category || 'Khác';
@@ -99,7 +100,7 @@ const Navbar = () => {
       ) {
         setOpenMenu(null);
       }
-      
+
       // Logic đóng dropdown User
       if (
         dropdownOpen &&
@@ -172,9 +173,8 @@ const Navbar = () => {
                 <button className="flex items-center space-x-1 text-gray-700 hover:text-current font-medium py-2">
                   <span className={`hover:${colors.text} transition-colors`}>Khóa học</span>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${colors.text} ${
-                      openMenu === 'course' ? 'rotate-180' : ''
-                    }`}
+                    className={`w-4 h-4 transition-transform ${colors.text} ${openMenu === 'course' ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
 
@@ -193,15 +193,17 @@ const Navbar = () => {
                           </h3>
                           <ul className="space-y-1">
                             {list.map((course) => (
-                              <li key={course._id}>
-                                <Link
-                                  to={`/courses/${course._id}`}
-                                  className={`text-gray-600 hover:${colors.text} ${colors.hoverBg} block px-2 py-1 rounded transition-colors`}
-                                  onClick={() => setOpenMenu(null)}
-                                >
-                                  {course.name}
-                                </Link>
+                              <li
+                                key={course._id}
+                                className="cursor-pointer text-gray-600 hover:text-current hover:bg-gray-50 block px-2 py-1 rounded transition-colors"
+                                onClick={() => {
+                                  navigate(`/courses/${course._id}`);
+                                  setOpenMenu(null);
+                                }}
+                              >
+                                {course.name}
                               </li>
+
                             ))}
                           </ul>
                         </div>
@@ -221,9 +223,8 @@ const Navbar = () => {
                 <button className="flex items-center space-x-1 text-gray-700 hover:text-current font-medium py-2">
                   <span className={`hover:${colors.text} transition-colors`}>Cam kết đầu ra</span>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${colors.text} ${
-                      openMenu === 'commitment' ? 'rotate-180' : ''
-                    }`}
+                    className={`w-4 h-4 transition-transform ${colors.text} ${openMenu === 'commitment' ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
 
