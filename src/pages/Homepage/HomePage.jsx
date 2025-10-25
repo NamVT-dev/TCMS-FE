@@ -1,11 +1,18 @@
 import React from 'react';
 import Navbar from '../../components/Layout/Navbar';
+import HeroSection from './HeroSection';
+import InstructorSection from './InstructorSection';
+import CourseSection from './CourseSection';
+import Footer from './Footer';
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
-      {/* Add your other homepage content here */}
+      <HeroSection />
+      <CourseSection />
+      <InstructorSection />
+      <Footer />
     </div>
   );
 };
