@@ -1,41 +1,86 @@
-// src/components/Admin/AdminManageCourse/AdminCreateCourseModal.jsx
 import React, { useState } from "react";
-import { Modal, Form, Input, InputNumber, Select } from "antd";
+import {
+    Modal,
+    Form,
+    Input,
+    InputNumber,
+    Select,
+    Row,
+    Col,
+    Upload,
+    Typography
+} from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import api from "../../../utils/api";
 import showToast from "../../../utils/showToast";
 
-const AdminCreateCourseModal = ({ open, onClose, onSuccess }) => {
+const AdminCreateCourseModal = ({ open, onClose, onSuccess, categories }) => {
     const [form] = Form.useForm();
     const [submitting, setSubmitting] = useState(false);
-    const handleOk = () => form.submit();
+    const [imageFile, setImageFile] = useState(null);
+    const [imageUrl, setImageUrl] = useState(null);
+    const [fileList, setFileList] = useState([]);
+    const { Title } = Typography;
 
     const LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced"];
-    const CATEGORY_OPTIONS = ["IELTS", "TOEIC"];
+    const CATEGORY_OPTIONS = categories?.data || [];
     const { TextArea } = Input;
+
+    const beforeUpload = (file) => {
+        const isImage = file.type.startsWith("image/");
+        const isLt5MB = file.size / 1024 / 1024 <= 5;
+
+        if (!isImage) {
+            showToast.error("Chỉ được tải lên file ảnh!");
+            return Upload.LIST_IGNORE;
+        }
+        if (!isLt5MB) {
+            showToast.error("Ảnh tối đa 5MB!");
+            return Upload.LIST_IGNORE;
+        }
+        return false;
+    };
+
+    const onUploadChange = ({ fileList: newList }) => {
+        const latest = newList.slice(-1);
+        setFileList(latest);
+
+        const file = latest[0]?.originFileObj;
+        if (file) {
+            setImageFile(file);
+            setImageUrl(URL.createObjectURL(file));
+        }
+    };
 
     const onFinish = async (values) => {
         const toastId = showToast.loading("Đang tạo khóa học...");
         try {
             setSubmitting(true);
-            // Gửi request tạo khóa học
-            await api.admin.createCourse({
-                name: values.name,
-                description: values.description?.trim(),
-                price: Number(values.price),
-                category: values.category,
-                level: values.level,
-                session: Number(values.session),
-                durationInMinutes: Number(values.durationInMinutes)
-            });
-            // Cập nhật thông báo thành công
-            showToast.updateSuccess(toastId, "Thêm mới khó học thành công!");
-            // Reset form và gọi callback success
+
+            const fd = new FormData();
+            fd.append("name", values.name);
+            fd.append("description", values.description || "");
+            fd.append("price", String(values.price));
+            fd.append("category", values.category);
+            fd.append("level", values.level);
+            fd.append("session", String(values.session));
+            fd.append("durationInMinutes", String(values.durationInMinutes));
+
+            if (imageFile) {
+                fd.append("imageCover", imageFile);
+            }
+
+            await api.admin.createCourse(fd);
+
+            showToast.updateSuccess(toastId, "Thêm mới khóa học thành công!");
             form.resetFields();
+            setFileList([]);
+            setImageUrl(null);
+
             onSuccess?.();
             onClose?.();
         } catch (err) {
             console.error(err);
-            // Cập nhật thông báo lỗi
             showToast.updateError(
                 toastId,
                 err?.response?.data?.message || "Thêm mới khóa học thất bại!"
@@ -47,131 +92,154 @@ const AdminCreateCourseModal = ({ open, onClose, onSuccess }) => {
 
     const handleCancel = () => {
         form.resetFields();
+        setFileList([]);
+        setImageUrl(null);
         onClose?.();
     };
 
     return (
         <Modal
-            title="Thêm mới khóa học"
+            title={
+                <Title level={3} style={{ margin: 0, textAlign: "center" }}>
+                    Thêm mới khóa học
+                </Title>
+            }
             open={open}
-            onOk={handleOk}
+            onOk={() => form.submit()}
             onCancel={handleCancel}
             confirmLoading={submitting}
             okText="Thêm mới"
             cancelText="Hủy"
             destroyOnClose
+            width={700}
         >
-            <Form
-                form={form}
-                layout="vertical"
-                onFinish={onFinish}
-                initialValues={{
-                    levels: "",
-                    categories: "",
-                    session: "",
-                    durationInMinutes: "",
-                    price: "",
-                    description: "",
-                }}
-            >
-                <Form.Item
-                    label="Tên khóa học"
-                    name="name"
-                    rules={[
-                        { required: true, message: "Tên khóa học không được để trống" },
-                        { max: 150, message: "Tên khóa học tối đa 150 ký tự" },
-                    ]}
-                >
-                    <Input placeholder="Nhập tên khóa học" />
-                </Form.Item>
+            <Form form={form} layout="vertical" onFinish={onFinish}>
+                <Row gutter={[16, 16]}>
+                    {/* Upload ảnh */}
+                    <Col xs={24} md={8}>
+                        <Form.Item
+                            label={<span style={{ fontWeight: 600 }}></span>}
+                        >
+                            <Upload
+                                listType="picture-card"
+                                showUploadList={false}
+                                accept="image/*"
+                                beforeUpload={beforeUpload}
+                                onChange={onUploadChange}
+                                fileList={fileList}
+                                style={{ width: "100%" }}
+                            >
+                                {imageUrl ? (
+                                    <img
+                                        src={imageUrl}
+                                        alt="preview"
+                                        style={{
+                                            width: "100%",
+                                            aspectRatio: "1/1",
+                                            objectFit: "cover",
+                                            borderRadius: 8,
+                                        }}
+                                    />
+                                ) : (
+                                    <div>
+                                        <PlusOutlined />
+                                        <div style={{ marginTop: 8 }}>Tải ảnh</div>
+                                    </div>
+                                )}
+                            </Upload>
+                        </Form.Item>
+                    </Col>
+
+                    {/* Form text */}
+                    <Col xs={24} md={16}>
+                        <Form.Item
+                            label={<span style={{ fontWeight: 600 }}>Tên khóa học</span>}
+                            name="name"
+                            rules={[
+                                { required: true, message: "Tên khóa học không được để trống!" },
+                                { max: 150, message: "Tối đa 150 ký tự" },
+                            ]}
+                        >
+                            <Input placeholder="Nhập tên khóa học" />
+                        </Form.Item>
+
+                        <Form.Item
+                            label={<span style={{ fontWeight: 600 }}>Danh mục</span>}
+                            name="category"
+                            rules={[{ required: true, message: "Danh mục không được để trống!" }]}
+                        >
+                            <Select
+                                placeholder="Chọn danh mục"
+                                options={CATEGORY_OPTIONS.map((c) => ({
+                                    label: c.name,
+                                    value: c._id,
+                                }))}
+                            />
+                        </Form.Item>
+
+                        <Row gutter={[12, 12]}>
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    label={<span style={{ fontWeight: 600 }}>Mức độ</span>}
+                                    name="level"
+                                    rules={[{ required: true, message: "Mức độ không được để trống!" }]}
+                                >
+                                    <Select
+                                        placeholder="Chọn mức độ"
+                                        options={LEVEL_OPTIONS.map((lv) => ({
+                                            label: lv,
+                                            value: lv,
+                                        }))}
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24} md={12}>
+                                <Form.Item
+                                    label={<span style={{ fontWeight: 600 }}>Giá (VND)</span>}
+                                    name="price"
+                                    rules={[{ required: true, message: "Giá không được để trống!" }]}
+                                >
+                                    <InputNumber
+                                        min={0}
+                                        style={{ width: "100%" }}
+                                        placeholder="Nhập giá"
+                                        formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                        parser={(v) => v.replace(/,/g, "")}
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                    </Col>
+                </Row>
+
+                {/* Còn lại */}
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} md={12}>
+                        <Form.Item
+                            label={<span style={{ fontWeight: 600 }}>Số buổi học</span>}
+                            name="session"
+                            rules={[{ required: true, message: "Số buổi học không được để trống!" }]}
+                        >
+                            <InputNumber min={1} style={{ width: "100%" }} placeholder="Nhập số buổi học" />
+                        </Form.Item>
+                    </Col>
+                    <Col xs={24} md={12}>
+                        <Form.Item
+                            label={<span style={{ fontWeight: 600 }}>Thời lượng buổi học (phút)</span>}
+                            name="durationInMinutes"
+                            rules={[{ required: true, message: "Thời lượng buổi học không được để trống!" }]}
+                        >
+                            <InputNumber min={1} style={{ width: "100%" }} placeholder="Nhập thời lượng buổi học" />
+                        </Form.Item>
+                    </Col>
+                </Row>
 
                 <Form.Item
-                    label="Mô tả khóa học"
+                    label={<span style={{ fontWeight: 600 }}>Mô tả</span>}
                     name="description"
-                    rules={[{ max: 1000, message: "Mô tả tối đa 1000 ký tự" }]}
+                    rules={[{ required: true, message: "Mô tả không được để trống!" }]}
                 >
-                    <TextArea
-                        rows={4}
-                        showCount
-                        maxLength={1000}
-                        placeholder="Nhập mô tả chi tiết về khóa học (tối đa 1000 ký tự)"
-                    />
-                </Form.Item>
-
-                <Form.Item
-                    label="Giá (VNĐ)"
-                    name="price"
-                    rules={[{ required: true, message: "Giá khóa học không được để trống" }]}
-                >
-                    <InputNumber
-                        min={0}
-                        style={{ width: "100%" }}
-                        placeholder="Nhập giá (VNĐ)"
-                        formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                        parser={(v) => v.replace(/,/g, "")}
-                    />
-                </Form.Item>
-
-                <Form.Item
-                    label="Danh mục"
-                    name="category"
-                    rules={[{ required: true, message: "Vui lòng chọn danh mục" }]}
-                >
-                    <Select
-                        allowClear
-                        placeholder="Chọn danh mục (IELTS, TOEIC)"
-                        options={CATEGORY_OPTIONS.map((c) => ({ label: c, value: c }))}
-                    />
-                </Form.Item>
-
-                <Form.Item
-                    label="Mức độ"
-                    name="level"
-                    rules={[{ required: true, message: "Vui lòng chọn mức độ" }]}
-                >
-                    <Select
-                        allowClear
-                        placeholder="Chọn mức độ (Beginner, Intermediate, Advanced)"
-                        options={LEVEL_OPTIONS.map((c) => ({ label: c, value: c }))}
-                    />
-                </Form.Item>
-
-                <Form.Item
-                    label="Số buổi học"
-                    name="session"
-                    rules={[
-                        { required: true, message: "Số buổi học không được để trống" },
-                        {
-                            validator: (_, value) => {
-                                if (value === undefined || value === "") return Promise.resolve();
-                                const num = Number(value);
-                                if (isNaN(num)) return Promise.reject("Giá trị phải là số");
-                                if (num < 1) return Promise.reject("Số buổi học phải ≥ 1");
-                                return Promise.resolve();
-                            },
-                        },
-                    ]}
-                >
-                    <Input placeholder="Vui lòng nhập số buổi học" />
-                </Form.Item>
-
-                <Form.Item
-                    label="Thời lượng buổi học (phút)"
-                    name="durationInMinutes"
-                    rules={[
-                        { required: true, message: "Thời lượng buổi học không được để trống" },
-                        {
-                            validator: (_, value) => {
-                                if (value === undefined || value === "") return Promise.resolve();
-                                const num = Number(value);
-                                if (isNaN(num)) return Promise.reject("Giá trị phải là số");
-                                if (num < 1) return Promise.reject("Số buổi học phải ≥ 1");
-                                return Promise.resolve();
-                            },
-                        },
-                    ]}
-                >
-                    <Input placeholder="Vui lòng nhập thời lượng (phút) buổi học" />
+                    <TextArea rows={4} placeholder="Nhập mô tả về khóa học" />
                 </Form.Item>
             </Form>
         </Modal>

@@ -4,17 +4,27 @@ const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 10000,
     withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json'
-    }
+    // headers: {
+    //     'Content-Type': 'application/json'
+    // }
 });
 
 axiosInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        const token = localStorage.getItem("token");
+        if (token) config.headers.Authorization = `Bearer ${token}`;
+
+        // Nếu là FormData: để axios tự thêm multipart boundary
+        const isFD =
+            typeof FormData !== "undefined" && config.data instanceof FormData;
+
+        if (isFD) {
+            if (config.headers) delete config.headers["Content-Type"];
+        } else {
+            // Chỉ set JSON khi KHÔNG phải FormData
+            if (config.headers) config.headers["Content-Type"] = "application/json";
         }
+
         return config;
     },
     (error) => Promise.reject(error)
@@ -23,7 +33,7 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response.status === 401) {
+        if (error.response ?.status === 401) {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             window.location.href = "/login";
@@ -57,7 +67,7 @@ const api = {
     admin: {
         getTeachers: (params) => axiosInstance.get('/admin/teachers', { params }),
         getTeacherDetail: (id) => axiosInstance.get(`/admin/teachers/${id}`),
-        
+
         // API quản lý cấu hình trung tâm
         center: {
             getConfig: () => axiosInstance.get("/admin/center/config"),
@@ -76,6 +86,7 @@ const api = {
         getCourseById: (id) => axiosInstance.get(`/admin/courses/${id}`),
         updateCourseById: (id, data) => axiosInstance.patch(`/admin/courses/update/${id}`, data),
         deleteCourseById: (id) => axiosInstance.delete(`/admin/courses/${id}/delete`),
+        getCategories: (params) => axiosInstance.get('/categories', { params })
     },
 
     // --- Nhóm API Giáo viên ---

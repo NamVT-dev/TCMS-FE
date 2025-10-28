@@ -247,7 +247,7 @@ const AdminViewRoomList = () => {
         <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
           <div className="text-sm text-gray-700">
             Hiển thị <span className="font-medium">{pagination.results}</span>{" "}
-            trong tổng số <span className="font-medium">{pagination.total}</span> khóa học
+            trong tổng số <span className="font-medium">{pagination.total}</span> phòng học
           </div>
 
           <div className="flex items-center gap-2">
