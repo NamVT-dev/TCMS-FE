@@ -6,7 +6,7 @@ import InstructorSection from './InstructorSection';
 import CourseSection from './CourseSection';
 import Footer from './Footer';
 
-const HomePage = () => {
+const HomePage = ({ onOpenModal }) => { // ← Thêm prop onOpenModal
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Theo dõi vị trí scroll để hiện/ẩn nút
@@ -34,7 +34,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <HeroSection />
+      <HeroSection onOpenModal={onOpenModal} /> 
       <CourseSection />
       <InstructorSection />
       <Footer />

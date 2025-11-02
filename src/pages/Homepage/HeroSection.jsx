@@ -7,7 +7,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-export default function HeroSection() {
+export default function HeroSection({ onOpenModal }) {
   const carouselImages = [
     {
       id: 1,
@@ -41,7 +41,10 @@ export default function HeroSection() {
         <div className="md:flex items-center justify-between gap-12">
           {/* Left content */}
           <div className="md:w-5/12 space-y-6 relative z-10">
-            <button className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-semibold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <button 
+              onClick={onOpenModal}
+              className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-semibold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
               ✨ Kiểm tra đầu vào miễn phí
             </button>
 
