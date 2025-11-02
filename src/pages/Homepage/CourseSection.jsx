@@ -14,7 +14,7 @@ const CourseSection = () => {
                 const courses = res.data.data.courses;
 
                 const grouped = courses.reduce((acc, course) => {
-                    const cat = course.category || "Khác";
+                    const cat = course.category.name || "Khác";
                     if (!acc[cat]) acc[cat] = [];
                     acc[cat].push(course);
                     return acc;
@@ -40,8 +40,9 @@ const CourseSection = () => {
             </section>
         );
     }
+    
     const handleNavigateToDetail = (courseId) => {
-        navigate(`/courses/${courseId}`); // 👈 Điều hướng đến trang chi tiết
+        navigate(`/courses/${courseId}`);
     };
 
     return (
@@ -72,10 +73,10 @@ const CourseSection = () => {
                             {coursesByCategory[category].map((course) => (
                                 <div
                                     key={course._id}
-                                    className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2"
+                                    className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2 flex flex-col"
                                 >
                                     {/* Course Image */}
-                                    <div className="relative w-full h-48 bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center overflow-hidden">
+                                    <div className="relative w-full h-48 bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                                         {course.imageCover ? (
                                             <img
                                                 src={course.imageCover}
@@ -91,27 +92,29 @@ const CourseSection = () => {
                                     </div>
 
                                     {/* Course Content */}
-                                    <div className="p-6">
-                                        <h3 className="font-bold text-xl text-gray-800 mb-3 group-hover:text-purple-600 transition-colors">
-                                            {course.name}
-                                        </h3>
-                                        <p className="text-gray-600 text-sm line-clamp-3 mb-4 leading-relaxed">
-                                            {course.description}
-                                        </p>
+                                    <div className="p-6 flex flex-col flex-grow">
+                                        <div className="flex-grow">
+                                            <h3 className="font-bold text-xl text-gray-800 mb-3 group-hover:text-purple-600 transition-colors">
+                                                {course.name}
+                                            </h3>
+                                            <p className="text-gray-600 text-sm line-clamp-3 mb-4 leading-relaxed">
+                                                {course.description}
+                                            </p>
 
-                                        {/* Course Info */}
-                                        <div className="flex items-center justify-between text-sm mb-4 pb-4 border-b border-gray-100">
-                                            <div className="flex items-center space-x-2 text-gray-600">
-                                                <span className="font-medium">⏱️ {course.session || "20"} buổi</span>
-                                            </div>
-                                            <div className="text-purple-600 font-bold">
-                                                {course.price ? `${parseInt(course.price).toLocaleString()}₫` : "Liên hệ"}
+                                            {/* Course Info */}
+                                            <div className="flex items-center justify-between text-sm mb-4 pb-4 border-b border-gray-100">
+                                                <div className="flex items-center space-x-2 text-gray-600">
+                                                    <span className="font-medium">⏱️ {course.session || "20"} buổi</span>
+                                                </div>
+                                                <div className="text-purple-600 font-bold">
+                                                    {course.price ? `${parseInt(course.price).toLocaleString()}₫` : "Liên hệ"}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        {/* CTA Button */}
+                                        {/* CTA Button - Fixed at bottom */}
                                         <button
-                                            onClick={() => handleNavigateToDetail(course._id)} // 👈 Cập nhật onClick
+                                            onClick={() => handleNavigateToDetail(course._id)}
                                             className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 rounded-xl font-semibold transition-all duration-300 transform group-hover:scale-105 shadow-md hover:shadow-lg"
                                         >
                                             Tìm hiểu ngay

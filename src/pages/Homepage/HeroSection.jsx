@@ -1,6 +1,34 @@
 import React from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 export default function HeroSection() {
+  const carouselImages = [
+    {
+      id: 1,
+      src: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800",
+      alt: "Học sinh đang học tập",
+      caption: "Lớp học sôi động"
+    },
+    {
+      id: 2,
+      src: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800",
+      alt: "Giáo viên đang giảng dạy",
+      caption: "Giảng viên nhiệt tình"
+    },
+    {
+      id: 3,
+      src: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
+      alt: "Học viên thuyết trình",
+      caption: "Thực hành thực tế"
+    }
+  ];
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-purple-200 via-white to-purple-200">
       {/* Decorative background */}
@@ -12,7 +40,7 @@ export default function HeroSection() {
       <div className="container mx-auto px-3 md:px-6 pt-24 pb-12 max-w-7xl">
         <div className="md:flex items-center justify-between gap-12">
           {/* Left content */}
-          <div className="md:w-1/2 space-y-6 relative z-10">
+          <div className="md:w-5/12 space-y-6 relative z-10">
             <button className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-semibold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               ✨ Kiểm tra đầu vào miễn phí
             </button>
@@ -58,18 +86,68 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Right image */}
-          <div className="md:w-1/2 mt-12 md:mt-0 flex justify-center relative z-10">
-            <div className="w-full max-w-lg">
-              <div className="bg-white rounded-3xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300">
-                <div className="aspect-video bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center text-purple-600 text-xl font-semibold">
-                  📚 Hình ảnh học tập
-                </div>
+          {/* Right carousel - Swiper */}
+          <div className="md:w-7/12 mt-12 md:mt-0 flex justify-center relative z-10">
+            <div className="w-full">
+              <div className="bg-white rounded-3xl shadow-2xl p-6 transform hover:scale-[1.02] transition-all duration-300">
+                <Swiper
+                  modules={[Navigation, Pagination, Autoplay]}
+                  spaceBetween={0}
+                  slidesPerView={1}
+                  navigation
+                  pagination={{ clickable: true }}
+                  autoplay={{
+                    delay: 3000,
+                    disableOnInteraction: false,
+                  }}
+                  className="rounded-2xl"
+                >
+                  {carouselImages.map((image) => (
+                    <SwiperSlide key={image.id}>
+                      <div className="relative aspect-video bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl overflow-hidden">
+                        <img
+                          src={image.src}
+                          alt={image.alt}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white px-6 py-2 rounded-full">
+                          <h5 className="font-semibold">{image.caption}</h5>
+                        </div>
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        :global(.swiper-button-next),
+        :global(.swiper-button-prev) {
+          color: rgb(147, 51, 234);
+          background: white;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        :global(.swiper-button-next:after),
+        :global(.swiper-button-prev:after) {
+          font-size: 20px;
+        }
+        
+        :global(.swiper-pagination-bullet) {
+          background: rgb(147, 51, 234);
+          opacity: 0.5;
+        }
+        
+        :global(.swiper-pagination-bullet-active) {
+          opacity: 1;
+        }
+      `}</style>
     </section>
   );
 }

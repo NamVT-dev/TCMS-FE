@@ -76,7 +76,7 @@ const Navbar = () => {
         const res = await api.user.getCourses();
         const courses = res.data.data.courses || [];
         const grouped = courses.reduce((acc, course) => {
-          const cat = course.category || 'Khác';
+          const cat = course.category.name || 'Khác';
           if (!acc[cat]) acc[cat] = [];
           acc[cat].push(course);
           return acc;
@@ -247,6 +247,23 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
+              {userRole === 'member' && (
+                <>
+                  <button
+                    onClick={() => navigate('/my-courses')}
+                    className={`text-gray-700 hover:${colors.text} font-medium py-2 transition-colors`}
+                  >
+                    Khóa học của tôi
+                  </button>
+
+                  <button
+                    onClick={() => navigate('/build-roadmap')}
+                    className={`text-gray-700 hover:${colors.text} font-medium py-2 transition-colors`}
+                  >
+                    Xây dựng lộ trình
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
