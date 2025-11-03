@@ -61,6 +61,8 @@ const api = {
         updateProfile: (data) => axiosInstance.patch('auth/profile', data),
         registerTest: (testData) => axiosInstance.post('test/register-test', testData),
         getCourseCategories: () => axiosInstance.get('categories'),
+        getCourses: (params) => axiosInstance.get('courses', { params }),
+        getCourseById: (id) => axiosInstance.get(`courses/${id}`),
     },
 
     // --- Nhóm API Admin ---

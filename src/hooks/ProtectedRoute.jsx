@@ -1,3 +1,4 @@
+// ProtectedRoute.jsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -14,8 +15,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     const roleRoutes = {
       admin: '/admin/overview',
       teacher: '/teacher/overview',
-      member: '/student/overview',
-      parent: '/parent/overview'
+      member: '/', 
+     
     };
 
     return <Navigate to={roleRoutes[user.role] || '/login'} replace />;
@@ -26,7 +27,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 ProtectedRoute.propTypes = {
   children: PropTypes.node.isRequired,
-  allowedRoles: PropTypes.arrayOf(PropTypes.string).isRequired
+  allowedRoles: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
 export default ProtectedRoute;
