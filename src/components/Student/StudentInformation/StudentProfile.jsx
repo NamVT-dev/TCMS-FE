@@ -1,38 +1,62 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import api from "../../../utils/api";
 
 const StudentProfile = () => {
-  const [profile, setProfile] = useState({
-    name: "Nguyễn Văn A",
-    email: "student@example.com",
-    title: "Học Viên",
-    gender: "Nam",
-    dob: "1990-05-12",
-    phone: "0987654321",
-    address: "123 Nguyễn Trãi, Hà Nội",
-    avatar: "https://i.pravatar.cc/150?img=4",
-  });
-
+  const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        // ✅ Gọi API theo chuẩn dự án
+        const res = await api.user.getMe();
+
+        // ✅ Lấy dữ liệu từ mock API
+        const user = res.data.data.data;
+        setProfile({
+          name: user.profile.fullname,
+          email: user.email,
+          title: user.role === "member" ? "Học viên" : user.role,
+          gender: "Nam",
+          dob: user.profile.dob.split("T")[0],
+          phone: user.profile.phoneNumber,
+          
+          avatar: user.profile.photo,
+        });
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin user:", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (isEditing) {
+    if (isEditing && profile) {
       setProfile({ ...profile, [name]: value });
     }
   };
 
-  const handleUpdate = () => {
-    setIsEditing(true);
-  };
-
+  const handleUpdate = () => setIsEditing(true);
   const handleSave = () => {
     setIsEditing(false);
     alert("Đã lưu thay đổi:\n" + JSON.stringify(profile, null, 2));
   };
 
+  if (!profile) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-gray-600 text-lg">
+        Đang tải thông tin...
+      </div>
+    );
+  }
+
   return (
+    
     <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 py-10">
-      <div className="bg-white shadow-lg rounded-2xl p-10 w-full max-w-10xl">
+      <div className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-6xl mx-auto">
+
         {/* Avatar */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
@@ -71,7 +95,6 @@ const StudentProfile = () => {
 
         {/* Form */}
         <div className="grid grid-cols-2 gap-6">
-          {/* Họ và tên */}
           <div>
             <label className="block text-gray-700 mb-2">Họ và tên</label>
             <input
@@ -88,7 +111,6 @@ const StudentProfile = () => {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-gray-700 mb-2">Email</label>
             <input
@@ -100,7 +122,6 @@ const StudentProfile = () => {
             />
           </div>
 
-          {/* Chức danh */}
           <div>
             <label className="block text-gray-700 mb-2">Chức danh</label>
             <input
@@ -112,7 +133,6 @@ const StudentProfile = () => {
             />
           </div>
 
-          {/* Giới tính */}
           <div>
             <label className="block text-gray-700 mb-2">Giới tính</label>
             <select
@@ -132,7 +152,6 @@ const StudentProfile = () => {
             </select>
           </div>
 
-          {/* Ngày sinh */}
           <div>
             <label className="block text-gray-700 mb-2">Ngày sinh</label>
             <input
@@ -149,7 +168,6 @@ const StudentProfile = () => {
             />
           </div>
 
-          {/* Điện thoại */}
           <div>
             <label className="block text-gray-700 mb-2">Điện thoại</label>
             <input
@@ -166,25 +184,9 @@ const StudentProfile = () => {
             />
           </div>
 
-          {/* Địa chỉ */}
-          <div className="col-span-2">
-            <label className="block text-gray-700 mb-2">Địa chỉ</label>
-            <input
-              type="text"
-              name="address"
-              value={profile.address}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${
-                isEditing
-                  ? "bg-indigo-50 border-indigo-400 focus:ring-2 focus:ring-indigo-400"
-                  : "bg-gray-100 border-gray-300 text-gray-700"
-              }`}
-            />
-          </div>
+          
         </div>
 
-        {/* Buttons */}
         <div className="flex justify-end mt-10 gap-4">
           <button
             onClick={handleUpdate}

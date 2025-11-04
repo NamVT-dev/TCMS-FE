@@ -282,7 +282,7 @@ const Navbar = () => {
                                             <button
                                                 onClick={() => {
                                                     setDropdownOpen(false);
-                                                    navigate('/profile');
+                                                    navigate('/student/profile');
                                                 }}
                                                 className={`block w-full text-left px-4 py-2 text-gray-700 ${colors.hoverBg}`}
                                             >

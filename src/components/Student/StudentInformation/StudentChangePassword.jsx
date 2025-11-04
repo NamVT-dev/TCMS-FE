@@ -1,52 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Lock, Check, X } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Eye, EyeOff, Lock, Check, X } from "lucide-react";
+import api from "../../../utils/api";
+import toast from "react-hot-toast";
 
 const StudentChangePassword = () => {
   const [formData, setFormData] = useState({
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const [showPasswords, setShowPasswords] = useState({
     oldPassword: false,
     newPassword: false,
-    confirmPassword: false
+    confirmPassword: false,
   });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Add your password change logic here
-    console.log('Form submitted:', formData);
-  };
-
-  const togglePasswordVisibility = (field) => {
-    setShowPasswords({
-      ...showPasswords,
-      [field]: !showPasswords[field]
-    });
-  };
-
-   const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState({
     match: false,
     length: false,
-    pattern: false
+    pattern: false,
   });
 
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // ✅ Validate mật khẩu
   const validatePassword = () => {
     const { newPassword, confirmPassword } = formData;
-    
     setErrors({
       match: newPassword === confirmPassword,
       length: newPassword.length >= 8,
-      pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(newPassword)
+      pattern: /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/.test(newPassword),
     });
   };
 
@@ -55,14 +40,69 @@ const StudentChangePassword = () => {
   }, [formData.newPassword, formData.confirmPassword]);
 
   const isFormValid = () => {
-    return Object.values(errors).every(value => value === true) && formData.oldPassword;
+    return (
+      Object.values(errors).every((v) => v === true) &&
+      formData.oldPassword.trim() !== ""
+    );
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords({ ...showPasswords, [field]: !showPasswords[field] });
+  };
+
+  // ✅ Gọi API đổi mật khẩu (dùng cookie)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!isFormValid()) return;
+
+    setLoading(true);
+    try {
+      const payload = {
+        passwordCurrent: formData.oldPassword,
+        password: formData.newPassword,
+        passwordConfirm: formData.confirmPassword,
+      };
+
+      // ✅ gửi kèm cookie tự động
+      const res = await api.user.updatePassword(payload, {
+        withCredentials: true,
+      });
+
+      if (res.data.status === "success") {
+        setFormData({
+          oldPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+
+        setSuccessMessage("Đổi mật khẩu thành công!");
+        toast.success("Đổi mật khẩu thành công!");
+
+        setTimeout(() => setSuccessMessage(""), 3000);
+      }
+    } catch (error) {
+      console.error("Lỗi khi đổi mật khẩu:", error);
+      const msg =
+        error.response?.data?.message ||
+        "Không thể đổi mật khẩu. Vui lòng thử lại!";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="bg-white rounded-2xl shadow-lg p-8">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Thay đổi mật khẩu</h2>
-        
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+          Thay đổi mật khẩu
+        </h2>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Old Password */}
           <div className="space-y-2">
@@ -76,12 +116,12 @@ const StudentChangePassword = () => {
                 name="oldPassword"
                 value={formData.oldPassword}
                 onChange={handleChange}
-                className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 required
               />
               <button
                 type="button"
-                onClick={() => togglePasswordVisibility('oldPassword')}
+                onClick={() => togglePasswordVisibility("oldPassword")}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 {showPasswords.oldPassword ? (
@@ -105,12 +145,12 @@ const StudentChangePassword = () => {
                 name="newPassword"
                 value={formData.newPassword}
                 onChange={handleChange}
-                className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 required
               />
               <button
                 type="button"
-                onClick={() => togglePasswordVisibility('newPassword')}
+                onClick={() => togglePasswordVisibility("newPassword")}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 {showPasswords.newPassword ? (
@@ -122,7 +162,7 @@ const StudentChangePassword = () => {
             </div>
           </div>
 
-          {/* Confirm New Password */}
+          {/* Confirm Password */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 block">
               Xác nhận mật khẩu mới
@@ -134,12 +174,12 @@ const StudentChangePassword = () => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 required
               />
               <button
                 type="button"
-                onClick={() => togglePasswordVisibility('confirmPassword')}
+                onClick={() => togglePasswordVisibility("confirmPassword")}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 {showPasswords.confirmPassword ? (
@@ -151,7 +191,7 @@ const StudentChangePassword = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Validation Messages */}
           <div className="space-y-2 text-sm">
             <div className="flex items-center space-x-2">
               {errors.match ? (
@@ -159,8 +199,10 @@ const StudentChangePassword = () => {
               ) : (
                 <X className="w-4 h-4 text-red-500" />
               )}
-              <span className={errors.match ? "text-green-600" : "text-red-600"}>
-                Mật khẩu không trùng khớp
+              <span
+                className={errors.match ? "text-green-600" : "text-red-600"}
+              >
+                Mật khẩu mới và xác nhận phải trùng khớp
               </span>
             </div>
 
@@ -170,7 +212,9 @@ const StudentChangePassword = () => {
               ) : (
                 <X className="w-4 h-4 text-red-500" />
               )}
-              <span className={errors.length ? "text-green-600" : "text-red-600"}>
+              <span
+                className={errors.length ? "text-green-600" : "text-red-600"}
+              >
                 Mật khẩu phải có ít nhất 8 ký tự
               </span>
             </div>
@@ -181,8 +225,10 @@ const StudentChangePassword = () => {
               ) : (
                 <X className="w-4 h-4 text-red-500" />
               )}
-              <span className={errors.pattern ? "text-green-600" : "text-red-600"}>
-                Mật khẩu phải chứa cả chữ và số
+              <span
+                className={errors.pattern ? "text-green-600" : "text-red-600"}
+              >
+                Mật khẩu phải có chữ hoa, số và ký tự đặc biệt
               </span>
             </div>
           </div>
@@ -190,15 +236,22 @@ const StudentChangePassword = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!isFormValid()}
-            className={`w-full font-semibold py-3 rounded-xl shadow-lg transition-all duration-200 
-              ${isFormValid()
+            disabled={!isFormValid() || loading}
+            className={`w-full font-semibold py-3 rounded-xl shadow-lg transition-all duration-200 ${
+              isFormValid()
                 ? "bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white"
                 : "bg-gray-200 text-gray-500 cursor-not-allowed"
-              }`}
+            }`}
           >
-            Cập nhật mật khẩu
+            {loading ? "Đang xử lý..." : "Cập nhật mật khẩu"}
           </button>
+
+          {/* ✅ Success message */}
+          {successMessage && (
+            <p className="mt-4 text-center bg-green-500 text-white py-2 rounded-lg font-medium">
+              {successMessage}
+            </p>
+          )}
         </form>
       </div>
     </div>

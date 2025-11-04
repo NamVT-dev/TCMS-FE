@@ -16,17 +16,23 @@ export const useAuth = () => {
   const [error, setError] = useState(null);
 
   const handleLogin = async (email, password) => {
+  setIsLoading(true);
+  setError(null);
+  
   try {
-    setIsLoading(true);
-    setError(null);
     const response = await login(email, password);
-    return response;
-  } catch (err) {
-    console.error('Login error:', err);
-    setError(err.response?.data?.message || err.message || 'Login failed');
-    return false;
-  } finally {
     setIsLoading(false);
+
+    if (!response.success) {
+      setError(response.message); // ⬅️ HIỂN THỊ MESSAGE TỪ BACKEND
+      return false;
+    }
+
+    return response.data;
+  } catch (err) {
+    setIsLoading(false);
+    setError("Có lỗi xảy ra, vui lòng thử lại");
+    return false;
   }
 };
 

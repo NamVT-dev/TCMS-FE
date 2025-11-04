@@ -32,96 +32,97 @@ export const UserProvider = ({ children }) => {
 
     // 1. TÁC VỤ KHỞI TẠO ĐƠN LẺ: Gộp logic kiểm tra Auth, Redirect, và Fetch User
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        const savedUser = localStorage.getItem("user");
-        const currentPath = window.location.pathname;
+    const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
+    const currentPath = window.location.pathname;
 
-        async function fetchUserAndSetup() {
-            if (!token) {
-                // CASE 1: KHÔNG CÓ TOKEN (GUEST)
-                setUser(null);
-                setLoading(false); // 🔑 KEY FIX: Đặt loading = false ngay lập tức cho Guest!
+    async function fetchUserAndSetup() {
+        if (!token) {
+            // CASE 1: KHÔNG CÓ TOKEN (GUEST)
+            setUser(null);
+            setLoading(false);
 
-                if (!isPublicRoute(currentPath, publicRoutes)) {
-                    navigate("/", { replace: true });
-                }
-                return;
+            // ⬅️ FIX: KHÔNG redirect nếu đang ở trang login
+            if (!isPublicRoute(currentPath, publicRoutes) && currentPath !== "/login") {
+                navigate("/", { replace: true });
             }
-
-            // CASE 2: CÓ TOKEN (MEMBER)
-            try {
-                // Thử tải từ localStorage trước để render nhanh hơn (nếu có)
-                const localUser = JSON.parse(savedUser);
-                setUser(localUser); 
-                
-                // Fetch dữ liệu mới nhất từ server
-                const res = await api.user.getMe();
-                const userData = res.data.data.data;
-                
-                if (userData) {
-                    setUser(userData);
-                    localStorage.setItem('user', JSON.stringify(userData));
-                    
-                    // Logic Redirect sau khi đã đăng nhập
-                    if (["/login", "/", "/register"].includes(currentPath)) { 
-                        const { role } = userData;
-                        const roleRoutes = {
-                            admin: "/admin/overview",
-                            teacher: "/teacher/overview",
-                            member: "/",
-                            
-                        };
-                        navigate(roleRoutes[role] || "/", { replace: true });
-                    }
-                }
-            } catch (error) {
-                // Xử lý lỗi token hết hạn/không hợp lệ
-                console.error('Auth error, clearing session:', error);
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                setUser(null);
-                
-                if (!isPublicRoute(currentPath, publicRoutes)) {
-                     navigate("/", { replace: true }); // Chuyển hướng nếu đang ở private route
-                }
-            } finally {
-                setLoading(false); // 🔑 KEY FIX: Đặt loading = false sau khi API GẤP hoàn tất.
-            }
+            return;
         }
-        
-        fetchUserAndSetup();
-    }, [navigate]);
+
+        // CASE 2: CÓ TOKEN (MEMBER)
+        try {
+            const localUser = savedUser ? JSON.parse(savedUser) : null;
+            if (localUser) {
+                setUser(localUser); 
+            }
+            
+            const res = await api.user.getMe();
+            const userData = res.data.data.data;
+            
+            if (userData) {
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
+                
+                // ⬅️ CHỈ redirect khi đang ở trang login/register và ĐÃ ĐĂNG NHẬP
+                if (["/login", "/register"].includes(currentPath)) { 
+                    const { role } = userData;
+                    const roleRoutes = {
+                        admin: "/admin/overview",
+                        teacher: "/teacher/overview",
+                        member: "/",
+                    };
+                    navigate(roleRoutes[role] || "/", { replace: true });
+                }
+            }
+        } catch (error) {
+            console.error('Auth error, clearing session:', error);
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            setUser(null);
+            
+            // ⬅️ FIX: KHÔNG redirect nếu đang ở trang login
+            if (!isPublicRoute(currentPath, publicRoutes) && currentPath !== "/login") {
+                 navigate("/", { replace: true });
+            }
+        } finally {
+            setLoading(false);
+        }
+    }
+    
+    fetchUserAndSetup();
+}, [navigate]); // ⬅️ QUAN TRỌNG: CHỈ chạy 1 lần khi mount
 
   const login = async (email, password) => {
-    try {
-      
-      const response = await api.auth.login({ email, password });
+  try {
+    const response = await api.auth.login({ email, password });
 
-      if (response?.data?.data?.user) {
-        const userData = response.data.data.user;
-        const token = response.data.token;
-        const { role } = userData;
-        
-        
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('token', token);
-        setUser(userData);
+    if (response?.data?.data?.user) {
+      const userData = response.data.data.user;
+      const token = response.data.token;
+      const { role } = userData;
 
-        const roleRoutes = {
-          admin: '/admin/overview',
-          teacher: '/teacher/overview',
-          member: '/',
-          
-        };
-        navigate(roleRoutes[role] || '/login', { replace: true });
-        return response;
-      }
-      throw new Error('Invalid response format');
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', token);
+      setUser(userData);
+
+      const roleRoutes = {
+        admin: '/admin/overview',
+        teacher: '/teacher/overview',
+        member: '/',
+      };
+      navigate(roleRoutes[role] || '/', { replace: true });
+      return { success: true, data: response };
     }
-  };
+
+    return { success: false, message: response?.data?.message || "Đăng nhập thất bại" };
+  } catch (error) {
+    console.error('Login error:', error);
+    // ⬅️ LẤY MESSAGE TỪ BACKEND
+    const message = error.response?.data?.message || "Đăng nhập thất bại";
+    return { success: false, message };
+  }
+};
+
 
   const signup = async (signupData) => {
     try {

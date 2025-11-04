@@ -8,17 +8,20 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth();
+  const { login, error } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await login(email, password);
+    const res = await login(email, password);
+    if (res === false) return;
+    navigate("/"); // thành công thì điều hướng
   };
+
 
   return (
     <div className="min-h-screen w-full flex bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900">
       {/* Left side - Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center ">
+      <div className="w-full md:w-1/2 flex items-center justify-center">
         <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl px-8 py-10 space-y-6">
           {/* Logo Section */}
           <div className="flex flex-col items-center space-y-3">
@@ -121,6 +124,15 @@ const LoginForm = () => {
             >
               Đăng nhập
             </button>
+
+            {/* Error message hiển thị cố định dưới nút */}
+            {error && (
+              <div className="flex justify-center">
+                <p className="inline-block text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-600 hover:text-white transition-all duration-200">
+                  {error}
+                </p>
+              </div>
+            )}
           </form>
 
           {/* Sign Up Link */}
@@ -129,8 +141,8 @@ const LoginForm = () => {
             <button
               onClick={() => navigate("/register")}
               className="inline-block px-3 py-1 text-purple-600 hover:text-white font-semibold 
-    hover:bg-purple-600 rounded-lg transition-all duration-200 ease-in-out 
-    hover:shadow-md active:transform active:translate-y-0.5"
+                hover:bg-purple-600 rounded-lg transition-all duration-200 ease-in-out 
+                hover:shadow-md active:transform active:translate-y-0.5"
             >
               Đăng ký ngay
             </button>
@@ -139,7 +151,7 @@ const LoginForm = () => {
       </div>
 
       {/* Right side - Image */}
-      <div className="hidden md:block md:w-1/2 ">
+      <div className="hidden md:block md:w-1/2">
         <img
           src="/images/banner.png"
           alt="Login Illustration"
