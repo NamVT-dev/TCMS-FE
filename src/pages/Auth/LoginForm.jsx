@@ -110,11 +110,11 @@ const LoginForm = () => {
                 <span className="text-gray-600">Ghi nhớ đăng nhập</span>
               </label>
               <a
-                href="#"
-                className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
-              >
-                Quên mật khẩu?
-              </a>
+                 onClick={() => navigate("/forgot-password")}
+  className="text-purple-600 hover:text-purple-800 font-medium transition-colors cursor-pointer"
+>
+  Quên mật khẩu?
+</a>
             </div>
 
             {/* Login Button */}

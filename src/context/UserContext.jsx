@@ -26,7 +26,9 @@ export const UserProvider = ({ children }) => {
   "/about",
   "/contact",
   "/verify-otp",
-  "/courses/:id"
+  "/courses/:id",
+  "/forgot-password",
+  "/reset-password"
 ];
 
 
@@ -166,23 +168,33 @@ export const UserProvider = ({ children }) => {
   };
 
   const forgotPassword = async (email) => {
-    try {
-      const res = await api.auth.forgotPassword(email);
-      return res.data.status === "success";
-    } catch (err) {
-      throw new Error(err.response?.data?.message || "Có lỗi xảy ra");
-    }
-  };
+  try {
+    const res = await api.user.forgotPassword(email);
+    return res.data.status === "success";
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "Có lỗi xảy ra");
+  }
+};
 
-  const resetPassword = async (resetData) => {
-    try {
-      
-      const res = await api.auth.resetPassword(resetData);
-      return res.data.status === "success";
-    } catch (err) {
-      throw new Error(err.response?.data?.message || "Không thể đặt lại mật khẩu");
+const resetPassword = async (email, token, password, passwordConfirm) => {
+  try {
+    // 🧠 Không gửi Authorization header
+    const res = await api.auth.resetPassword({ email, token, password, passwordConfirm });
+
+    if (res.data.status === "success") {
+      const userData = res.data.data.user;
+      const newToken = res.data.token;
+
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', newToken);
+      setUser(userData);
     }
-  };
+    return res.data.status === "success";
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "Không thể đặt lại mật khẩu");
+  }
+};
+
 
   const updateProfile = async (data) => {
     try {

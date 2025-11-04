@@ -16,25 +16,25 @@ export const useAuth = () => {
   const [error, setError] = useState(null);
 
   const handleLogin = async (email, password) => {
-  setIsLoading(true);
-  setError(null);
-  
-  try {
-    const response = await login(email, password);
-    setIsLoading(false);
+    setIsLoading(true);
+    setError(null);
 
-    if (!response.success) {
-      setError(response.message); // ⬅️ HIỂN THỊ MESSAGE TỪ BACKEND
+    try {
+      const response = await login(email, password);
+      setIsLoading(false);
+
+      if (!response.success) {
+        setError(response.message); // ⬅️ HIỂN THỊ MESSAGE TỪ BACKEND
+        return false;
+      }
+
+      return response.data;
+    } catch (err) {
+      setIsLoading(false);
+      setError("Có lỗi xảy ra, vui lòng thử lại");
       return false;
     }
-
-    return response.data;
-  } catch (err) {
-    setIsLoading(false);
-    setError("Có lỗi xảy ra, vui lòng thử lại");
-    return false;
-  }
-};
+  };
 
   const handleLogout = async () => {
     setIsLoading(true);
@@ -71,6 +71,7 @@ export const useAuth = () => {
     }
   };
 
+  // Đã có sẵn trong code của bạn, chỉ cần kiểm tra lại
   const handleForgotPassword = async (email) => {
     try {
       setIsLoading(true);
@@ -84,12 +85,7 @@ export const useAuth = () => {
     }
   };
 
-  const handleResetPassword = async (
-    email,
-    token,
-    password,
-    passwordConfirm
-  ) => {
+  const handleResetPassword = async (email, token, password, passwordConfirm) => {
     try {
       setIsLoading(true);
       setError(null);

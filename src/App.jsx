@@ -12,6 +12,8 @@ import ProtectedRoute from "./hooks/ProtectedRoute";
 import VerifyOtp from "./pages/Auth/VerifyOtp ";
 import GuestViewCourseDetail from "./pages/Homepage/GuestViewCourseDetail";
 import StudentRegisterTest from "./components/Student/StudentOverview/StudentRegisterTest"; 
+import ForgotPasswordForm from "./pages/Auth/ForgotPasswordForm";
+import ResetPasswordForm from "./pages/Auth/ResetPasswordForm";
 
 
 // Component wrapper để xử lý modal
@@ -37,6 +39,8 @@ function AppContent() {
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />  
         <Route path="/courses/:id" element={<GuestViewCourseDetail />} />
+        <Route path="/forgot-password" element={<ForgotPasswordForm />} />
+        <Route path="/reset-password" element={<ResetPasswordForm />} />
 
         {/* Protected Routes */}
         <Route

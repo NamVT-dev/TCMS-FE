@@ -1,5 +1,6 @@
 import axios from "axios";
 
+
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
@@ -56,6 +57,9 @@ const api = {
     getMe: () => axiosInstance.get("auth/profile"),
     updatePassword: (data) => axiosInstance.patch("auth/updatePassword", data),
     updateProfile: (data) => axiosInstance.patch("auth/profile", data),
+    forgotPassword: (email) =>axiosInstance.post("auth/forgotPassword", { email }),
+    resetPassword: (data) => axiosInstance.post("auth/resetPassword", data),
+  
     registerTest: (testData) =>
       axiosInstance.post("test/register-test", testData),
     getCourseCategories: () => axiosInstance.get("categories"),
