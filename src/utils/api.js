@@ -57,9 +57,9 @@ const api = {
     getMe: () => axiosInstance.get("auth/profile"),
     updatePassword: (data) => axiosInstance.patch("auth/updatePassword", data),
     updateProfile: (data) => axiosInstance.patch("auth/profile", data),
-    forgotPassword: (email) =>axiosInstance.post("auth/forgotPassword", { email }),
+    forgotPassword: (email) => axiosInstance.post("auth/forgotPassword", { email }),
     resetPassword: (data) => axiosInstance.post("auth/resetPassword", data),
-  
+
     registerTest: (testData) =>
       axiosInstance.post("test/register-test", testData),
     getCourseCategories: () => axiosInstance.get("categories"),
@@ -76,6 +76,14 @@ const api = {
       getConfig: () => axiosInstance.get("/admin/center/config"),
       updateConfig: (data) =>
         axiosInstance.patch("/admin/center/config", data),
+    },
+    schedule: {
+      runScheduler: (data) => axiosInstance.post("schedule/run", data),
+      getAllJobs: () => axiosInstance.get("schedule/jobs"),
+      getJobDetails: (jobId) => axiosInstance.get(`schedule/jobs/${jobId}`),
+      finalizeJob: (jobId) => axiosInstance.post(`schedule/jobs/${jobId}/finalize`),
+      getAnalytics: () => axiosInstance.get("schedule/analytics"),
+      getStatus: () => axiosInstance.get("schedule/status"),
     },
 
     getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),

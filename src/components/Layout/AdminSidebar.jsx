@@ -132,6 +132,14 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             ]
         },
         {
+            icon: Clock1, 
+            title: "Xếp Lịch Tự Động",
+            items: [
+                { name: "Dashboard Xếp Lịch", path: "/admin/scheduler/dashboard", icon: LayoutDashboard },
+                { name: "Phân Tích", path: "/admin/scheduler/analytics", icon: PieChart }
+            ]
+        },
+        {
             icon: Building2,
             title: "Quản lý trung tâm",
             items: [
