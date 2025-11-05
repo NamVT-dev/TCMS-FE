@@ -11,6 +11,7 @@ export const useAuth = () => {
     resetPassword,
     user,
     updateProfile,
+    loading,
   } = useContext(UserContext);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -120,6 +121,7 @@ export const useAuth = () => {
     resetPassword: handleResetPassword,
     updateProfile: handleUpdateProfile,
     user,
+    loading,
     isLoading,
     error,
   };

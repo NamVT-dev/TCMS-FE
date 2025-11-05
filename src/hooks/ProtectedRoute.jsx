@@ -1,24 +1,27 @@
-// ProtectedRoute.jsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import PropTypes from 'prop-types';
+import Loading from "../components/UI/Loading";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
+  // 🟡 Đang tải user -> tạm dừng render
+  if (loading) return <Loading fullscreen message="Đang tải thông tin người dùng..." />;
+
+  // 🟥 Nếu load xong mà chưa có user => chưa đăng nhập
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!allowedRoles?.includes(user.role)) {
+  // 🟧 Nếu có user nhưng không đúng role
+  if (!allowedRoles.includes(user.role)) {
     const roleRoutes = {
       admin: '/admin/overview',
       teacher: '/teacher/overview',
-      member: '/', 
-     
+      member: '/',
     };
-
     return <Navigate to={roleRoutes[user.role] || '/login'} replace />;
   }
 
