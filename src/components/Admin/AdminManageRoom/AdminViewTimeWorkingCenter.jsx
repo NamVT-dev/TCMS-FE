@@ -1,8 +1,14 @@
-import React, { useEffect, useState } from "react";
+// src/components/Admin/AdminManageUser/AdminManageRoom/AdminViewTimeWorkingCenter.jsx
+// (Hoặc đường dẫn file của bạn)
+
+import React, { useEffect, useState, useCallback } from "react";
 import api from "../../../utils/api";
+import { Loader2, Save } from "lucide-react";
 
 // 🗓 Backend: 0 = CN, 1 = T2, ..., 6 = T7
 const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+// ⬇️ Dùng 6 ca S1-S6
+const SHIFT_NAMES = ["S1", "S2", "S3", "S4", "S5", "S6"];
 
 // 🕒 Chuyển đổi phút <-> "HH:mm"
 const minutesToTime = (mins) => {
@@ -12,34 +18,50 @@ const minutesToTime = (mins) => {
   return `${h}:${m}`;
 };
 const timeToMinutes = (time) => {
+  if (!time) return 0;
   const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
+  return (h * 60) + m;
 };
 
 const AdminViewTimeWorkingCenter = () => {
   const [config, setConfig] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // ✅ Lấy config từ backend
-  const fetchConfig = async () => {
+  const fetchConfig = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.admin.center.getConfig();
       const conf = res.data?.data?.config;
 
-      // ✅ Chuẩn hóa danh sách shifts (thêm mặc định nếu thiếu)
-      const defaultShifts = ["morning", "afternoon", "evening"];
+      // Chuẩn hóa 6 ca S1-S6
       const shiftObj = {};
-      defaultShifts.forEach((name) => {
-        const found = conf.shifts?.find((s) => s.name === name);
-        shiftObj[name] = {
-          startMinute: found?.startMinute ?? 480, // 08:00
-          endMinute: found?.endMinute ?? 720, // 12:00
-        };
-      });
+      const beShifts = conf.shifts || [];
 
-      // ✅ Đảm bảo đủ 7 ngày (0–6)
+      for (const shift of beShifts) {
+        shiftObj[shift.name] = {
+          startMinute: shift.startMinute,
+          endMinute: shift.endMinute,
+        };
+      }
+
+      const defaultShiftValues = {
+        S1: { startMinute: 480, endMinute: 590 },
+        S2: { startMinute: 600, endMinute: 710 },
+        S3: { startMinute: 780, endMinute: 890 },
+        S4: { startMinute: 900, endMinute: 1010 },
+        S5: { startMinute: 1080, endMinute: 1190 },
+        S6: { startMinute: 1200, endMinute: 1310 },
+      };
+
+      for (const name of SHIFT_NAMES) {
+        if (!shiftObj[name]) {
+          shiftObj[name] = defaultShiftValues[name];
+        }
+      }
+
+      // Đảm bảo đủ 7 ngày (0–6)
       const defaultDays = Array.from({ length: 7 }, (_, i) => ({
         dayOfWeek: i,
         shifts: [],
@@ -57,12 +79,12 @@ const AdminViewTimeWorkingCenter = () => {
       });
     } catch (err) {
       console.error(err);
-      alert("❌ Không thể tải cấu hình trung tâm.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Mảng rỗng fix lỗi lặp vô tận
 
+  // ⬇️ BẮT ĐẦU SỬA LỖI LOGIC
   // ✅ Toggle chọn ngày hoạt động
   const toggleDay = (index) => {
     setConfig((prev) => {
@@ -71,12 +93,23 @@ const AdminViewTimeWorkingCenter = () => {
       let newDayShifts = [...prev.dayShifts];
 
       if (isActive) {
+        // Logic khi *bỏ chọn* một ngày
         newDays = prev.activeDaysOfWeek.filter((d) => d !== index);
+        // Tự động bỏ check tất cả các ca của ngày đó
         newDayShifts = newDayShifts.map((d) =>
           d.dayOfWeek === index ? { ...d, shifts: [] } : d
         );
       } else {
+        // Logic khi *chọn thêm* một ngày
         newDays = [...prev.activeDaysOfWeek, index];
+
+        // FIX: Đảm bảo hàng cho ngày này TỒN TẠI trong Bảng 3
+        const existingDay = newDayShifts.find(d => d.dayOfWeek === index);
+        if (!existingDay) {
+          // Nếu chưa có (trường hợp này không nên xảy ra vì fetchConfig đã tạo 7 ngày)
+          // nhưng chúng ta vẫn thêm để đảm bảo an toàn
+          newDayShifts.push({ dayOfWeek: index, shifts: [] });
+        }
       }
 
       return {
@@ -86,15 +119,16 @@ const AdminViewTimeWorkingCenter = () => {
       };
     });
   };
+  // ⬆️ KẾT THÚC SỬA LỖI LOGIC
 
   // ✅ Cập nhật giờ từng ca
-  const handleShiftTimeChange = (shift, field, value) => {
+  const handleShiftTimeChange = (shiftName, field, value) => {
     setConfig((prev) => ({
       ...prev,
       shifts: {
         ...prev.shifts,
-        [shift]: {
-          ...prev.shifts[shift],
+        [shiftName]: {
+          ...prev.shifts[shiftName],
           [field]: timeToMinutes(value),
         },
       },
@@ -120,25 +154,25 @@ const AdminViewTimeWorkingCenter = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
-
-      // Convert shifts object -> array
       const shiftsArray = Object.entries(config.shifts).map(([name, s]) => ({
         name,
         startMinute: s.startMinute,
         endMinute: s.endMinute,
       }));
 
+      // Lọc ra Bảng 3 (dayShifts) CHỈ cho những ngày active
+      const activeDayShifts = config.dayShifts.filter(d =>
+        config.activeDaysOfWeek.includes(d.dayOfWeek)
+      );
+
       const payload = {
         timezone: config.timezone,
         activeDaysOfWeek: config.activeDaysOfWeek,
         shifts: shiftsArray,
-        dayShifts: config.dayShifts,
+        dayShifts: activeDayShifts, // ⬅️ Chỉ gửi những ngày active
       };
-
       const res = await api.admin.center.updateConfig(payload);
       const updatedConf = res.data?.data?.config;
-
-      // Cập nhật lại state
       const updatedShiftsObj = {};
       updatedConf.shifts.forEach((s) => {
         updatedShiftsObj[s.name] = {
@@ -147,10 +181,13 @@ const AdminViewTimeWorkingCenter = () => {
         };
       });
 
-      setConfig({
-        ...updatedConf,
-        shifts: updatedShiftsObj,
-      });
+      // Tải lại toàn bộ config cho nhất quán
+      //       setConfig((prev) => ({
+      //       ...prev,
+      //         ...updatedConf,
+      //         shifts: updatedShiftsObj,
+      //       }));
+      await fetchConfig(); // Tải lại toàn bộ config sau khi lưu
 
       alert("✅ Cập nhật cấu hình thành công!");
     } catch (err) {
@@ -163,25 +200,27 @@ const AdminViewTimeWorkingCenter = () => {
 
   useEffect(() => {
     fetchConfig();
-  }, []);
+  }, [fetchConfig]);
 
   if (loading || !config)
     return (
-      <div className="p-8 text-gray-600 text-center">Đang tải dữ liệu...</div>
+      <div className="p-8 text-gray-600 text-center flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      </div>
     );
 
   const { shifts, activeDaysOfWeek, dayShifts } = config;
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-md max-w-5xl mx-auto mt-8 border border-gray-100">
-      <h1 className="text-3xl font-bold mb-6 text-purple-700 flex items-center gap-2">
-        Cấu hình thời gian hoạt động trung tâm
+    <div className="p-6 bg-white rounded-lg shadow-sm max-w-5xl mx-auto mt-8 border border-gray-200">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">
+        Cấu hình thời gian hoạt động
       </h1>
 
       {/* 1️⃣ Ngày hoạt động */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-700 mb-3">
-          Chọn ngày hoạt động trong tuần
+        <h2 className="text-xl font-semibold text-gray-700 mb-3">
+          1. Ngày hoạt động
         </h2>
         <div className="flex flex-wrap gap-3">
           {dayNames.map((day, i) => {
@@ -190,11 +229,10 @@ const AdminViewTimeWorkingCenter = () => {
               <button
                 key={i}
                 onClick={() => toggleDay(i)}
-                className={`px-4 py-2 rounded-lg border font-medium transition-all ${
-                  isActive
+                className={`px-4 py-2 rounded-lg border font-medium transition-all ${isActive
                     ? "bg-purple-600 text-white border-purple-600"
-                    : "bg-gray-100 text-gray-700 hover:bg-purple-50 border-gray-300"
-                }`}
+                    : "bg-white text-gray-700 hover:bg-purple-50 border-gray-300"
+                  }`}
               >
                 {day}
               </button>
@@ -205,38 +243,35 @@ const AdminViewTimeWorkingCenter = () => {
 
       {/* 2️⃣ Giờ ca học */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-700 mb-3">
-          Cập nhật khung giờ học
+        <h2 className="text-xl font-semibold text-gray-700 mb-3">
+          2. Định nghĩa khung giờ ca
         </h2>
-        <div className="space-y-4">
-          {[
-            { key: "morning", label: "Buổi sáng" },
-            { key: "afternoon", label: "Buổi chiều" },
-            { key: "evening", label: "Buổi tối" },
-          ].map(({ key, label }) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {SHIFT_NAMES.map((shiftName) => (
             <div
-              key={key}
-              className="flex items-center justify-between border p-4 rounded-xl hover:bg-gray-50 transition"
+              key={shiftName}
+              className="flex items-center justify-between border p-4 rounded-lg hover:bg-gray-50 transition"
             >
-              <div className="font-medium text-gray-800">{label}</div>
+              <div className="font-semibold text-lg text-purple-700">{shiftName}</div>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-500">Bắt đầu:</label>
+                <label className="text-sm text-gray-500 sr-only">Bắt đầu:</label>
                 <input
                   type="time"
-                  value={minutesToTime(shifts[key]?.startMinute)}
+                  value={minutesToTime(shifts[shiftName]?.startMinute)}
                   onChange={(e) =>
-                    handleShiftTimeChange(key, "startMinute", e.target.value)
+                    handleShiftTimeChange(shiftName, "startMinute", e.target.value)
                   }
-                  className="border rounded px-2 py-1 text-sm"
+                  className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-purple-500 focus:border-purple-500"
                 />
-                <label className="text-sm text-gray-500">Kết thúc:</label>
+                <span className="text-gray-400">-</span>
+                <label className="text-sm text-gray-500 sr-only">Kết thúc:</label>
                 <input
                   type="time"
-                  value={minutesToTime(shifts[key]?.endMinute)}
+                  value={minutesToTime(shifts[shiftName]?.endMinute)}
                   onChange={(e) =>
-                    handleShiftTimeChange(key, "endMinute", e.target.value)
+                    handleShiftTimeChange(shiftName, "endMinute", e.target.value)
                   }
-                  className="border rounded px-2 py-1 text-sm"
+                  className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
             </div>
@@ -245,38 +280,44 @@ const AdminViewTimeWorkingCenter = () => {
       </div>
 
       {/* 3️⃣ Ca hoạt động theo từng ngày */}
+      {/* ⬇️ SỬA LỖI LOGIC: Hiển thị Bảng 3 dựa trên 'activeDaysOfWeek' */}
       {activeDaysOfWeek.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-700 mb-3">
-            Thiết lập ca học cho từng ngày đã chọn
+          <h2 className="text-xl font-semibold text-gray-700 mb-3">
+            3. Chọn ca hoạt động cho từng ngày
           </h2>
-          <div className="border rounded-xl overflow-hidden">
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
             <table className="w-full text-center border-collapse">
-              <thead className="bg-purple-50">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="border p-2 w-24">Ngày</th>
-                  <th className="border p-2">Sáng</th>
-                  <th className="border p-2">Chiều</th>
-                  <th className="border p-2">Tối</th>
+                  <th className="border-b border-gray-200 p-3 w-24 text-sm font-semibold text-gray-600">Ngày</th>
+                  {SHIFT_NAMES.map((name) => (
+                    <th key={name} className="border-b border-gray-200 p-3 text-sm font-semibold text-gray-600">
+                      {name}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {dayShifts
+                  // 1. Lọc ra những ngày được chọn (giữ nguyên)
                   .filter((d) => activeDaysOfWeek.includes(d.dayOfWeek))
+                  // 2. Sắp xếp lại theo thứ tự (CN -> T7)
+                  .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
                   .map((d) => (
-                    <tr key={d.dayOfWeek}>
-                      <td className="border p-2 font-medium text-gray-800 bg-gray-50">
+                    <tr key={d.dayOfWeek} className="even:bg-white odd:bg-gray-50/50">
+                      <td className="border-r border-gray-200 p-3 font-medium text-gray-800 bg-gray-50">
                         {dayNames[d.dayOfWeek]}
                       </td>
-                      {["morning", "afternoon", "evening"].map((shift) => (
-                        <td key={shift} className="border p-2">
+                      {SHIFT_NAMES.map((shiftName) => (
+                        <td key={shiftName} className="border-r border-gray-200 last:border-r-0 p-3">
                           <input
                             type="checkbox"
-                            checked={d.shifts.includes(shift)}
+                            checked={d.shifts.includes(shiftName)}
                             onChange={() =>
-                              toggleShiftForDay(d.dayOfWeek, shift)
+                              toggleShiftForDay(d.dayOfWeek, shiftName)
                             }
-                            className="w-5 h-5 accent-purple-600"
+                            className="w-5 h-5 accent-purple-600 cursor-pointer"
                           />
                         </td>
                       ))}
@@ -287,14 +328,16 @@ const AdminViewTimeWorkingCenter = () => {
           </div>
         </div>
       )}
+      {/* ⬆️ KẾT THÚC SỬA LỖI LOGIC */}
 
       {/* Nút lưu */}
-      <div className="text-right">
+      <div className="text-right mt-8">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition disabled:bg-gray-400"
+          className="inline-flex items-center px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition disabled:bg-gray-400"
         >
+          {saving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
           {saving ? "Đang lưu..." : "Lưu cấu hình"}
         </button>
       </div>
