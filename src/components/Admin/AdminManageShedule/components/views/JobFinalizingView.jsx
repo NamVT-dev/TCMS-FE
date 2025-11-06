@@ -1,4 +1,3 @@
-// src/components/Admin/AdminManageShedule/components/views/JobFinalizingView.jsx
 
 import React from "react";
 import { Loader2, Database } from "lucide-react";

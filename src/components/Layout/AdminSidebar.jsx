@@ -67,14 +67,27 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
             {isOpen && items && (
                 <div className="ml-14 mt-2 space-y-1">
                     {items.map((item, index) => {
-                        const isActive = currentPath === item.path;
+
+                     
+
+                       
+                        let isActive = false;
+                        if (item.path === '/admin/classes') {
+                            
+                            isActive = currentPath === item.path || currentPath.startsWith('/admin/classes/detail/');
+                        } else {
+                          
+                            isActive = currentPath === item.path;
+                        }
+                       
+
                         return (
                             <Link
                                 key={index}
                                 to={item.path}
-                                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${isActive
-                                    ? "bg-purple-100 text-purple-600 font-medium"
-                                    : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${isActive // ⬅️ Sử dụng logic mới
+                                        ? "bg-purple-100 text-purple-600 font-medium"
+                                        : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
                                     }`}
                             >
                                 {item.icon && <item.icon className="w-4 h-4" />}
@@ -132,7 +145,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             ]
         },
         {
-            icon: Clock1, 
+            icon: Clock1,
             title: "Xếp Lịch Tự Động",
             items: [
                 { name: "Dashboard Xếp Lịch", path: "/admin/scheduler/dashboard", icon: LayoutDashboard },

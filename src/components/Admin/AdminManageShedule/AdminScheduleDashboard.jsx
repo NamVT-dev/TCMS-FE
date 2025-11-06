@@ -17,7 +17,7 @@ function AdminScheduleDashboard() {
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
-    // Không set isLoading ở đây để tránh bảng bị giật khi refetch
+    
     try {
       const [statusRes, jobsRes] = await Promise.all([
         api.admin.schedule.getStatus(),
@@ -40,18 +40,18 @@ function AdminScheduleDashboard() {
 
   const handleJobCreated = (newJobId) => {
     setIsModalOpen(false);
-    fetchData(); // Tải lại data để cập nhật trạng thái "Hệ thống bận"
+    fetchData(); 
     navigate(`/admin/scheduler/jobs/${newJobId}`);
   };
 
   return (
     <div className="p-6 bg-gray-50 min-h-full">
-      {/* Header */}
+     
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-900">
           Dashboard Xếp Lịch
         </h1>
-        {/* Nút Actions */}
+        
         <div className="flex-shrink-0 flex items-center space-x-3">
           <button
             onClick={() => navigate("/admin/scheduler/analytics")}
@@ -75,7 +75,7 @@ function AdminScheduleDashboard() {
         </div>
       </div>
 
-      {/* Cảnh báo hệ thống bận */}
+      
       {isScheduling && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-md">
           <div className="flex">
@@ -92,7 +92,7 @@ function AdminScheduleDashboard() {
         </div>
       )}
 
-      {/* Lỗi */}
+      
       {error && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-md">
           <div className="flex">
@@ -108,13 +108,13 @@ function AdminScheduleDashboard() {
         </div>
       )}
 
-      {/* Bảng lịch sử */}
+      
       <JobHistoryTable 
         jobs={jobs} 
         isLoading={isLoading}
       />
 
-      {/* Modal tạo mới */}
+      
       <NewScheduleModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

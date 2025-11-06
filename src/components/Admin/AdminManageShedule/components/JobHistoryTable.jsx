@@ -1,4 +1,3 @@
-// src/components/Admin/AdminManageShedule/components/JobHistoryTable.jsx
 
 import React from "react";
 import { Link } from "react-router-dom";
@@ -15,8 +14,8 @@ function JobHistoryTable({ jobs, isLoading }) {
     if (!job.resultReport) return "N/A";
     const { successfulCount = 0, failedCount = 0 } = job.resultReport;
     const total = successfulCount + failedCount;
-    if (total === 0 && successfulCount === 0) return "0%"; // 0/0
-    if (total === 0 && successfulCount > 0) return "100%"; // 1/0
+    if (total === 0 && successfulCount === 0) return "0%"; 
+    if (total === 0 && successfulCount > 0) return "100%"; 
     return formatPercent(successfulCount / total);
   };
 
@@ -26,10 +25,10 @@ function JobHistoryTable({ jobs, isLoading }) {
         Lịch sử các lần chạy
       </h3>
       
-      {/* Container cho table để scroll ngang nếu cần */}
+      
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          {/* Header Bảng */}
+         
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -50,7 +49,7 @@ function JobHistoryTable({ jobs, isLoading }) {
             </tr>
           </thead>
           
-          {/* Body Bảng */}
+         
           <tbody className="bg-white divide-y divide-gray-200">
             {isLoading && (
               <tr>

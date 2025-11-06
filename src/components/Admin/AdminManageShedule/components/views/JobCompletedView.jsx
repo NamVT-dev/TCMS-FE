@@ -1,5 +1,3 @@
-// src/components/Admin/AdminManageShedule/components/views/JobCompletedView.jsx
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { CheckCircle2, ArrowLeft } from "lucide-react";
@@ -27,7 +25,7 @@ function JobCompletedView({ job }) {
           Về Dashboard
         </Link>
         <Link
-          to="/admin/classes" // ⬅️ Điều hướng đến trang danh sách lớp
+          to="/admin/classes" 
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors duration-200"
         >
           Xem Danh Sách Lớp

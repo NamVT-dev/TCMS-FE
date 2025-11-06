@@ -1,11 +1,10 @@
-// src/components/Admin/AdminManageShedule/AdminScheduleAnalytics.jsx
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../utils/api";
 import { Loader2, ArrowLeft, BarChart2, PieChart, AlertTriangle } from "lucide-react";
 
-// Component con để hiển thị 1 thẻ thống kê
+
 const AnalyticsCard = ({ icon: Icon, title, description, children }) => (
   <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
     <div className="flex items-center space-x-3 mb-4">
@@ -21,13 +20,13 @@ const AnalyticsCard = ({ icon: Icon, title, description, children }) => (
   </div>
 );
 
-// Component con (Giả lập) để hiển thị biểu đồ Lý do thất bại
+
 const FailureReasonsChart = ({ data }) => {
   if (!data || data.length === 0) {
     return <p className="text-gray-500 text-center py-4">Chưa có dữ liệu thống kê.</p>;
   }
 
-  // Sắp xếp dữ liệu
+ 
   const sortedData = [...data].sort((a, b) => b.count - a.count);
 
   return (

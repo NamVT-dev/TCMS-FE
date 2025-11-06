@@ -1,4 +1,3 @@
-// src/components/Admin/AdminManageShedule/components/views/JobInProgressView.jsx
 
 import React from "react";
 import FriendlyLogView from "../common/FriendlyLogView"; 

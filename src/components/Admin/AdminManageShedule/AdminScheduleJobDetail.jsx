@@ -1,4 +1,4 @@
-// src/components/Admin/AdminManageShedule/AdminScheduleJobDetail.jsx
+
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
@@ -6,7 +6,7 @@ import api from "../../../utils/api";
 import { socket } from "../../../utils/socket";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
-// Import các "views" con
+
 import JobInProgressView from "./components/views/JobInProgressView";
 import JobDraftReviewView from "./components/views/JobDraftReviewView";
 import JobFinalizingView from "./components/views/JobFinalizingView";
@@ -19,7 +19,7 @@ function AdminScheduleJobDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Hàm tải dữ liệu (dùng lại khi socket báo hoàn thành)
+    
     const fetchJob = useCallback(async () => {
         try {
             setLoading(true);
@@ -34,22 +34,22 @@ function AdminScheduleJobDetail() {
         }
     }, [jobId]);
 
-    // 1. Tải dữ liệu lần đầu khi mount
+   
     useEffect(() => {
         fetchJob();
     }, [fetchJob]);
 
-    // 2. Lắng nghe Socket.IO
+   
     useEffect(() => {
-        // Kết nối tới socket
+       
         socket.connect();
 
-        // Lắng nghe sự kiện 'job_update' (cập nhật log)
+       
         const handleJobUpdate = (data) => {
             if (data.jobId === jobId) {
                 setJob((prevJob) => {
                     if (!prevJob) return null;
-                    // Thêm log mới vào danh sách
+                    
                     const newLog = {
                         stage: data.stage,
                         message: data.message,
@@ -66,10 +66,10 @@ function AdminScheduleJobDetail() {
             }
         };
 
-        // Lắng nghe sự kiện 'job_complete' hoặc 'job_error'
+        
         const handleJobFinish = (data) => {
             if (data.jobId === jobId) {
-                // Khi job hoàn thành (ra draft) hoặc lỗi, tải lại toàn bộ data
+                
                 fetchJob();
             }
         };
@@ -78,7 +78,6 @@ function AdminScheduleJobDetail() {
         socket.on("job_complete", handleJobFinish);
         socket.on("job_error", handleJobFinish);
 
-        // Dọn dẹp khi component unmount
         return () => {
             socket.off("job_update", handleJobUpdate);
             socket.off("job_complete", handleJobFinish);
@@ -87,7 +86,7 @@ function AdminScheduleJobDetail() {
         };
     }, [jobId, fetchJob]);
 
-    // Hàm render view con dựa trên status
+    
     const renderJobView = () => {
         if (loading) {
             return (

@@ -1,4 +1,3 @@
-// src/components/Admin/AdminManageShedule/components/views/JobErrorView.jsx
 
 import React from "react";
 import { Link } from "react-router-dom";

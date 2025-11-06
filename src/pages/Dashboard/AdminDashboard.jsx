@@ -8,6 +8,7 @@ import AdminViewStudentList from '../../components/Admin/AdminManageUser/AdminMa
 import AdminViewTeacherList from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherList';
 import AdminViewParentList from '../../components/Admin/AdminManageUser/AdminManageParent/AdminViewParentList';
 import AdminViewClassList from '../../components/Admin/AdminManageClass/AdminViewClassList';
+import AdminClassDetail from '../../components/Admin/AdminManageClass/AdminClassDetail';
 import AdminCreateClass from '../../components/Admin/AdminManageClass/AdminCreateClass';
 import AdminViewRoomList from '../../components/Admin/AdminManageRoom/AdminViewRoomList';
 import AdminViewEnrollmentList from '../../components/Admin/AdminManageUser/AdminManageEnrollment/AdminViewEnrollList';
@@ -16,6 +17,7 @@ import AdminViewCourseList from '../../components/Admin/AdminManageCourse/AdminV
 import AdminScheduleDashboard from '../../components/Admin/AdminManageShedule/AdminScheduleDashboard';
 import AdminScheduleJobDetail from '../../components/Admin/AdminManageShedule/AdminScheduleJobDetail';
 import AdminScheduleAnalytics from '../../components/Admin/AdminManageShedule/AdminScheduleAnalytics';
+
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -51,6 +53,7 @@ const AdminDashboard = () => {
             <Route path="/users/parents" element={<AdminViewParentList />} />
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
             <Route path="/classes" element={<AdminViewClassList />} />
+            <Route path="/classes/detail/:id" element={<AdminClassDetail />} />
             <Route path="/classes/create" element={<AdminCreateClass />} />
             <Route path="/facility/rooms" element={<AdminViewRoomList />} />
             <Route path="/facility/working-hours" element={<AdminViewTimeWorkingCenter />} />
