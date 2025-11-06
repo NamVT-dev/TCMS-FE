@@ -81,7 +81,7 @@ const api = {
       runScheduler: (data) => axiosInstance.post("schedule/run", data),
       getAllJobs: () => axiosInstance.get("schedule/jobs"),
       getJobDetails: (jobId) => axiosInstance.get(`schedule/jobs/${jobId}`),
-      finalizeJob: (jobId) => axiosInstance.post(`schedule/jobs/${jobId}/finalize`),
+      finalizeJob: (jobId, data) => axiosInstance.post(`schedule/jobs/${jobId}/finalize`, data),
       getAnalytics: () => axiosInstance.get("schedule/analytics"),
       getStatus: () => axiosInstance.get("schedule/status"),
     },

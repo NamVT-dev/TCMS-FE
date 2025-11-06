@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../utils/api";
 
-// 🗓 0 = CN, 1 = T2, ..., 6 = T7
+// 🗓 Backend: 0 = CN, 1 = T2, ..., 6 = T7
 const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
 
 // 🕒 Chuyển đổi phút <-> "HH:mm"
 const minutesToTime = (mins) => {
+  if (typeof mins !== "number" || isNaN(mins)) return "00:00";
   const h = String(Math.floor(mins / 60)).padStart(2, "0");
   const m = String(mins % 60).padStart(2, "0");
   return `${h}:${m}`;
@@ -20,30 +21,40 @@ const AdminViewTimeWorkingCenter = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // ✅ Lấy config
+  // ✅ Lấy config từ backend
   const fetchConfig = async () => {
     try {
       setLoading(true);
       const res = await api.admin.center.getConfig();
       const conf = res.data?.data?.config;
 
-      // 🔄 Convert shifts array -> object
+      // ✅ Chuẩn hóa danh sách shifts (thêm mặc định nếu thiếu)
+      const defaultShifts = ["morning", "afternoon", "evening"];
       const shiftObj = {};
-      conf.shifts.forEach((s) => {
-        shiftObj[s.name] = { startMinute: s.startMinute, endMinute: s.endMinute };
+      defaultShifts.forEach((name) => {
+        const found = conf.shifts?.find((s) => s.name === name);
+        shiftObj[name] = {
+          startMinute: found?.startMinute ?? 480, // 08:00
+          endMinute: found?.endMinute ?? 720, // 12:00
+        };
       });
 
-      // 🔄 Đảm bảo dayShifts có đủ 7 ngày
-      const defaultDayShifts = Array.from({ length: 7 }, (_, i) => ({
+      // ✅ Đảm bảo đủ 7 ngày (0–6)
+      const defaultDays = Array.from({ length: 7 }, (_, i) => ({
         dayOfWeek: i,
         shifts: [],
       }));
-      const mergedDayShifts = defaultDayShifts.map((d) => {
-        const found = conf.dayShifts.find((x) => x.dayOfWeek === d.dayOfWeek);
+      const mergedDayShifts = defaultDays.map((d) => {
+        const found = conf.dayShifts?.find((x) => x.dayOfWeek === d.dayOfWeek);
         return found || d;
       });
 
-      setConfig({ ...conf, shifts: shiftObj, dayShifts: mergedDayShifts });
+      setConfig({
+        ...conf,
+        shifts: shiftObj,
+        dayShifts: mergedDayShifts,
+        activeDaysOfWeek: conf.activeDaysOfWeek ?? [],
+      });
     } catch (err) {
       console.error(err);
       alert("❌ Không thể tải cấu hình trung tâm.");
@@ -52,29 +63,29 @@ const AdminViewTimeWorkingCenter = () => {
     }
   };
 
-  //  Toggle chọn ngày hoạt động
+  // ✅ Toggle chọn ngày hoạt động
+  const toggleDay = (index) => {
+    setConfig((prev) => {
+      const isActive = prev.activeDaysOfWeek.includes(index);
+      let newDays;
+      let newDayShifts = [...prev.dayShifts];
 
-const toggleDay = (index) => {
-  setConfig((prev) => {
-    const isActive = prev.activeDaysOfWeek.includes(index);
-    let newDays;
-    let newDayShifts = [...prev.dayShifts];
+      if (isActive) {
+        newDays = prev.activeDaysOfWeek.filter((d) => d !== index);
+        newDayShifts = newDayShifts.map((d) =>
+          d.dayOfWeek === index ? { ...d, shifts: [] } : d
+        );
+      } else {
+        newDays = [...prev.activeDaysOfWeek, index];
+      }
 
-    if (isActive) {
-      
-      newDays = prev.activeDaysOfWeek.filter((d) => d !== index);
-      newDayShifts = newDayShifts.map((d) =>
-        d.dayOfWeek === index ? { ...d, shifts: [] } : d
-      );
-    } else {
-      
-      newDays = [...prev.activeDaysOfWeek, index];
-    }
-
-    return { ...prev, activeDaysOfWeek: newDays.sort((a, b) => a - b), dayShifts: newDayShifts };
-  });
-};
-
+      return {
+        ...prev,
+        activeDaysOfWeek: newDays.sort((a, b) => a - b),
+        dayShifts: newDayShifts,
+      };
+    });
+  };
 
   // ✅ Cập nhật giờ từng ca
   const handleShiftTimeChange = (shift, field, value) => {
@@ -125,8 +136,9 @@ const toggleDay = (index) => {
       };
 
       const res = await api.admin.center.updateConfig(payload);
-
       const updatedConf = res.data?.data?.config;
+
+      // Cập nhật lại state
       const updatedShiftsObj = {};
       updatedConf.shifts.forEach((s) => {
         updatedShiftsObj[s.name] = {
@@ -134,7 +146,12 @@ const toggleDay = (index) => {
           endMinute: s.endMinute,
         };
       });
-      setConfig({ ...updatedConf, shifts: updatedShiftsObj });
+
+      setConfig({
+        ...updatedConf,
+        shifts: updatedShiftsObj,
+      });
+
       alert("✅ Cập nhật cấu hình thành công!");
     } catch (err) {
       console.error("❌ Lỗi khi lưu:", err.response?.data || err);
@@ -158,13 +175,13 @@ const toggleDay = (index) => {
   return (
     <div className="p-6 bg-white rounded-2xl shadow-md max-w-5xl mx-auto mt-8 border border-gray-100">
       <h1 className="text-3xl font-bold mb-6 text-purple-700 flex items-center gap-2">
-         Cấu hình thời gian hoạt động trung tâm
+        Cấu hình thời gian hoạt động trung tâm
       </h1>
 
       {/* 1️⃣ Ngày hoạt động */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-gray-700 mb-3">
-           Chọn ngày hoạt động trong tuần
+          Chọn ngày hoạt động trong tuần
         </h2>
         <div className="flex flex-wrap gap-3">
           {dayNames.map((day, i) => {
@@ -173,10 +190,11 @@ const toggleDay = (index) => {
               <button
                 key={i}
                 onClick={() => toggleDay(i)}
-                className={`px-4 py-2 rounded-lg border font-medium transition-all ${isActive
-                  ? "bg-purple-600 text-white border-purple-600"
-                  : "bg-gray-100 text-gray-700 hover:bg-purple-50 border-gray-300"
-                  }`}
+                className={`px-4 py-2 rounded-lg border font-medium transition-all ${
+                  isActive
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-gray-100 text-gray-700 hover:bg-purple-50 border-gray-300"
+                }`}
               >
                 {day}
               </button>
@@ -188,13 +206,13 @@ const toggleDay = (index) => {
       {/* 2️⃣ Giờ ca học */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-gray-700 mb-3">
-           Cập nhật khung giờ học
+          Cập nhật khung giờ học
         </h2>
         <div className="space-y-4">
           {[
-            { key: "morning", label: " Buổi sáng" },
-            { key: "afternoon", label: " Buổi chiều" },
-            { key: "evening", label: " Buổi tối" },
+            { key: "morning", label: "Buổi sáng" },
+            { key: "afternoon", label: "Buổi chiều" },
+            { key: "evening", label: "Buổi tối" },
           ].map(({ key, label }) => (
             <div
               key={key}
@@ -205,7 +223,7 @@ const toggleDay = (index) => {
                 <label className="text-sm text-gray-500">Bắt đầu:</label>
                 <input
                   type="time"
-                  value={minutesToTime(shifts[key].startMinute)}
+                  value={minutesToTime(shifts[key]?.startMinute)}
                   onChange={(e) =>
                     handleShiftTimeChange(key, "startMinute", e.target.value)
                   }
@@ -214,7 +232,7 @@ const toggleDay = (index) => {
                 <label className="text-sm text-gray-500">Kết thúc:</label>
                 <input
                   type="time"
-                  value={minutesToTime(shifts[key].endMinute)}
+                  value={minutesToTime(shifts[key]?.endMinute)}
                   onChange={(e) =>
                     handleShiftTimeChange(key, "endMinute", e.target.value)
                   }
@@ -230,21 +248,21 @@ const toggleDay = (index) => {
       {activeDaysOfWeek.length > 0 && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-gray-700 mb-3">
-             Thiết lập ca học cho từng ngày đã chọn
+            Thiết lập ca học cho từng ngày đã chọn
           </h2>
           <div className="border rounded-xl overflow-hidden">
             <table className="w-full text-center border-collapse">
               <thead className="bg-purple-50">
                 <tr>
                   <th className="border p-2 w-24">Ngày</th>
-                  <th className="border p-2"> Sáng</th>
-                  <th className="border p-2"> Chiều</th>
-                  <th className="border p-2"> Tối</th>
+                  <th className="border p-2">Sáng</th>
+                  <th className="border p-2">Chiều</th>
+                  <th className="border p-2">Tối</th>
                 </tr>
               </thead>
               <tbody>
                 {dayShifts
-                  .filter((d) => activeDaysOfWeek.includes(d.dayOfWeek)) // ✅ chỉ hiển thị ngày được chọn
+                  .filter((d) => activeDaysOfWeek.includes(d.dayOfWeek))
                   .map((d) => (
                     <tr key={d.dayOfWeek}>
                       <td className="border p-2 font-medium text-gray-800 bg-gray-50">
@@ -255,7 +273,9 @@ const toggleDay = (index) => {
                           <input
                             type="checkbox"
                             checked={d.shifts.includes(shift)}
-                            onChange={() => toggleShiftForDay(d.dayOfWeek, shift)}
+                            onChange={() =>
+                              toggleShiftForDay(d.dayOfWeek, shift)
+                            }
                             className="w-5 h-5 accent-purple-600"
                           />
                         </td>
@@ -268,7 +288,6 @@ const toggleDay = (index) => {
         </div>
       )}
 
-
       {/* Nút lưu */}
       <div className="text-right">
         <button
@@ -276,7 +295,7 @@ const toggleDay = (index) => {
           disabled={saving}
           className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition disabled:bg-gray-400"
         >
-          {saving ? "Đang lưu..." : " Lưu cấu hình"}
+          {saving ? "Đang lưu..." : "Lưu cấu hình"}
         </button>
       </div>
     </div>
