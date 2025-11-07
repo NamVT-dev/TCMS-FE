@@ -7,7 +7,7 @@ import {
     Building2, DoorOpen, Building, Wrench,
     Wallet, Receipt, Coins, BadgeDollarSign, PieChart,
     BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus,
-    ChevronLeft, ShieldUser, Clock1
+    ChevronLeft, ShieldUser, Clock1, CalendarCog,
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -122,7 +122,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             items: [
                 { name: "Học viên", path: "/admin/users/students", icon: UserCircle },
                 { name: "Giáo viên", path: "/admin/users/teachers", icon: GraduationCap },
-                { name: "Phụ huynh", path: "/admin/users/parents", icon: Users2 },
+                { name: "Nhân viên", path: "/admin/users/staff", icon: Users2 },
                 { name: "Xếp lớp học viên", path: "/admin/users/enrollments", icon: UserCog }
             ]
         },
@@ -149,7 +149,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             icon: Clock1,
             title: "Xếp Lịch Tự Động",
             items: [
-                { name: "Dashboard Xếp Lịch", path: "/admin/scheduler/dashboard", icon: LayoutDashboard },
+                { name: "Tạo lịch tự động", path: "/admin/scheduler/dashboard", icon: CalendarCog },
                 { name: "Phân Tích", path: "/admin/scheduler/analytics", icon: PieChart }
             ]
         },

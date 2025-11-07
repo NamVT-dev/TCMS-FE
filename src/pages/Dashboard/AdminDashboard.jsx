@@ -6,7 +6,6 @@ import AdminSidebar from '../../components/Layout/AdminSidebar';
 import AdminOverview from '../../components/Admin/AdminOverview/AdminOverview';
 import AdminViewStudentList from '../../components/Admin/AdminManageUser/AdminManagerSudent/AdminViewSudentList';
 import AdminViewTeacherList from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherList';
-import AdminViewParentList from '../../components/Admin/AdminManageUser/AdminManageParent/AdminViewParentList';
 import AdminViewClassList from '../../components/Admin/AdminManageClass/AdminViewClassList';
 import AdminClassDetail from '../../components/Admin/AdminManageClass/AdminClassDetail';
 import AdminCreateClass from '../../components/Admin/AdminManageClass/AdminCreateClass';
@@ -19,6 +18,7 @@ import AdminScheduleJobDetail from '../../components/Admin/AdminManageShedule/Ad
 import AdminScheduleAnalytics from '../../components/Admin/AdminManageShedule/AdminScheduleAnalytics';
 import AdminViewTeacherDetail from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherDetail';
 import AdminTeacherForm from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminTeacherForm';
+import AdminViewStaffList from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffList';
 
 
 const AdminDashboard = () => {
@@ -67,7 +67,7 @@ const AdminDashboard = () => {
             />
             {/* --- KẾT THÚC ROUTE GIÁO VIÊN --- */}
 
-            <Route path="/users/parents" element={<AdminViewParentList />} />
+            <Route path="/users/staffs" element={<AdminViewStaffList />} />
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
             <Route path="/classes" element={<AdminViewClassList />} />
             <Route path="/classes/detail/:id" element={<AdminClassDetail />} />

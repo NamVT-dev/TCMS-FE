@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Search, Eye, Edit, Trash2, Filter } from "lucide-react";
 
-const AdminViewParentList = () => {
+const AdminViewStaffList = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Sample parent data
@@ -201,4 +201,4 @@ const AdminViewParentList = () => {
   );
 };
 
-export default AdminViewParentList;
+export default AdminViewStaffList;
