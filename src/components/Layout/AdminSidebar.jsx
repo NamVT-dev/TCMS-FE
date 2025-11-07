@@ -68,26 +68,27 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
                 <div className="ml-14 mt-2 space-y-1">
                     {items.map((item, index) => {
 
-                     
-
-                       
+                        // ⬇️ BẮT ĐẦU SỬA LOGIC HIGHLIGHT
                         let isActive = false;
-                        if (item.path === '/admin/classes') {
-                            
-                            isActive = currentPath === item.path || currentPath.startsWith('/admin/classes/detail/');
+                        if (item.path === '/admin/users/teachers') {
+                            // Nếu là "Giáo viên", nó active cho tất cả các trang con
+                            isActive = currentPath.startsWith('/admin/users/teachers');
+                        } else if (item.path === '/admin/classes') {
+                            // Tương tự cho "Lớp học"
+                            isActive = currentPath.startsWith('/admin/classes');
                         } else {
-                          
+                            // Các link khác
                             isActive = currentPath === item.path;
                         }
-                       
+                        // ⬆️ KẾT THÚC SỬA LOGIC HIGHLIGHT
 
                         return (
                             <Link
                                 key={index}
                                 to={item.path}
-                                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${isActive // ⬅️ Sử dụng logic mới
-                                        ? "bg-purple-100 text-purple-600 font-medium"
-                                        : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${isActive
+                                    ? "bg-purple-100 text-purple-600 font-medium"
+                                    : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
                                     }`}
                             >
                                 {item.icon && <item.icon className="w-4 h-4" />}

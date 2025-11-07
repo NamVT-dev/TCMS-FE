@@ -71,6 +71,9 @@ const api = {
   admin: {
     getTeachers: (params) => axiosInstance.get("/admin/teachers", { params }),
     getTeacherDetail: (id) => axiosInstance.get(`/admin/teachers/${id}`),
+    createTeacher: (data) => axiosInstance.post("/admin/teachers", data),
+    updateTeacher: (id, formData) => axiosInstance.post(`/admin/teachers/${id}`, formData),
+    deleteTeacher: (id) => axiosInstance.delete(`/admin/teachers/${id}`),
 
     center: {
       getConfig: () => axiosInstance.get("/admin/center/config"),
@@ -86,7 +89,7 @@ const api = {
       getStatus: () => axiosInstance.get("schedule/status"),
     },
     class: {
-      
+
       listClasses: (params) => axiosInstance.get("admin/classes", { params }),
       getClassDetail: (id, params) => axiosInstance.get(`admin/classes/${id}`, { params }),
     },

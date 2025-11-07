@@ -17,6 +17,8 @@ import AdminViewCourseList from '../../components/Admin/AdminManageCourse/AdminV
 import AdminScheduleDashboard from '../../components/Admin/AdminManageShedule/AdminScheduleDashboard';
 import AdminScheduleJobDetail from '../../components/Admin/AdminManageShedule/AdminScheduleJobDetail';
 import AdminScheduleAnalytics from '../../components/Admin/AdminManageShedule/AdminScheduleAnalytics';
+import AdminViewTeacherDetail from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherDetail';
+import AdminTeacherForm from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminTeacherForm';
 
 
 const AdminDashboard = () => {
@@ -48,7 +50,22 @@ const AdminDashboard = () => {
 
             <Route path="/overview" element={<AdminOverview />} />
             <Route path="/users/students" element={<AdminViewStudentList />} />
+
+          
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
+            <Route
+              path="/users/teachers/detail/:id"
+              element={<AdminViewTeacherDetail />}
+            />
+            <Route
+              path="/users/teachers/create"
+              element={<AdminTeacherForm />}
+            />
+            <Route
+              path="/users/teachers/edit/:id"
+              element={<AdminTeacherForm />}
+            />
+            {/* --- KẾT THÚC ROUTE GIÁO VIÊN --- */}
 
             <Route path="/users/parents" element={<AdminViewParentList />} />
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
@@ -59,11 +76,9 @@ const AdminDashboard = () => {
             <Route path="/facility/working-hours" element={<AdminViewTimeWorkingCenter />} />
 
             <Route path="/courses" element={<AdminViewCourseList />} />
-            <Route path="/scheduler/dashboard" element={<AdminScheduleDashboard />}/>
-            <Route path="/scheduler/jobs/:jobId" element={<AdminScheduleJobDetail />}/>
-            <Route path="/scheduler/analytics" element={<AdminScheduleAnalytics />}/>
-
-            {/* Add other routes here matching your sidebar paths */}
+            <Route path="/scheduler/dashboard" element={<AdminScheduleDashboard />} />
+            <Route path="/scheduler/jobs/:jobId" element={<AdminScheduleJobDetail />} />
+            <Route path="/scheduler/analytics" element={<AdminScheduleAnalytics />} />
           </Routes>
         </div>
       </div>
