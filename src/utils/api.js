@@ -92,6 +92,8 @@ const api = {
 
       listClasses: (params) => axiosInstance.get("admin/classes", { params }),
       getClassDetail: (id, params) => axiosInstance.get(`admin/classes/${id}`, { params }),
+      previewChangeTeacher: (classId, data) => axiosInstance.patch(`admin/classes/${classId}/preview`, data),
+      applyChangeTeacher: (classId, data) => axiosInstance.patch(`admin/classes/${classId}/apply`, data),
     },
 
     getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),
