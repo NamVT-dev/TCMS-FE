@@ -1,7 +1,9 @@
+// src/components/Admin/AdminManageUser/AdminManageTeacher/AdminTeacherForm.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../../../utils/api';
-import { Loader2, Save, ArrowLeft, Upload, X, UserIcon } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, Upload, User as UserIcon, CheckSquare, Square } from 'lucide-react';
 
 const inputClass = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm";
 
@@ -21,40 +23,56 @@ const AdminTeacherForm = () => {
   const [skills, setSkills] = useState([]);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
+  const [allCategories, setAllCategories] = useState([]);
 
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (isEditMode) {
-      const fetchTeacher = async () => {
-        setLoading(true);
-        try {
-          const res = await api.admin.getTeacherDetail(id);
-          const teacher = res.data.data.teacher;
-          setFormData({
-            email: teacher.email,
-            name: teacher.profile.fullname,
-            dob: teacher.profile.dob ? teacher.profile.dob.slice(0, 10) : '',
-            phoneNumber: teacher.profile.phoneNumber || '',
-            gender: teacher.profile.gender || 'male',
-          });
-          setPhotoPreview(teacher.profile.photo || '');
-          if (teacher.skills && teacher.skills.length > 0) {
-            setSkills(teacher.skills.map(s => ({
-              category: s.category?._id || '',
-              levels: (s.levels || []).join(', '),
-              anyLevel: s.anyLevel || false,
-              includeLowerLevels: s.includeLowerLevels || true,
-            })));
-          }
-        } catch (err) {
-          setError("Không thể tải dữ liệu giáo viên.");
-        } finally {
-          setLoading(false);
+    const fetchDropdownData = async () => {
+      try {
+        const res = await api.user.getCourseCategories();
+        if (res.data?.data?.data) {
+          setAllCategories(res.data.data.data); 
+        } else {
+          setAllCategories([]);
         }
-      };
+      } catch (err) {
+        console.error("Không thể tải danh sách categories:", err);
+      }
+    };
+
+    const fetchTeacher = async () => {
+      setLoading(true);
+      try {
+        const res = await api.admin.getTeacherDetail(id);
+        const teacher = res.data.data.teacher;
+        setFormData({
+          email: teacher.email,
+          name: teacher.profile.fullname,
+          dob: teacher.profile.dob ? teacher.profile.dob.slice(0, 10) : '',
+          phoneNumber: teacher.profile.phoneNumber || '',
+          gender: teacher.profile.gender || 'male',
+        });
+        setPhotoPreview(teacher.profile.photo || '');
+        if (teacher.skills && teacher.skills.length > 0) {
+          setSkills(teacher.skills.map(s => ({
+            category: s.category?._id || s.category || '',
+            levels: (s.levels || []).join(', '),
+            anyLevel: s.anyLevel || false,
+            includeLowerLevels: s.includeLowerLevels !== undefined ? s.includeLowerLevels : true,
+          })));
+        }
+      } catch (err) {
+        setError("Không thể tải dữ liệu giáo viên.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDropdownData();
+    if (isEditMode) {
       fetchTeacher();
     }
   }, [id, isEditMode]);
@@ -72,6 +90,34 @@ const AdminTeacherForm = () => {
     }
   };
 
+  // ⬇️ HÀM MỚI: Toggle chọn category
+  const toggleCategorySkill = (categoryId) => {
+    setSkills(prevSkills => {
+      const exists = prevSkills.find(s => s.category === categoryId);
+      if (exists) {
+        // Nếu đã có -> Xóa (Bỏ tích)
+        return prevSkills.filter(s => s.category !== categoryId);
+      } else {
+        // Nếu chưa có -> Thêm mới với giá trị mặc định
+        return [...prevSkills, { 
+          category: categoryId, 
+          levels: '', 
+          anyLevel: false, 
+          includeLowerLevels: true 
+        }];
+      }
+    });
+  };
+
+  // ⬇️ HÀM MỚI: Cập nhật chi tiết kỹ năng (levels, flags...)
+  const updateCategorySkill = (categoryId, field, value) => {
+    setSkills(prevSkills => 
+      prevSkills.map(s => 
+        s.category === categoryId ? { ...s, [field]: value } : s
+      )
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -80,12 +126,10 @@ const AdminTeacherForm = () => {
     try {
       if (isEditMode) {
         const updateData = new FormData();
-        
         updateData.append('profile[fullname]', formData.name);
         updateData.append('profile[phoneNumber]', formData.phoneNumber);
         updateData.append('profile[dob]', formData.dob);
         updateData.append('profile[gender]', formData.gender);
-        
         if (photoFile) {
           updateData.append('profile[photo]', photoFile);
         }
@@ -147,15 +191,16 @@ const AdminTeacherForm = () => {
         {isEditMode ? 'Cập nhật Giáo viên' : 'Tạo mới Giáo viên'}
       </h1>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 max-w-4xl">
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 max-w-10xl mx-auto">
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
             <span className="block sm:inline">{error}</span>
           </div>
         )}
         
-        <section className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b">Thông tin cơ bản</h2>
+        {/* --- Thông tin cơ bản (Giữ nguyên) --- */}
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b">Thông tin cơ bản</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">Tên đầy đủ</label>
@@ -187,66 +232,110 @@ const AdminTeacherForm = () => {
 
         {isEditMode && (
           <>
-            <section className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b">Ảnh đại diện</h2>
-              <div className="flex items-center gap-4">
+            {/* --- Ảnh đại diện (Giữ nguyên) --- */}
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b">Ảnh đại diện</h2>
+              <div className="flex items-center gap-6">
                 {photoPreview ? (
-                  <img src={photoPreview} alt="Xem trước" className="w-24 h-24 rounded-full object-cover" />
+                  <img src={photoPreview} alt="Xem trước" className="w-24 h-24 rounded-full object-cover border-2 border-purple-100" />
                 ) : (
-                  <div classNameD="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                  <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border-2 border-gray-200">
                     <UserIcon size={40} />
                   </div>
                 )}
-                <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                  <Upload className="w-5 h-5 mr-2" />
-                  Tải ảnh mới
-                  <input type="file" name="photo" accept="image/*" onChange={handlePhotoChange} className="hidden" />
-                </label>
+                <div>
+                  <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Tải ảnh mới
+                    <input type="file" name="photo" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+                  </label>
+                  <p className="text-xs text-gray-500 mt-2">Hỗ trợ JPG, PNG. Tối đa 5MB.</p>
+                </div>
               </div>
             </section>
 
+            {/* ⬇️ PHẦN KỸ NĂNG GIẢNG DẠY MỚI (CHECKBOX UI) */}
             <section className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b">Kỹ năng Giảng dạy</h2>
-              <p className="text-sm text-gray-600 mb-4">Lưu ý: Bạn cần nhập ID của Category (vd: 68f5d50...) và Level (vd: Expert, Intermediate).</p>
-              {skills.map((skill, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border rounded-md mb-3 items-end">
-                  <input 
-                    value={skill.category} 
-                    onChange={(e) => {
-                      const newSkills = [...skills];
-                      newSkills[index].category = e.target.value;
-                      setSkills(newSkills);
-                    }}
-                    placeholder="Category ID"
-                    className={inputClass}
-                  />
-                  <input 
-                    value={skill.levels}
-                    onChange={(e) => {
-                      const newSkills = [...skills];
-                      newSkills[index].levels = e.target.value;
-                      setSkills(newSkills);
-                    }}
-                    placeholder="Levels (cách nhau bởi dấu ,)"
-                    className={inputClass}
-                  />
-                  <button type="button" onClick={() => setSkills(skills.filter((_, i) => i !== index))} className="text-red-500 hover:bg-red-100 rounded p-2">
-                    <X className="mx-auto" />
-                  </button>
-                </div>
-              ))}
-              <button type="button" onClick={() => setSkills([...skills, { category: '', levels: '', anyLevel: false, includeLowerLevels: true }])} className="text-purple-600 text-sm font-medium hover:text-purple-800">
-                + Thêm kỹ năng
-              </button>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b">Kỹ năng Giảng dạy</h2>
+              <p className="text-sm text-gray-600 mb-4">Chọn các môn học mà giáo viên này có thể dạy và thiết lập trình độ tương ứng.</p>
+              
+              <div className="space-y-3">
+                {allCategories.length === 0 && <p className="text-gray-500 italic">Đang tải danh sách môn học...</p>}
+                
+                {allCategories.map((cat) => {
+                  // Kiểm tra xem category này đã được chọn chưa
+                  const activeSkill = skills.find(s => s.category === cat._id);
+                  const isChecked = !!activeSkill;
+
+                  return (
+                    <div 
+                      key={cat._id} 
+                      className={`border rounded-lg transition-all duration-200 ${isChecked ? 'border-purple-500 bg-purple-50/50' : 'border-gray-200 hover:border-purple-300'}`}
+                    >
+                      {/* Header của Category (Checkbox) */}
+                      <div 
+                        className="flex items-center p-3 cursor-pointer"
+                        onClick={() => toggleCategorySkill(cat._id)}
+                      >
+                        <div className={`flex items-center justify-center w-5 h-5 mr-3 rounded border ${isChecked ? 'bg-purple-600 border-purple-600' : 'bg-white border-gray-400'}`}>
+                          {isChecked && <CheckSquare className="w-4 h-4 text-white" />}
+                        </div>
+                        <span className={`font-medium ${isChecked ? 'text-purple-800' : 'text-gray-700'}`}>
+                          {cat.name}
+                        </span>
+                      </div>
+
+                      {/* Phần chi tiết (chỉ hiện khi đã checked) */}
+                      {isChecked && activeSkill && (
+                        <div className="p-3 pt-0 pl-11 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2 fade-in duration-200">
+                          {/* Levels Input */}
+                          <div className="md:col-span-2">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Các Level có thể dạy (cách nhau bởi dấu phẩy)</label>
+                            <input 
+                              value={activeSkill.levels}
+                              onChange={(e) => updateCategorySkill(cat._id, 'levels', e.target.value)}
+                              placeholder="VD: Expert, Intermediate, Beginner"
+                              className={`${inputClass} bg-white`}
+                            />
+                          </div>
+
+                          {/* Tùy chọn nâng cao (Checkbox nhỏ) */}
+                          <div className="flex items-center space-x-6">
+                            <label className="flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={activeSkill.anyLevel}
+                                onChange={(e) => updateCategorySkill(cat._id, 'anyLevel', e.target.checked)}
+                                className="accent-purple-600 h-4 w-4" 
+                              />
+                              <span className="ml-2 text-sm text-gray-700">Dạy tất cả level</span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={activeSkill.includeLowerLevels}
+                                onChange={(e) => updateCategorySkill(cat._id, 'includeLowerLevels', e.target.checked)}
+                                className="accent-purple-600 h-4 w-4" 
+                              />
+                              <span className="ml-2 text-sm text-gray-700">Bao gồm level thấp hơn</span>
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </section>
+            {/* ⬆️ KẾT THÚC PHẦN KỸ NĂNG */}
           </>
         )}
 
-        <div className="mt-6 pt-4 border-t border-gray-200 text-right">
+        <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition disabled:bg-gray-400"
+            className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {saving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
             {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
