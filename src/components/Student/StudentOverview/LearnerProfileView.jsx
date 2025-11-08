@@ -13,13 +13,13 @@ const LearnerProfileView = () => {
     const [error, setError] = useState(null);
 
     const PAGE_SIZE = 8;
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pagination, setPagination] = useState({
-        page: 1,
-        totalPages: 1,
-        total: 0,
-        results: 0,
-    });
+    // const [currentPage, setCurrentPage] = useState(1);
+    // const [pagination, setPagination] = useState({
+    //     page: 1,
+    //     totalPages: 1,
+    //     total: 0,
+    //     results: 0,
+    // });
 
     const [openDetail, setOpenDetail] = useState(false);
     const [detailMode, setDetailMode] = useState("view");
@@ -29,30 +29,34 @@ const LearnerProfileView = () => {
         setLoading(true);
         setError(null);
         try {
-            const params = { page: currentPage, limit: PAGE_SIZE };
+            const params = { 
+                // page: currentPage, 
+                limit: PAGE_SIZE };
             const response = await api.user.getLearnerProfile(params);
 
             const data = response?.data?.data ?? [];
 
             setLearnerProfiles(data);
 
-            const total = data.total ?? 0;
-            const results = data.results ?? 1;
+            // const total = data.total ?? 0;
+            // const results = data.results ?? 1;
 
             setLearnerProfiles(data ?? []);
-            setPagination({
-                page: data.page ?? currentPage,
-                totalPages: Math.ceil(total / PAGE_SIZE),
-                total,
-                results,
-            });
+            // setPagination({
+            //     page: data.page ?? currentPage,
+            //     totalPages: Math.ceil(total / PAGE_SIZE),
+            //     total,
+            //     results,
+            // });
         } catch (err) {
             console.error(err);
             setError("Không thể tải dữ liệu thông tin khóa học.");
         } finally {
             setLoading(false);
         }
-    }, [currentPage]);
+    }, [
+        // currentPage
+    ]);
 
     useEffect(() => {
         fetchLearnerProfiles();
@@ -106,16 +110,16 @@ const LearnerProfileView = () => {
                                 </div>
                             ]}
                         >
-                            {/* <img
-                                src={LearnerProfiles.imageCover}
-                                alt={LearnerProfiles.imageCover}
+                            <img
+                                src={LearnerProfiles.photo}
+                                alt={LearnerProfiles.photo}
                                 style={{
                                     width: "100%",
                                     height: 160,
                                     objectFit: "cover",
                                     borderBottom: "1px solid #f0f0f0",
                                 }}
-                            /> */}
+                            />
                             <Card.Meta
                                 title={<Title style={{ textAlign: "center", marginTop: 8, marginBottom: 0 }} level={3}>{LearnerProfiles.name}</Title>}
                                 description={
@@ -140,7 +144,7 @@ const LearnerProfileView = () => {
 
 
             {/* Pagination */}
-            <div className="mt-8 flex items-center justify-between">
+            {/* <div className="mt-8 flex items-center justify-between">
                 <div className="text-sm text-gray-700">
                     Hiển thị <span className="font-medium">{pagination.results}</span> /
                     <span className="font-medium">{pagination.total}</span> khóa học
@@ -164,7 +168,7 @@ const LearnerProfileView = () => {
                         Sau
                     </button>
                 </div>
-            </div>
+            </div> */}
 
             {/* Modals */}
             <LearnerProfileDetailModal
