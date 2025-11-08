@@ -10,7 +10,9 @@ import {
     ChevronRight,
     ChevronLeft,
     UserCircle,
+    Info,
 } from "lucide-react";
+import { element } from "prop-types";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -101,7 +103,8 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
             icon: LayoutDashboard,
             title: "Tổng quan",
             items: [
-                { name: "Tổng quan học viên", path: "/student/overview", icon: LayoutDashboard }
+                { name: "Tổng quan học viên", path: "/student/overview", icon: LayoutDashboard },
+                { name: "Hồ sơ học viên", path: "/student/learner-profile", icon: Info}
             ]
         },
         {

@@ -6,6 +6,7 @@ import StudentSidebar from '../../components/Layout/StudentSidebar';
 import StudentProfile from '../../components/Student/StudentInformation/StudentProfile';
 import StudentViewSchedule from '../../components/Student/StudentLearn/StudentViewSchedule';
 import StudentOverview from '../../components/Student/StudentOverview/StudentOverview';
+import LearnerProfileView from '../../components/Student/StudentOverview/LearnerProfileView';
 import StudentChangePassword from '../../components/Student/StudentInformation/StudentChangePassword';
 import StudentMarkRecord from '../../components/Student/StudentLearn/StudentMarkRecord';
 import StudentViewClass from '../../components/Student/StudentLearn/StudentViewClass';
@@ -39,6 +40,7 @@ const StudentDashboard = () => {
         } p-6`}>
           <Routes>
             <Route path="/overview" element={<StudentOverview />} />
+            <Route path="/learner-profile" element={<LearnerProfileView />} />
             <Route path="/profile" element={<StudentProfile />} />
             <Route path="/change-password" element={<StudentChangePassword />} />
             <Route path="/schedule" element={<StudentViewSchedule />} />
