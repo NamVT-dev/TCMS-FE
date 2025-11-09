@@ -72,7 +72,7 @@ const api = {
     getTeachers: (params) => axiosInstance.get("/admin/teachers", { params }),
     getTeacherDetail: (id) => axiosInstance.get(`/admin/teachers/${id}`),
     createTeacher: (data) => axiosInstance.post("/admin/teachers", data),
-    updateTeacher: (id, formData) => axiosInstance.post(`/admin/teachers/${id}`, formData),
+    updateTeacher: (id, formData) => axiosInstance.patch(`/admin/teachers/${id}`, formData),
     deleteTeacher: (id) => axiosInstance.delete(`/admin/teachers/${id}`),
 
     center: {
@@ -122,6 +122,29 @@ const api = {
     registerCategories: (categories) =>
       axiosInstance.patch("/teacher/register-categories", { categories }),
   },
+  learner: {
+
+    getAllMyStudents: () => axiosInstance.get("learner"),
+
+
+    getStudentProfile: (studentId) => axiosInstance.get(`learner/${studentId}`),
+
+
+    updateLearningGoal: (studentId, data) =>
+      axiosInstance.post(`${studentId}/goals`, data),
+
+
+    getRoadmap: (studentId, categoryId) =>
+      axiosInstance.get(`${studentId}/roadmap`, { params: { category: categoryId } }),
+
+
+    createSeatHold: (data) => axiosInstance.post("enrollment", data),
+
+
+    createCustomSchedule: (data) =>
+      axiosInstance.post("custom-schedule", data)
+  },
+
 };
 
 export default api;

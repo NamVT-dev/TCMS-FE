@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
 
 // Định nghĩa thời gian trễ trước khi đóng dropdown (miligiây)
-const CLOSE_DELAY = 100; 
+const CLOSE_DELAY = 100;
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -158,7 +158,7 @@ const Navbar = () => {
                                 {openMenu === 'course' && (
                                     <div
                                         className="absolute left-0 top-full mt-2 w-[800px] bg-white border border-gray-200 rounded-xl shadow-2xl p-6 animate-fadeIn z-40"
-                                        // KHÔNG CẦN onMouseEnter/onMouseLeave ở đây nữa
+                                    // KHÔNG CẦN onMouseEnter/onMouseLeave ở đây nữa
                                     >
                                         <h2 className="text-lg font-bold text-gray-800 mb-4">
                                             Danh mục & Khóa học
@@ -207,9 +207,9 @@ const Navbar = () => {
                                 </button>
 
                                 {openMenu === 'commitment' && (
-                                    <div 
+                                    <div
                                         className="absolute left-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 animate-fadeIn z-40"
-                                        // KHÔNG CẦN onMouseEnter/onMouseLeave ở đây nữa
+                                    // KHÔNG CẦN onMouseEnter/onMouseLeave ở đây nữa
                                     >
                                         <div className="space-y-3">
                                             {commitments.map((c, i) => (
@@ -238,10 +238,10 @@ const Navbar = () => {
                                     </button>
 
                                     <button
-                                        onClick={() => navigate('/build-roadmap')}
+                                        onClick={() => navigate('/learner/roadmap')}
                                         className={`text-gray-700 hover:${colors.text} font-medium py-2 transition-colors`}
                                     >
-                                        Xây dựng lộ trình
+                                        Lộ trình học tập
                                     </button>
                                 </>
                             )}
