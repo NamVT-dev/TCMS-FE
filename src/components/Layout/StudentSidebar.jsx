@@ -11,6 +11,7 @@ import {
     ChevronLeft,
     UserCircle,
     Info,
+    ShoppingCart
 } from "lucide-react";
 import { element } from "prop-types";
 
@@ -112,7 +113,8 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
             title: "Cá nhân",
             items: [
                 { name: "Thông tin cá nhân", path: "/student/profile", icon: UserCircle },
-                { name: "Thay đổi mật khẩu", path: "/student/change-password", icon: KeyRound }
+                { name: "Thay đổi mật khẩu", path: "/student/change-password", icon: KeyRound },
+                { name: "Lịch sử thanh toán", path: "/student/payment-history", icon: ShoppingCart }
             ]
         },
         {

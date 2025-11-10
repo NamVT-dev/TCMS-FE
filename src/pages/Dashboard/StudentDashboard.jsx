@@ -10,6 +10,8 @@ import LearnerProfileView from '../../components/Student/StudentOverview/Learner
 import StudentChangePassword from '../../components/Student/StudentInformation/StudentChangePassword';
 import StudentMarkRecord from '../../components/Student/StudentLearn/StudentMarkRecord';
 import StudentViewClass from '../../components/Student/StudentLearn/StudentViewClass';
+import StudentPaymentHistoryView from '../../components/Student/StudentInformation/StudentPaymentHistoryView';
+
 const StudentDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -46,6 +48,7 @@ const StudentDashboard = () => {
             <Route path="/schedule" element={<StudentViewSchedule />} />
             <Route path="/mark-record" element={<StudentMarkRecord />} />
             <Route path="/class" element={<StudentViewClass />} />
+            <Route path="/payment-history" element={<StudentPaymentHistoryView />} />
           </Routes>
         </div>
       </div>
