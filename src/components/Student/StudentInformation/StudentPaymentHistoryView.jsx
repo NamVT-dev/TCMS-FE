@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 // import api from "../../../utils/api";
-import { Tag } from 'antd';
-import { Search, Trash2 } from "lucide-react";
+import { Tag, Tooltip } from 'antd';
+import { Search, Eye } from "lucide-react";
+import PaymentHistoryDetailModal from "./PaymentHistoryDetailModal";
 
 const StudentPaymentHistoryView = () => {
     const [paymentHistorys, setPaymentHistorys] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     //const [searchTerm, setSearchTerm] = useState("");
+    const [detailMode, setDetailMode] = useState("view");
+    const [openDetail, setOpenDetail] = useState(false);
+    const [paymentId, setPaymentId] = useState(null);
 
     // Phân trang
     const PAGE_SIZE = 10;
@@ -25,12 +29,14 @@ const StudentPaymentHistoryView = () => {
             name: "Khóa học IELTS 7.5",
             amount: "1000000",
             status: "active",
+            studentCode: "ST001",
         },
         {
             id: 2,
             name: "Ielts từ mất gốc - 3.5  đến Ielts 6.5",
             amount: "1000000",
             status: "inactive",
+            studentCode: "ST001",
         }
     ];
 
@@ -92,6 +98,12 @@ const StudentPaymentHistoryView = () => {
         return () => clearTimeout(debounce);
     }, [fetchPaymentHistorys]);
 
+    const handleView = (id) => {
+        setPaymentId(id);
+        setDetailMode("edit");
+        setOpenDetail(true);
+    };
+
     if (loading) return <div className="p-6 text-center">Đang tải dữ liệu...</div>;
     if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
@@ -132,6 +144,8 @@ const StudentPaymentHistoryView = () => {
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Tên sản phẩm</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Thành tiền</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Trạng thái</th>
+                                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase">Thao tác</th>
+
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -151,6 +165,13 @@ const StudentPaymentHistoryView = () => {
                                                     {paymentHistory.status === "active" ? "Hoàn Thành" : "Chưa Hoàn Thành"}
                                                 </Tag>
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <Tooltip placement="topLeft" title={"Xem chi tiết thanh toán"} >
+                                                <button onClick={() => handleView(paymentHistory._id)} title="xem chi tiết">
+                                                    <Eye className="w-5 h-5" />
+                                                </button>
+                                            </Tooltip>
                                         </td>
                                     </tr>
                                 ))
@@ -195,6 +216,16 @@ const StudentPaymentHistoryView = () => {
                     </div>
                 </div>
             </div>
+
+            <PaymentHistoryDetailModal
+                open={openDetail}
+                paymentId={paymentId}
+                categories={paymentHistorys}
+                mode={detailMode}
+                onClose={() => setOpenDetail(false)}
+                onUpdated={fetchPaymentHistorys}
+            />
+
         </div>
     );
 
