@@ -78,6 +78,11 @@ const api = {
         createTeacher: (data) => axiosInstance.post("/admin/teachers", data),
         updateTeacher: (id, formData) => axiosInstance.patch(`/admin/teachers/${id}`, formData),
         deleteTeacher: (id) => axiosInstance.delete(`/admin/teachers/${id}`),
+        getStaffs: (params) => axiosInstance.get("/admin/staff", { params }),
+        getStaffDetail: (id) => axiosInstance.get(`/admin/staff/${id}`),
+        createStaff: (data) => axiosInstance.post("/admin/staff", data),
+        updateStaff: (id, formData) => axiosInstance.patch(`/admin/staff/${id}`, formData),
+        deleteStaff: (id) => axiosInstance.delete(`/admin/staff/${id}`),
 
         center: {
             getConfig: () => axiosInstance.get("/admin/center/config"),
