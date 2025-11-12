@@ -1,16 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
-
 import { Loader2, ArrowLeft, BookOpen, Check, Map, Clock, User, Home, AlertCircle } from 'lucide-react';
-import EnrollmentModal from './EnrollmentModal'; 
-
+import EnrollmentModal from './EnrollmentModal';
 
 function useQuery() {
   const { search } = useLocation();
   return useMemo(() => new URLSearchParams(search), [search]);
 }
-
 
 const formatMinutes = (minutes) => {
   const h = Math.floor(minutes / 60);
@@ -18,18 +15,16 @@ const formatMinutes = (minutes) => {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 };
 
-
 const ClassCard = ({ cls, studentId, onRegisterClick }) => {
   const { course, weeklySchedules, student, maxStudent } = cls;
-  
-  const currentSize = cls.currentSize || cls.student?.length || 0; 
+  const currentSize = cls.currentSize || cls.student?.length || 0;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg">
       <div className="p-5">
         <h3 className="text-lg font-bold text-purple-700">{cls.name}</h3>
         <p className="text-sm text-gray-600 mb-4">{course.name}</p>
-        
+
         <div className="space-y-2 mb-4">
           {weeklySchedules.map((slot, index) => (
             <div key={index} className="flex items-center text-sm text-gray-700">
@@ -39,7 +34,7 @@ const ClassCard = ({ cls, studentId, onRegisterClick }) => {
             </div>
           ))}
         </div>
-        
+
         <div className="flex justify-between items-center text-sm">
           <div className="text-gray-700">
             <User className="w-4 h-4 inline mr-1 text-gray-400" />
@@ -59,54 +54,51 @@ const ClassCard = ({ cls, studentId, onRegisterClick }) => {
 };
 
 
-
 const LearnerRoadmapResults = () => {
   const query = useQuery();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [roadmap, setRoadmap] = useState({ stages: [], upcomingClasses: [] });
-  
-  
+
   const studentId = query.get('student');
   const categoryId = query.get('category');
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState(null);
+  
 
-  useEffect(() => {
+  const fetchRoadmap = useCallback(async () => {
     if (!studentId || !categoryId) {
       setError("Không tìm thấy thông tin học viên hoặc môn học.");
       setLoading(false);
       return;
     }
-
-    const fetchRoadmap = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await api.learner.getRoadmap(studentId, categoryId);
-        setRoadmap(res.data.data);
-      } catch (err) {
-        setError(err.response?.data?.message || "Lỗi khi tải lộ trình.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRoadmap();
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.learner.getRoadmap(studentId, categoryId);
+      setRoadmap(res.data.data);
+    } catch (err) {
+      setError(err.response?.data?.message || "Lỗi khi tải lộ trình.");
+    } finally {
+      setLoading(false);
+    }
   }, [studentId, categoryId]);
+
+  useEffect(() => {
+    fetchRoadmap();
+  }, [fetchRoadmap]);
 
   const handleRegisterClick = (classId) => {
     setSelectedClassId(classId);
     setIsModalOpen(true);
   };
 
-  
   const handleEnrollmentSuccess = (enrollmentData) => {
     setIsModalOpen(false);
-    
-    alert("Giữ chỗ thành công! Chuẩn bị chuyển đến trang thanh toán...");
+    alert("Giữ chỗ thành công! Lớp học đã được thêm vào hồ sơ của bạn.");
+    fetchRoadmap();
   };
 
   if (loading) {
@@ -127,7 +119,7 @@ const LearnerRoadmapResults = () => {
         <ArrowLeft className="h-5 w-5 mr-2" />
         Quay lại Bước 1
       </Link>
-      
+
       {error ? (
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-lg shadow-md" role="alert">
           <p className="font-bold text-xl mb-2">Đã xảy ra lỗi</p>
@@ -135,7 +127,7 @@ const LearnerRoadmapResults = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 sticky top-24">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
@@ -148,10 +140,9 @@ const LearnerRoadmapResults = () => {
                 <ol className="relative border-l border-purple-300 ml-3">
                   {roadmap.stages.map((stage, index) => (
                     <li key={stage._id} className="mb-6 ml-6">
-                      <span className={`absolute flex items-center justify-center w-6 h-6 rounded-full -left-3 ${
-                        index === 0 ? 'bg-purple-600 ring-8 ring-purple-100' : 'bg-gray-300'
-                      }`}>
-                        {index === 0 ? <Check className="w-4 h-4 text-white"/> : <BookOpen className="w-3 h-3 text-gray-600"/>}
+                      <span className={`absolute flex items-center justify-center w-6 h-6 rounded-full -left-3 ${index === 0 ? 'bg-purple-600 ring-8 ring-purple-100' : 'bg-gray-300'
+                        }`}>
+                        {index === 0 ? <Check className="w-4 h-4 text-white" /> : <BookOpen className="w-3 h-3 text-gray-600" />}
                       </span>
                       <h3 className={`font-semibold ${index === 0 ? 'text-purple-800' : 'text-gray-700'}`}>
                         {stage.name}
@@ -168,35 +159,34 @@ const LearnerRoadmapResults = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               Các lớp học phù hợp ( cho {roadmap.stages[0]?.name || '...'} )
             </h2>
-            
+
+           
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6 flex items-center gap-3">
+              <AlertCircle className="h-6 w-6 text-blue-500 flex-shrink-0" />
+              <p className="text-sm text-blue-700">
+                Không tìm thấy lớp có thời gian học phù hợp?
+                <Link
+                  to={`/learner/custom-schedule?student=${studentId}&category=${categoryId}`}
+                  className="font-semibold underline hover:text-blue-900 ml-1"
+                >
+                  Bấm vào đây để thiết lập lịch tùy chỉnh
+                </Link>
+              </p>
+            </div>
+
+
             {roadmap.upcomingClasses.length === 0 ? (
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg shadow-md">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <AlertCircle className="h-6 w-6 text-yellow-500" />
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-lg font-semibold text-yellow-800">Không tìm thấy lớp học</h3>
-                    <div className="mt-2 text-sm text-yellow-700">
-                      <p>Rất tiếc, hiện không có lớp nào sắp khai giảng phù hợp với lịch rảnh của bạn.</p>
-                      <button 
-                        onClick={() => navigate(`/learner/custom-schedule?student=${studentId}&category=${categoryId}`)}
-                        className="mt-4 px-4 py-2 bg-yellow-600 text-white font-semibold rounded-lg hover:bg-yellow-700 transition"
-                      >
-                        Gửi Yêu Cầu Lịch Tùy Chỉnh
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              <div className="text-center text-gray-500 p-4">
+                Hiện không có lớp nào sắp khai giảng cho khóa học này.
               </div>
             ) : (
               <div className="space-y-4">
                 {roadmap.upcomingClasses.map(cls => (
-                  <ClassCard 
-                    key={cls._id} 
-                    cls={cls} 
-                    studentId={studentId} 
-                    onRegisterClick={handleRegisterClick} 
+                  <ClassCard
+                    key={cls._id}
+                    cls={cls}
+                    studentId={studentId}
+                    onRegisterClick={handleRegisterClick}
                   />
                 ))}
               </div>
@@ -206,15 +196,14 @@ const LearnerRoadmapResults = () => {
         </div>
       )}
 
-      {/* ⬇️ THÊM MODAL BƯỚC 3 */}
       {isModalOpen && (
-        <EnrollmentModal 
-          isOpen={isModalOpen} 
+        <EnrollmentModal
+          isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           classId={selectedClassId}
           studentId={studentId}
           onSuccess={handleEnrollmentSuccess}
-        /> 
+        />
       )}
     </div>
   );

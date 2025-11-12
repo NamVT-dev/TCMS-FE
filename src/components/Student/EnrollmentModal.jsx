@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import api from '../../utils/api';
-import { Loader2, X, AlertTriangle, CreditCard } from 'lucide-react';
+import { Loader2, X, AlertTriangle, CheckCircle } from 'lucide-react'; // ⬅️ Đổi icon
 
-const EnrollmentModal = ({ isOpen, onClose, classId, studentId }) => {
+const EnrollmentModal = ({ isOpen, onClose, classId, studentId, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -16,15 +16,23 @@ const EnrollmentModal = ({ isOpen, onClose, classId, studentId }) => {
       };
       const res = await api.learner.createSeatHold(payload);
       
+      // ⬇️ SỬA LẠI: Bỏ qua thanh toán, gọi onSuccess ngay
+      // 1. Lấy thông tin enrollment
+      const enrollmentData = res.data.data.enrollment;
+      
+      // 2. Gọi callback báo thành công
+      onSuccess(enrollmentData);
+      
+      /*
+      // (Đoạn code thanh toán đã bị vô hiệu hóa)
       const paymentInfo = res.data.data.paymentInfo;
-
       if (paymentInfo && paymentInfo.checkoutUrl) {
-        // Chuyển hướng người dùng đến cổng thanh toán
         window.location.href = paymentInfo.checkoutUrl;
       } else {
-        setError("Không thể lấy thông tin thanh toán. Vui lòng thử lại.");
+        setError("Không thể lấy thông tin thanh toán.");
         setLoading(false);
       }
+      */
       
     } catch (err) {
       setError(err.response?.data?.message || "Giữ chỗ thất bại.");
@@ -63,9 +71,9 @@ const EnrollmentModal = ({ isOpen, onClose, classId, studentId }) => {
           ) : (
             <div className="text-center">
               <AlertTriangle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900">Bạn sắp giữ chỗ cho lớp này</h3>
+              <h3 className="text-lg font-medium text-gray-900">Bạn sắp đăng ký lớp này</h3>
               <p className="text-gray-600 mt-2">
-                Hệ thống sẽ giữ chỗ cho bạn trong vòng **15 phút**. Bạn sẽ được chuyển đến trang thanh toán để hoàn tất.
+                (Luồng thanh toán đang được tạm bỏ qua). Lớp sẽ được giữ chỗ ngay lập tức.
               </p>
             </div>
           )}
@@ -88,9 +96,9 @@ const EnrollmentModal = ({ isOpen, onClose, classId, studentId }) => {
               {loading ? (
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
               ) : (
-                <CreditCard className="w-5 h-5 mr-2" />
+                <CheckCircle className="w-5 h-5 mr-2" /> 
               )}
-              {loading ? "Đang xử lý..." : "Đồng ý & Thanh toán"}
+              {loading ? "Đang xử lý..." : "Xác nhận Đăng ký"}
             </button>
           </div>
         </div>

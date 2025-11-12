@@ -1,21 +1,7 @@
-// src/components/Student/LearnerRoadmapPage.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
-import { Loader2, Save, Target, Calendar, Clock, User, CheckCircle, BookOpen } from 'lucide-react';
-
-const DAY_NAMES = [
-    { id: 0, label: "CN" },
-    { id: 1, label: "T2" },
-    { id: 2, label: "T3" },
-    { id: 3, label: "T4" },
-    { id: 4, label: "T5" },
-    { id: 5, label: "T6" },
-    { id: 6, label: "T7" },
-];
-
-const SHIFT_NAMES = ["S1", "S2", "S3", "S4", "S5", "S6"];
+import { Loader2, Save, Target, Calendar, User, CheckCircle, BookOpen } from 'lucide-react'; // ⬅️ Xóa Clock
 
 
 const LEVEL_ORDER = [
@@ -28,7 +14,6 @@ const LEVEL_ORDER = [
     "Advanced",
     "Expert"
 ];
-
 
 const inputClass = "mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent";
 
@@ -43,12 +28,10 @@ const LearnerRoadmapPage = () => {
 
     const [selectedStudent, setSelectedStudent] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
-    const [targetScore, setTargetScore] = useState(''); // ⬅️ Giờ đây sẽ lưu "Intermediate", "Advanced"...
+    const [targetScore, setTargetScore] = useState('');
     const [deadline, setDeadline] = useState('');
-    const [constraints, setConstraints] = useState({
-        days: [],
-        shifts: [],
-    });
+
+    
 
     const loadInitialData = useCallback(async () => {
         setLoading(true);
@@ -95,15 +78,7 @@ const LearnerRoadmapPage = () => {
         }
     }, [selectedStudent, myStudents]);
 
-    const toggleConstraint = (type, value) => {
-        setConstraints(prev => {
-            const current = prev[type];
-            const newConstraint = current.includes(value)
-                ? current.filter(item => item !== value)
-                : [...current, value];
-            return { ...prev, [type]: newConstraint };
-        });
-    };
+  
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -115,18 +90,18 @@ const LearnerRoadmapPage = () => {
         setSaving(true);
         setError(null);
 
+        
         const payload = {
             category: selectedCategory,
-            targetScore: targetScore, // ⬅️ Gửi đi level chuẩn (vd: "Intermediate")
+            targetScore: targetScore,
             deadline: deadline,
-            constraints: constraints,
+            
         };
 
         try {
             await api.learner.updateLearningGoal(selectedStudent, payload);
             alert("Đã lưu mục tiêu! Đang chuyển đến trang lộ trình...");
 
-            // Chuyển sang Bước 2
             navigate(`/learner/roadmap-results?student=${selectedStudent}&category=${selectedCategory}`);
 
         } catch (err) {
@@ -145,7 +120,7 @@ const LearnerRoadmapPage = () => {
 
     return (
         <div className="bg-gray-50">
-            {/* 1. Hero Banner */}
+        
             <div className="bg-purple-700 text-white">
                 <div className="max-w-5xl mx-auto p-8 md:p-12">
                     <h1 className="text-4xl md:text-5xl font-bold mb-3">Xây Dựng Lộ Trình</h1>
@@ -155,7 +130,7 @@ const LearnerRoadmapPage = () => {
                 </div>
             </div>
 
-            {/* 2. Form Content */}
+        
             <div className="max-w-5xl mx-auto p-6 -mt-10">
                 <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-xl border border-gray-200 space-y-8">
 
@@ -208,14 +183,12 @@ const LearnerRoadmapPage = () => {
                                     <Target className="w-4 h-4 mr-2 text-purple-600" />
                                     Mục tiêu (Level)
                                 </label>
-                                {/* ⬇️ FIX 2: SỬ DỤNG 8 LEVEL CHUẨN */}
                                 <select id="targetScore" value={targetScore} onChange={(e) => setTargetScore(e.target.value)} className={inputClass} required>
                                     <option value="">-- Chọn level mục tiêu --</option>
                                     {LEVEL_ORDER.map(level => (
                                         <option key={level} value={level}>{level}</option>
                                     ))}
                                 </select>
-                                {/* ⬆️ KẾT THÚC FIX 2 */}
                             </div>
                             <div>
                                 <label htmlFor="deadline" className="flex items-center text-sm font-medium text-gray-700 mb-1">
@@ -233,50 +206,7 @@ const LearnerRoadmapPage = () => {
                         </div>
                     </section>
 
-                    <section>
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-6 pb-3 border-b-2 border-purple-100">
-                            3. Lịch rảnh của bạn
-                        </h2>
-                        <div className="space-y-5">
-                            <div>
-                                <label className="block text-base font-medium text-gray-700 mb-3">Chọn ngày có thể học (Lặp lại hàng tuần)</label>
-                                <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
-                                    {DAY_NAMES.map((day) => (
-                                        <button
-                                            type="button"
-                                            key={day.id}
-                                            onClick={() => toggleConstraint('days', day.id)}
-                                            className={`py-3 px-2 rounded-lg border-2 text-center font-medium transition-all ${constraints.days.includes(day.id)
-                                                    ? "bg-purple-600 text-white border-purple-600 shadow-lg scale-105"
-                                                    : "bg-white text-gray-700 hover:bg-purple-50 border-gray-200"
-                                                }`}
-                                        >
-                                            {day.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-base font-medium text-gray-700 mb-3">Chọn ca có thể học (Lặp lại hàng tuần)</label>
-                                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                                    {SHIFT_NAMES.map(shift => (
-                                        <button
-                                            type="button"
-                                            key={shift}
-                                            onClick={() => toggleConstraint('shifts', shift)}
-                                            className={`py-3 px-2 rounded-lg border-2 text-center font-medium transition-all ${constraints.shifts.includes(shift)
-                                                    ? "bg-purple-600 text-white border-purple-600 shadow-lg scale-105"
-                                                    : "bg-white text-gray-700 hover:bg-purple-50 border-gray-200"
-                                                }`}
-                                        >
-                                            {shift}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
+                    
                     <div className="text-right pt-6 border-t border-gray-200">
                         <button
                             type="submit"

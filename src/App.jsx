@@ -53,18 +53,18 @@ function AppContent() {
           }
         />
         <Route
-          path="/learner/*"
-          element={
-            <ProtectedRoute allowedRoles={['member']}>
-              <LearnerLayout />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/teacher/*"
           element={
             <ProtectedRoute allowedRoles={['teacher']}>
               <TeacherDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/learner/*"
+          element={
+            <ProtectedRoute allowedRoles={['member']}>
+              <LearnerLayout />
             </ProtectedRoute>
           }
         />

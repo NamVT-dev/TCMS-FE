@@ -130,20 +130,20 @@ const api = {
     getStudentProfile: (studentId) => axiosInstance.get(`learner/${studentId}`),
 
 
-    updateLearningGoal: (studentId, data) =>
-      axiosInstance.post(`${studentId}/goals`, data),
+    updateLearningGoal: (studentId, data) => axiosInstance.post(`${studentId}/goals`, data),
 
 
-    getRoadmap: (studentId, categoryId) =>
-      axiosInstance.get(`${studentId}/roadmap`, { params: { category: categoryId } }),
+    getRoadmap: (studentId, categoryId) => axiosInstance.get(`${studentId}/roadmap`, { params: { category: categoryId } }),
 
 
     createSeatHold: (data) => axiosInstance.post("enrollment", data),
 
 
-    createCustomSchedule: (data) =>
-      axiosInstance.post("custom-schedule", data)
+    createCustomSchedule: (data) => axiosInstance.post("custom-schedule", data)
   },
+
+
+
 
 };
 
