@@ -338,7 +338,7 @@ const AdminTeacherForm = () => {
             className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {saving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
-            {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+            {saving ? 'Đang tạo...' : 'Tạo tài khoản'}
           </button>
         </div>
       </form>
