@@ -230,15 +230,7 @@ const ScheduleResourceOverview = ({ stats, isLoadingStats }) => {
                                     </div>
 
                              
-                                    <div className="text-sm text-gray-600">
-                                        <p><strong>Timezone:</strong> {config?.timezone}</p>
-                                        <p>
-                                            <strong>Ngày hoạt động:</strong>{" "}
-                                            {config?.activeDaysOfWeek
-                                                ?.map((d) => ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][d])
-                                                .join(", ")}
-                                        </p>
-                                    </div>
+                                    
                                 </div>
                             )}
 
