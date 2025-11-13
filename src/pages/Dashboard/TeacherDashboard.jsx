@@ -7,6 +7,8 @@ import TeacherOverview from '../../components/Teacher/TeacherOverview/TeacherOve
 import TeacherViewUpdateProfile from '../../components/Teacher/TeacherInformation/TeacherViewUpdateProfile';
 import TeacherRegisterSchedule from '../../components/Teacher/TeacherInformation/TeacherRegisterSchedule ';
 import TeacherViewSchedule from '../../components/Teacher/TeacherWork/TeacherTimtable/TeacherViewScheduel';
+import TeacherClassDetail from '../../components/Teacher/TeacherWork/TeacherClassDetail'; 
+import TeacherMyClasses from '../../components/Teacher/TeacherWork/TeacherMyClasses';
 
 const TeacherDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -21,26 +23,26 @@ const TeacherDashboard = () => {
       {/* Main Content */}
       <div className="flex pt-16">
         {/* Sidebar */}
-        <div className={`fixed left-0 h-[calc(100vh-64px)] transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'w-20' : ''
-        }`}>
+        <div className={`fixed left-0 h-[calc(100vh-64px)] transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'w-20' : ''
+          }`}>
           <div className="h-full rounded-tr-[32px] overflow-hidden">
-            <TeacherSidebar 
-              isCollapsed={isSidebarCollapsed} 
-              onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+            <TeacherSidebar
+              isCollapsed={isSidebarCollapsed}
+              onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             />
           </div>
         </div>
 
         {/* Dashboard Content */}
-        <div className={`flex-1 transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? 'ml-20' : 'ml-72'
-        } p-6`}>
+        <div className={`flex-1 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-20' : 'ml-72'
+          } p-6`}>
           <Routes>
             <Route path="/overview" element={<TeacherOverview />} />
             <Route path="/profile" element={<TeacherViewUpdateProfile />} />
             <Route path="/work-schedule" element={<TeacherRegisterSchedule />} />
             <Route path="/timetable" element={<TeacherViewSchedule />} />
+            <Route path="/my-classes" element={<TeacherMyClasses />} />
+            <Route path="/my-classes/:classId" element={<TeacherClassDetail />} />
           </Routes>
         </div>
       </div>

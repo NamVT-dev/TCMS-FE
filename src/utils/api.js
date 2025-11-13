@@ -121,6 +121,10 @@ const api = {
     getTeachCategories: () => axiosInstance.get("/teacher/categories"),
     registerCategories: (categories) =>
       axiosInstance.patch("/teacher/register-categories", { categories }),
+
+    getMyClasses: () => axiosInstance.get("teacher/my-class"),
+    getMyClassDetail: (classId) => axiosInstance.get(`teacher/my-class/${classId}`),
+    getMySchedule: (params) => axiosInstance.get("teacher/my-schedule", { params }),
   },
   learner: {
 

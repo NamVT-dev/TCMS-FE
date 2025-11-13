@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   MenuIcon,
   GraduationCap,
+  BookOpen,
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -148,9 +149,14 @@ const TeacherSidebar = ({ isCollapsed, onToggle }) => {
       title: "Dạy học",
       items: [
         {
-          name: "Thời khóa biểu",
+          name: "Thời khóa biểu chung",
           path: "/teacher/timetable",
           icon: CalendarDays,
+        },
+        {
+          name: "Lớp học của tôi", 
+          path: "/teacher/my-classes",
+          icon: BookOpen, 
         },
         {
           name: "Báo cáo điểm",
