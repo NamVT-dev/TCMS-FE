@@ -143,7 +143,19 @@ const api = {
     createSeatHold: (data) => axiosInstance.post("enrollment", data),
 
 
-    createCustomSchedule: (data) => axiosInstance.post("custom-schedule", data)
+    createCustomSchedule: (data) => axiosInstance.post("custom-schedule", data),
+
+
+    getMyEnrolledClasses: (studentId) => 
+      axiosInstance.get(`${studentId}/classes`),
+
+
+    getStudentClassDetail: (studentId, classId) => 
+      axiosInstance.get(`${studentId}/classes/${classId}`),
+
+
+    getMySchedule: (studentId, params) => 
+      axiosInstance.get(`${studentId}/schedule`, { params }),
   },
 
 

@@ -5,6 +5,8 @@ import LearnerRoadmapPage from '../../components/Student/LearnerRoadmapPage';
 import LearnerRoadmapResults from '../../components/Student/LearnerRoadmapResults';
 import LearnerPaymentStatusPage from '../../components/Student/LearnerPaymentStatusPage';
 import LearnerCustomSchedulePage from '../../components/Student/LearnerCustomSchedulePage';
+import MyClassesPage from '../../components/Student/MyClassesPage';
+import StudentClassDetail from '../../components/Student/StudentClassDetail';
 
 const LearnerLayout = () => {
     return (
@@ -12,11 +14,15 @@ const LearnerLayout = () => {
             <Navbar />
             <main className="pt-16">
                 <Routes>
+                   
                     <Route path="roadmap" element={<LearnerRoadmapPage />} />
                     <Route path="roadmap-results" element={<LearnerRoadmapResults />} />
                     <Route path="payment-status" element={<LearnerPaymentStatusPage />} />
                     <Route path="custom-schedule" element={<LearnerCustomSchedulePage />} />
-                    <Route index element={<Navigate to="roadmap" replace />} />
+                    <Route path="my-classes" element={<MyClassesPage />} />
+                    <Route path=":studentId/classes/:classId" element={<StudentClassDetail />}/>
+                    <Route index element={<Navigate to="my-classes" replace />} /> 
+                    
                 </Routes>
             </main>
         </div>
