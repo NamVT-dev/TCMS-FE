@@ -7,8 +7,10 @@ import TeacherOverview from '../../components/Teacher/TeacherOverview/TeacherOve
 import TeacherViewUpdateProfile from '../../components/Teacher/TeacherInformation/TeacherViewUpdateProfile';
 import TeacherRegisterSchedule from '../../components/Teacher/TeacherInformation/TeacherRegisterSchedule ';
 import TeacherViewSchedule from '../../components/Teacher/TeacherWork/TeacherTimtable/TeacherViewScheduel';
-import TeacherClassDetail from '../../components/Teacher/TeacherWork/TeacherClassDetail'; 
+import TeacherClassDetail from '../../components/Teacher/TeacherWork/TeacherClassDetail';
 import TeacherMyClasses from '../../components/Teacher/TeacherWork/TeacherMyClasses';
+import TodayAttendancePage from '../../components/Teacher/TeacherAttendance/TodayAttendancePage';
+import AttendanceDetailPage from '../../components/Teacher/TeacherAttendance/AttendanceDetailPage';
 
 const TeacherDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -43,6 +45,8 @@ const TeacherDashboard = () => {
             <Route path="/timetable" element={<TeacherViewSchedule />} />
             <Route path="/my-classes" element={<TeacherMyClasses />} />
             <Route path="/my-classes/:classId" element={<TeacherClassDetail />} />
+            <Route path="/attendance" element={<TodayAttendancePage />} />
+            <Route path="/attendance/:attendanceId" element={<AttendanceDetailPage />} />
           </Routes>
         </div>
       </div>

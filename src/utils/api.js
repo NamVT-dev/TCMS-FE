@@ -125,6 +125,21 @@ const api = {
     getMyClasses: () => axiosInstance.get("teacher/my-class"),
     getMyClassDetail: (classId) => axiosInstance.get(`teacher/my-class/${classId}`),
     getMySchedule: (params) => axiosInstance.get("teacher/my-schedule", { params }),
+
+    attendance: {
+      
+      getTodaySession: () => axiosInstance.get("attendance/today-session"),
+
+      
+      startSession: (sessionId) => 
+        axiosInstance.post(`attendance/start-session/${sessionId}`),
+
+      
+      takeAttendance: (attendanceId, attendanceData) => 
+        axiosInstance.patch(`attendance/take-attendance/${attendanceId}`, { attendance: attendanceData }),
+     
+      getAllAttendanceReport: () => axiosInstance.get("attendance"),
+    },
   },
   learner: {
 

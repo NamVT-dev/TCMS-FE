@@ -12,6 +12,7 @@ import {
   MenuIcon,
   GraduationCap,
   BookOpen,
+  CheckSquare,
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -148,6 +149,11 @@ const TeacherSidebar = ({ isCollapsed, onToggle }) => {
       icon: ClipboardList,
       title: "Dạy học",
       items: [
+        {
+          name: "Điểm danh hôm nay",
+          path: "/teacher/attendance", 
+          icon: CheckSquare,
+        },
         {
           name: "Thời khóa biểu chung",
           path: "/teacher/timetable",
