@@ -3,6 +3,9 @@ import { Search, Eye, Trash2, Loader2, Plus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useDebounce } from '../../../../hooks/useDebounce';
+import { ExclamationCircleFilled } from "@ant-design/icons";
+import { Modal } from "antd";
+import showToast from "../../../../utils/showToast";
 
 // Component Phân trang
 const Pagination = ({ page, totalPages, onPageChange }) => {
@@ -53,6 +56,7 @@ const AdminViewStaffList = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
+  const [modal, contextHolder] = Modal.useModal();
   const limit = 10;
 
   // Xóa state: selectedTeacher (không dùng master-detail nữa)
@@ -88,24 +92,41 @@ const AdminViewStaffList = () => {
   const getStatusBadge = (isActive) =>
     isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 
-  const handleDelete = async (id, name) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa giáo viên "${name}"?`)) {
-      try {
-        await api.admin.deleteTeacher(id);
-        alert("Xóa giáo viên thành công!");
-        if (staffs.length === 1 && page > 1) {
-          setPage(page - 1); // Lùi trang nếu xóa item cuối cùng
-        } else {
-          fetchStaffs(page, debouncedSearch, selectedStatus);
+  const handleDelete = (id, name) => {
+    modal.confirm({
+      title: `Bạn có chắc chắn muốn xóa nhân viên "${name}" không?`,
+      icon: <ExclamationCircleFilled />,
+      content: "Thao tác này không thể hoàn tác.",
+      okText: "Xóa",
+      cancelText: "Hủy",
+      okType: "danger",
+      getContainer: false,
+      zIndex: 2000,
+      async onOk() {
+        const toastId = showToast.loading("Đang xóa nhân viên...");
+        try {
+          await api.admin.deleteStaff(id);
+          showToast.updateSuccess(toastId, "Xóa nhân viên thành công!");
+          // Nếu xóa xong trang hiện tại không còn item nào và không phải trang 1 -> lùi về trang trước
+          if (staffs.length === 1 && page > 1) {
+            setPage(page - 1); // Lùi trang nếu xóa item cuối cùng
+          } else {
+            fetchStaffs(page, debouncedSearch, selectedStatus);
+          }
+        } catch (err) {
+          console.error(err);
+          showToast.updateError(
+            toastId,
+            err?.response?.data?.message || "Xóa nhân viên thất bại!"
+          );
         }
-      } catch (err) {
-        alert(err.response?.data?.message || "Lỗi khi xóa nhân viên.");
-      }
-    }
+      },
+    });
   };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
+      {contextHolder}
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Danh sách nhân viên</h1>
