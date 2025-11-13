@@ -13,6 +13,7 @@ import {
   GraduationCap,
   BookOpen,
   CheckSquare,
+  History,
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -153,6 +154,11 @@ const TeacherSidebar = ({ isCollapsed, onToggle }) => {
           name: "Điểm danh hôm nay",
           path: "/teacher/attendance", 
           icon: CheckSquare,
+        },
+        {
+          name: "Lịch sử điểm danh",
+          path: "/teacher/attendance-history", 
+          icon: History,
         },
         {
           name: "Thời khóa biểu chung",

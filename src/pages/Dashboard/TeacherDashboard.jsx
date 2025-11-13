@@ -11,6 +11,7 @@ import TeacherClassDetail from '../../components/Teacher/TeacherWork/TeacherClas
 import TeacherMyClasses from '../../components/Teacher/TeacherWork/TeacherMyClasses';
 import TodayAttendancePage from '../../components/Teacher/TeacherAttendance/TodayAttendancePage';
 import AttendanceDetailPage from '../../components/Teacher/TeacherAttendance/AttendanceDetailPage';
+import AttendanceHistoryPage from '../../components/Teacher/TeacherAttendance/AttendanceHistoryPage';
 
 const TeacherDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -47,6 +48,7 @@ const TeacherDashboard = () => {
             <Route path="/my-classes/:classId" element={<TeacherClassDetail />} />
             <Route path="/attendance" element={<TodayAttendancePage />} />
             <Route path="/attendance/:attendanceId" element={<AttendanceDetailPage />} />
+            <Route path="/attendance-history" element={<AttendanceHistoryPage />} />
           </Routes>
         </div>
       </div>
