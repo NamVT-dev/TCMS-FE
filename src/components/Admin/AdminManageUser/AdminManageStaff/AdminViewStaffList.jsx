@@ -68,7 +68,7 @@ const AdminViewStaffList = () => {
       const params = {
         page: currentPage, limit,
         search: search || undefined,
-        status: status || undefined,
+        active: status || undefined,
       };
       const response = await api.admin.getStaffs(params);
       const data = response.data;
