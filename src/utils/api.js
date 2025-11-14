@@ -131,6 +131,13 @@ const api = {
         registerCategories: (categories) =>
             axiosInstance.patch("/teacher/register-categories", { categories }),
     },
+    // --- Nhóm Staff ---
+    staff: {
+        getTeachers: (params) => axiosInstance.get("/staff/account?role='teacher'", { params }),
+        getTeacherDetail: (id) => axiosInstance.get(`/staff/account/${id}`),
+        getStudents: (params) => axiosInstance.get("/staff/account?role='student'", { params }),
+        getStudentDetail: (id) => axiosInstance.get(`/staff/account/${id}`),
+    },
 };
 
 export default api;

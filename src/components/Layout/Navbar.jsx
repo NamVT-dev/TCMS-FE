@@ -32,6 +32,11 @@ const Navbar = () => {
             hoverBg: 'hover:bg-sky-50', bg: 'bg-sky-100', icon: 'text-sky-600',
             buttonBg: 'bg-sky-600 hover:bg-sky-700', buttonBorder: 'border-sky-600 hover:bg-sky-50', buttonText: 'text-sky-700',
         },
+        staff: {
+            from: 'from-sky-600', to: 'to-sky-800', border: 'border-sky-500', text: 'text-sky-700',
+            hoverBg: 'hover:bg-sky-50', bg: 'bg-sky-100', icon: 'text-sky-600',
+            buttonBg: 'bg-sky-600 hover:bg-sky-700', buttonBorder: 'border-sky-600 hover:bg-sky-50', buttonText: 'text-sky-700',
+        },
         admin: {
             from: 'from-purple-600', to: 'to-purple-800', border: 'border-purple-500', text: 'text-purple-700',
             hoverBg: 'hover:bg-purple-50', bg: 'bg-purple-100', icon: 'text-purple-600',
