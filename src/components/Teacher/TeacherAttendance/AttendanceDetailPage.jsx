@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
 import api from '../../../utils/api';
+import Loading from '../../UI/Loading';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { toast } from 'react-toastify';
 
 const AttendanceDetailPage = () => {
     const { attendanceId } = useParams();
@@ -130,12 +134,10 @@ const AttendanceDetailPage = () => {
         <div className="container mx-auto p-4 md:p-6 max-w-4xl">
             {isSaving && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-                    <div className="bg-white px-6 py-4 rounded-lg shadow-md flex items-center gap-3">
-                        <AlertCircle className="w-5 h-5 text-purple-600 animate-spin" />
-                        <span className="font-medium">Đang lưu điểm danh...</span>
-                    </div>
+                    <Loading message="Đang lưu điểm danh..." />
                 </div>
             )}
+
 
             <button
                 onClick={() => navigate(-1)}
@@ -178,16 +180,16 @@ const AttendanceDetailPage = () => {
                                             value={item.note}
                                             onChange={(e) => handleNoteChange(item.student._id, e.target.value)}
                                             className={`w-[400px] md:w-56 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 ${item.status === 'present'
-                                                    ? 'focus:ring-green-400 bg-green-50'
-                                                    : 'focus:ring-red-400 bg-red-50'
+                                                ? 'focus:ring-green-400 bg-green-50'
+                                                : 'focus:ring-red-400 bg-red-50'
                                                 }`}
                                         />
 
                                         <button
                                             onClick={() => handleToggleStatus(item.student._id)}
                                             className={`px-4 py-2 rounded-lg font-medium text-sm transition-all flex-shrink-0 ${item.status === 'present'
-                                                    ? 'bg-green-600 text-white hover:bg-green-700'
-                                                    : 'bg-red-500 text-white hover:bg-red-600'
+                                                ? 'bg-green-600 text-white hover:bg-green-700'
+                                                : 'bg-red-500 text-white hover:bg-red-600'
                                                 }`}
                                         >
                                             {item.status === 'present' ? '✓ Có mặt' : '✕ Vắng'}
