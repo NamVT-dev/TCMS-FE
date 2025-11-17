@@ -13,7 +13,6 @@ import {
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    // Tự động mở menu cha nếu currentPath nằm trong items
     useEffect(() => {
         if (items && items.some((item) => currentPath.startsWith(item.path))) {
             setIsOpen(true);
@@ -34,7 +33,6 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
                             </div>
                         </div>
                     </div>
-                    {/* Tooltip */}
                     <div className="hidden group-hover:block absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded whitespace-nowrap z-50">
                         {title}
                     </div>
@@ -67,20 +65,16 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
             {isOpen && items && (
                 <div className="ml-14 mt-2 space-y-1">
                     {items.map((item, index) => {
-
-                        // ⬇️ BẮT ĐẦU SỬA LOGIC HIGHLIGHT
                         let isActive = false;
                         if (item.path === '/admin/users/teachers') {
-                            // Nếu là "Giáo viên", nó active cho tất cả các trang con
                             isActive = currentPath.startsWith('/admin/users/teachers');
                         } else if (item.path === '/admin/classes') {
-                            // Tương tự cho "Lớp học"
                             isActive = currentPath.startsWith('/admin/classes');
+                        } else if (item.path === '/admin/scheduler/dashboard') {
+                            isActive = currentPath.startsWith('/admin/scheduler');
                         } else {
-                            // Các link khác
                             isActive = currentPath === item.path;
                         }
-                        // ⬆️ KẾT THÚC SỬA LOGIC HIGHLIGHT
 
                         return (
                             <Link
@@ -106,7 +100,7 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
 
 const AdminSidebar = ({ isCollapsed, onToggle }) => {
     const location = useLocation();
-    const currentPath = location.pathname; // đường dẫn hiện tại
+    const currentPath = location.pathname;
 
     const menuItems = [
         {
@@ -122,7 +116,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             items: [
                 { name: "Học viên", path: "/admin/users/students", icon: UserCircle },
                 { name: "Giáo viên", path: "/admin/users/teachers", icon: GraduationCap },
-                { name: "Nhân viên", path: "/admin/users/staff", icon: Users2 },
+                { name: "Nhân viên", path: "/admin/users/staffs", icon: Users2 }, // ⬅️ Sửa staff (thêm 's')
                 { name: "Xếp lớp học viên", path: "/admin/users/enrollments", icon: UserCog }
             ]
         },
@@ -131,7 +125,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             title: "Quản lý lớp học",
             items: [
                 { name: "Danh sách lớp", path: "/admin/classes", icon: ListChecks },
-                { name: "Tạo lớp học", path: "/admin/classes/create", icon: CopyPlus },
+                // { name: "Tạo lớp học", path: "/admin/classes/create", icon: CopyPlus }, // ⬅️ ĐÃ XÓA
                 { name: "Thời khóa biểu", path: "/admin/classes/schedule", icon: CalendarDays },
                 { name: "Điểm danh", path: "/admin/classes/attendance", icon: ClipboardList }
             ]
@@ -186,7 +180,6 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
     return (
         <div className={`${isCollapsed ? 'w-20' : 'w-72'
             } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
-            {/* Toggle Button */}
             <button
                 onClick={onToggle}
                 className="absolute -right-3 top-6 bg-white border border-gray-200 rounded-full p-1.5 hover:bg-gray-50 z-50"
@@ -198,7 +191,6 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
                 )}
             </button>
 
-            {/* Header Section */}
             <div className="p-4 border-b border-gray-200">
                 {isCollapsed ? (
                     <div className="flex justify-center">
@@ -219,7 +211,6 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
                 )}
             </div>
 
-            {/* Menu Items */}
             <div className="flex-1 overflow-y-auto scrollbar-thin">
                 <div className="p-4 space-y-2">
                     {menuItems.map((item, index) => (

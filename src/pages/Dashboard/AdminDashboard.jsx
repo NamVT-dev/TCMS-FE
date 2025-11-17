@@ -8,7 +8,7 @@ import AdminViewStudentList from '../../components/Admin/AdminManageUser/AdminMa
 import AdminViewTeacherList from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherList';
 import AdminViewClassList from '../../components/Admin/AdminManageClass/AdminViewClassList';
 import AdminClassDetail from '../../components/Admin/AdminManageClass/AdminClassDetail';
-import AdminCreateClass from '../../components/Admin/AdminManageClass/AdminCreateClass';
+import AdminClassForm from '../../components/Admin/AdminManageClass/AdminClassForm';
 import AdminViewRoomList from '../../components/Admin/AdminManageRoom/AdminViewRoomList';
 import AdminViewEnrollmentList from '../../components/Admin/AdminManageUser/AdminManageEnrollment/AdminViewEnrollList';
 import AdminViewTimeWorkingCenter from '../../components/Admin/AdminManageRoom/AdminViewTimeWorkingCenter';
@@ -25,14 +25,10 @@ const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar - Fixed at top */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <Navbar />
       </div>
-
-      {/* Main Content */}
       <div className="flex pt-16">
-        {/* Sidebar */}
         <div className={`fixed left-0 h-[calc(100vh-64px)] transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'w-20' : 'w-72'
           }`}>
           <div className="h-full rounded-tr-[32px] overflow-hidden">
@@ -43,15 +39,12 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Dashboard Content */}
         <div className={`flex-1 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-20' : 'ml-72'
           } p-6`}>
           <Routes>
-
             <Route path="/overview" element={<AdminOverview />} />
             <Route path="/users/students" element={<AdminViewStudentList />} />
 
-          
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
             <Route
               path="/users/teachers/detail/:id"
@@ -65,13 +58,17 @@ const AdminDashboard = () => {
               path="/users/teachers/edit/:id"
               element={<AdminTeacherForm />}
             />
-            {/* --- KẾT THÚC ROUTE GIÁO VIÊN --- */}
 
             <Route path="/users/staffs" element={<AdminViewStaffList />} />
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
+
+           
             <Route path="/classes" element={<AdminViewClassList />} />
             <Route path="/classes/detail/:id" element={<AdminClassDetail />} />
-            <Route path="/classes/create" element={<AdminCreateClass />} />
+            <Route path="/classes/create" element={<AdminClassForm />} />
+            <Route path="/classes/edit/:id" element={<AdminClassForm />} />
+          
+
             <Route path="/facility/rooms" element={<AdminViewRoomList />} />
             <Route path="/facility/working-hours" element={<AdminViewTimeWorkingCenter />} />
 
