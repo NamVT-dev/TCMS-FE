@@ -2,18 +2,19 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
     LayoutDashboard,
-    UserPen,
-    KeyRound,
+    User,
+    CalendarClock,
     CalendarDays,
-    BookOpen,
-    GraduationCap,
+    ClipboardList,
     ChevronRight,
+    FileBarChart2,
     ChevronLeft,
+    GraduationCap,
+    Users,
     UserCircle,
-    Info,
-    ShoppingCart
+    Users2,
+    UserCog,
 } from "lucide-react";
-import { element } from "prop-types";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +30,7 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
             <div className="mb-2">
                 <div className="group relative">
                     <div
-                        className="px-4 py-3 text-gray-700 hover:bg-purple-50 rounded-lg transition-colors duration-200 cursor-pointer"
+                        className="px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 cursor-pointer"
                         title={title}
                     >
                         <div className="flex justify-center">
@@ -39,10 +40,20 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
                         </div>
                     </div>
                     {/* Tooltip */}
-                    <div className="hidden group-hover:block absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded whitespace-nowrap z-50">
+                    <div className="hidden group-hover:block absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded whitespace-nowrap">
                         {title}
                     </div>
                 </div>
+                {/* Mini Dropdown */}
+                {items && items.map((item, index) => (
+                    <Link
+                        key={index}
+                        to={item.path}
+                        className="hidden group-hover:block ml-2 px-2 py-1 text-sm text-gray-600 hover:text-sky-600"
+                    >
+                        {item.icon && <item.icon className="w-4 h-4" />}
+                    </Link>
+                ))}
             </div>
         );
     }
@@ -51,22 +62,26 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
         <div className="mb-2">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-purple-50 rounded-lg transition-colors duration-200 ${
-                    isOpen ? "bg-purple-50" : ""
-                }`}
+                className={`w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 ${isOpen ? "bg-gray-100" : ""
+                    }`}
             >
                 <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${isOpen ? "bg-purple-100" : "bg-gray-100"}`}>
-                        <Icon className={`w-5 h-5 ${isOpen ? "text-purple-600" : "text-gray-600"}`} />
+                    <div
+                        className={`p-2 rounded-lg ${isOpen ? "bg-sky-100" : "bg-gray-100"
+                            }`}
+                    >
+                        <Icon
+                            className={`w-5 h-5 ${isOpen ? "text-sky-600" : "text-gray-600"
+                                }`}
+                        />
                     </div>
-                    <span className={`font-medium ${isOpen ? "text-purple-600" : ""}`}>
+                    <span className={`font-medium ${isOpen ? "text-sky-600" : ""}`}>
                         {title}
                     </span>
                 </div>
                 <ChevronRight
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                        isOpen ? "rotate-90 text-purple-600" : "text-gray-400"
-                    }`}
+                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-90 text-sky-600" : "text-gray-400"
+                        }`}
                 />
             </button>
 
@@ -78,11 +93,10 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
                             <Link
                                 key={index}
                                 to={item.path}
-                                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${
-                                    isActive
-                                        ? "bg-purple-100 text-purple-600 font-medium"
-                                        : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
-                                }`}
+                                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${isActive
+                                    ? "bg-sky-100 text-sky-600 font-medium"
+                                    : "text-gray-600 hover:text-sky-600 hover:bg-sky-50"
+                                    }`}
                             >
                                 {item.icon && <item.icon className="w-4 h-4" />}
                                 <span>{item.name}</span>
@@ -95,7 +109,7 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
     );
 };
 
-const StudentSidebar = ({ isCollapsed, onToggle }) => {
+const StaffSidebar = ({ isCollapsed, onToggle }) => {
     const location = useLocation();
     const currentPath = location.pathname;
 
@@ -104,34 +118,39 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
             icon: LayoutDashboard,
             title: "Tổng quan",
             items: [
-                { name: "Tổng quan học viên", path: "/student/overview", icon: LayoutDashboard },
-                { name: "Hồ sơ học viên", path: "/student/learner-profile", icon: Info}
+                {
+                    name: "Tổng quan nhân viên",
+                    path: "/teacher/overview",
+                    icon: LayoutDashboard,
+                },
+            ],
+        },
+        {
+            icon: Users,
+            title: "Quản lý người dùng",
+            items: [
+                { name: "Giáo viên", path: "/staff/users/teachers", icon: GraduationCap },
+                { name: "Học viên", path: "/staff/users/students", icon: UserCircle }
             ]
         },
         {
-            icon: UserPen,
+            icon: User,
             title: "Cá nhân",
             items: [
-                { name: "Thông tin cá nhân", path: "/student/profile", icon: UserCircle },
-                { name: "Thay đổi mật khẩu", path: "/student/change-password", icon: KeyRound },
-                { name: "Lịch sử thanh toán", path: "/student/payment-history", icon: ShoppingCart }
-            ]
-        },
-        {
-            icon: BookOpen,
-            title: "Học tập",
-            items: [
-                { name: "Lịch học của tôi", path: "/student/schedule", icon: CalendarDays },
-                { name: "Khóa học đã đăng ký", path: "/student/courses", icon: BookOpen },
-                { name: "Điểm số", path: "/student/grades", icon: GraduationCap }
-            ]
+                {
+                    name: "Thông tin cá nhân",
+                    path: "/staff/profile",
+                    icon: User,
+                }
+            ],
         }
     ];
 
     return (
-        <div className={`${
-            isCollapsed ? 'w-20' : 'w-72'
-        } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
+        <div
+            className={`${isCollapsed ? 'w-20' : 'w-72'
+                } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}
+        >
             {/* Toggle Button */}
             <button
                 onClick={onToggle}
@@ -144,21 +163,22 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
                 )}
             </button>
 
-            {/* Header Section */}
+
+            {/* Header Section  */}
             <div className="p-4 border-b border-gray-200">
                 {isCollapsed ? (
                     <div className="flex justify-center">
-                        <UserCircle className="w-8 h-8 text-purple-600" />
+                        <GraduationCap className="w-8 h-8 text-sky-600" />
                     </div>
                 ) : (
-                    <div className="flex items-center space-x-3 bg-purple-50 p-3 rounded-lg">
-                        <UserCircle className="w-8 h-8 text-purple-600" />
+                    <div className="flex items-center space-x-3 bg-sky-50 p-3 rounded-lg">
+                        <GraduationCap className="w-8 h-8 text-sky-600" />
                         <div>
                             <h2 className="text-lg font-semibold text-gray-800">
-                                Student Portal
+                                Chào mừng, Nhân viên
                             </h2>
                             <p className="text-sm text-gray-500">
-                                Learning Management
+                                Quản lý công việc của bạn
                             </p>
                         </div>
                     </div>
@@ -184,4 +204,4 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
     );
 };
 
-export default StudentSidebar;
+export default StaffSidebar;

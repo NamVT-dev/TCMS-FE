@@ -19,6 +19,8 @@ import AdminScheduleAnalytics from '../../components/Admin/AdminManageShedule/Ad
 import AdminViewTeacherDetail from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherDetail';
 import AdminTeacherForm from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminTeacherForm';
 import AdminViewStaffList from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffList';
+import AdminStaffCreate from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminStaffCreate';
+import AdminViewStaffDetail from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffDetail';
 
 
 const AdminDashboard = () => {
@@ -45,6 +47,7 @@ const AdminDashboard = () => {
             <Route path="/overview" element={<AdminOverview />} />
             <Route path="/users/students" element={<AdminViewStudentList />} />
 
+
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
             <Route
               path="/users/teachers/detail/:id"
@@ -58,8 +61,15 @@ const AdminDashboard = () => {
               path="/users/teachers/edit/:id"
               element={<AdminTeacherForm />}
             />
+            {/* --- KẾT THÚC ROUTE GIÁO VIÊN --- */}
 
-            <Route path="/users/staffs" element={<AdminViewStaffList />} />
+            {/* --- NHÂN VIÊN --- */}
+            <Route path="/users/staff" element={<AdminViewStaffList />} />
+            <Route path="/users/staff/create" element={<AdminStaffCreate />} />
+            <Route path="/users/staff/edit/:id" element={<AdminStaffCreate />} />
+            <Route path="/users/staff/detail/:id" element={<AdminViewStaffDetail />} />
+            {/* --- KẾT THÚC ROUTE NHÂN VIÊN --- */}
+
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
 
            

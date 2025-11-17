@@ -6,6 +6,7 @@ import RegisterForm from "./pages/Auth/RegisterForm";
 import StudentDashboard from "./pages/Dashboard/StudentDashboard";
 import TeacherDashboard from "./pages/Dashboard/TeacherDashboard";
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
+import StaffDashboard from "./pages/Dashboard/StaffDashboard";
 import HomePage from "./pages/Homepage/HomePage";
 import { UserProvider } from "./context/UserContext";
 import ProtectedRoute from "./hooks/ProtectedRoute";
@@ -73,6 +74,14 @@ function AppContent() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+         <Route
+          path="/staff/*"
+          element={
+            <ProtectedRoute allowedRoles={['staff']}>
+              <StaffDashboard />
             </ProtectedRoute>
           }
         />
