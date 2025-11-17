@@ -456,3 +456,12 @@
 // };
 
 // export default AdminClassForm;
+import React from 'react'
+
+const AdminClassForm = () => {
+  return (
+    <div>AdminClassForm</div>
+  )
+}
+
+export default AdminClassForm
