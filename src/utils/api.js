@@ -182,7 +182,13 @@ const api = {
       axiosInstance.get(`${studentId}/schedule`, { params }),
   },
 
-
+// --- Nhóm Staff ---
+    staff: {
+        getTeachers: (params) => axiosInstance.get("/staff/account?role=teacher", { params }),
+        getTeacherDetail: (id) => axiosInstance.get(`/staff/account/${id}`),
+        getStudents: (params) => axiosInstance.get("/staff/account?role=member", { params }),
+        getStudentDetail: (id) => axiosInstance.get(`/staff/account/${id}`),
+    },
 
 
 };
