@@ -111,6 +111,9 @@ const api = {
         enrollment: {
             getStudentDemand: (params) => axiosInstance.get("/admin/student-demand", { params }),
         },
+        finance: {
+            getRevenueReport: (params) => axiosInstance.get("/admin/reports/revenue", { params }),
+        },
 
         getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),
         createRoom: (data) => axiosInstance.post("/admin/rooms", data),

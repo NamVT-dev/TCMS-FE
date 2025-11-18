@@ -22,6 +22,7 @@ import AdminViewStaffList from '../../components/Admin/AdminManageUser/AdminMana
 import AdminStaffCreate from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminStaffCreate';
 import AdminViewStaffDetail from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffDetail';
 import AdminClassScheduleForm from '../../components/Admin/AdminManageClass/AdminClassScheduleForm';
+import AdminRevenueReport from '../../components/Admin/AdminManageFinance/AdminRevenueReport';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -87,6 +88,8 @@ const AdminDashboard = () => {
             <Route path="/scheduler/dashboard" element={<AdminScheduleDashboard />} />
             <Route path="/scheduler/jobs/:jobId" element={<AdminScheduleJobDetail />} />
             <Route path="/scheduler/analytics" element={<AdminScheduleAnalytics />} />
+
+            <Route path="/finance/revenue" element={<AdminRevenueReport />} />
           </Routes>
         </div>
       </div>
