@@ -108,6 +108,9 @@ const api = {
             createSessions: (sessionsData) => axiosInstance.post("staff/class/session", sessionsData),
             updateClass: (id, classData) => axiosInstance.patch(`staff/class/${id}`, classData),
         },
+        enrollment: {
+            getStudentDemand: (params) => axiosInstance.get("/admin/student-demand", { params }),
+        },
 
         getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),
         createRoom: (data) => axiosInstance.post("/admin/rooms", data),
