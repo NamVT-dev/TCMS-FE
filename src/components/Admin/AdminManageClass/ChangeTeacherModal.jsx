@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../../utils/api";
 import { Loader2, X, Users, Search, AlertTriangle, CheckCircle } from "lucide-react";
 
-// Helper để tìm buổi học đầu tiên chưa diễn ra
+
 const getFirstUpcomingSessionNo = (sessions) => {
   const now = new Date();
   const upcoming = sessions
@@ -11,9 +11,8 @@ const getFirstUpcomingSessionNo = (sessions) => {
   return upcoming[0]?.sessionNo || null;
 };
 
-// Component chính
 const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherChanged }) => {
-  const [step, setStep] = useState(1); // Step 1: Form, Step 2: Preview
+  const [step, setStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 

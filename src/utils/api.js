@@ -1,6 +1,5 @@
 import axios from "axios";
 
-
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 10000,
@@ -107,6 +106,7 @@ const api = {
             createClass: (classData) => axiosInstance.post("staff/class", classData),
             createSessions: (sessionsData) => axiosInstance.post("staff/class/session", sessionsData),
             updateClass: (id, classData) => axiosInstance.patch(`staff/class/${id}`, classData),
+            updateSession: (id, data) => axiosInstance.patch(`admin/session/${id}`, data),
         },
         enrollment: {
             getStudentDemand: (params) => axiosInstance.get("/admin/student-demand", { params }),

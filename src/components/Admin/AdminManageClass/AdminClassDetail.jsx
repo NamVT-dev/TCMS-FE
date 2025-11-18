@@ -5,7 +5,6 @@ import { Loader2, ArrowLeft, BookOpen, User, Home, Calendar, Clock, Edit, Users,
 import ClassScheduleCalendar from "./ClassScheduleCalendar";
 import ChangeTeacherModal from "./ChangeTeacherModal";
 
-
 const InfoCard = ({ icon: Icon, title, children }) => (
     <div className="bg-white shadow rounded-lg p-5">
         <div className="flex items-center mb-3">
@@ -15,7 +14,6 @@ const InfoCard = ({ icon: Icon, title, children }) => (
         <div className="text-gray-700 space-y-2">{children}</div>
     </div>
 );
-
 
 const WeeklyScheduleCard = ({ schedules }) => {
     const formatMinutes = (minutes) => {
@@ -82,6 +80,19 @@ const AdminClassDetail = () => {
 
     const handleTeacherChanged = () => {
         fetchClassDetail();
+    };
+
+    // Callback khi session được update thành công
+    const handleSessionUpdated = (updatedSession) => {
+        // Update session trong state
+        setSessions(prevSessions =>
+            prevSessions.map(session =>
+                session._id === updatedSession._id ? updatedSession : session
+            )
+        );
+
+        // Optional: Refresh toàn bộ nếu cần
+        // fetchClassDetail();
     };
 
     if (loading) {
@@ -151,9 +162,14 @@ const AdminClassDetail = () => {
                     <WeeklyScheduleCard schedules={classData.weeklySchedules} />
                 </div>
                 <div className="lg:col-span-2">
-                    <ClassScheduleCalendar sessions={sessions} classInfo={classData} />
+                    <ClassScheduleCalendar
+                        sessions={sessions}
+                        classInfo={classData}
+                        onSessionUpdated={handleSessionUpdated}
+                    />
                 </div>
             </div>
+
             <ChangeTeacherModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
