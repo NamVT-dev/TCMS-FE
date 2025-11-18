@@ -4,7 +4,7 @@ import api from "../../../utils/api";
 import NewScheduleModal from "./components/NewScheduleModal";
 import JobHistoryTable from "./components/JobHistoryTable";
 import { Plus, PieChart, AlertTriangle, XCircle, Loader2 } from "lucide-react";
-
+import moment from "moment";
 import ScheduleResourceOverview from "./components/ScheduleResourceOverview";
 
 function AdminScheduleDashboard() {
@@ -15,12 +15,13 @@ function AdminScheduleDashboard() {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ⬇️ Sửa State: Lưu trữ mảng đầy đủ
+  
   const [stats, setStats] = useState({
     teachers: [],
     rooms: [],
     courses: [],
-    config: null
+    config: null,
+    pendingStudents: [],
   });
 
   const navigate = useNavigate();
@@ -29,24 +30,28 @@ function AdminScheduleDashboard() {
     setIsLoading(true);
     setIsLoadingStats(true);
     try {
-      // ⬇️ Gọi 6 API (Lấy danh sách đầy đủ, giới hạn 200)
+
+      const startDate = moment().subtract(6, 'months').format('YYYY-MM-DD');
+      const endDate = moment().add(6, 'months').format('YYYY-MM-DD');
+
       const [
         statusRes,
         jobsRes,
         teacherRes,
         roomRes,
         courseRes,
-        configRes
+        configRes,
+        studentRes
       ] = await Promise.allSettled([
         api.admin.schedule.getStatus(),
         api.admin.schedule.getAllJobs(),
         api.admin.getTeachers({ active: true, limit: 200 }),
         api.admin.getRooms({ status: 'active', limit: 200 }),
         api.admin.getCourse({ limit: 200 }),
-        api.admin.center.getConfig()
+        api.admin.center.getConfig(),
+        api.admin.enrollment.getStudentDemand({ startDate, endDate })
       ]);
 
-      // Xử lý status và jobs
       if (statusRes.status === 'fulfilled') {
         setIsScheduling(statusRes.value.data.data.isScheduling);
       }
@@ -54,12 +59,21 @@ function AdminScheduleDashboard() {
         setJobs(jobsRes.value.data.data);
       }
 
-      // ⬇️ Xử lý Stats (lưu mảng)
+
+      let allPending = [];
+      if (studentRes.status === 'fulfilled') {
+        const data = studentRes.value.data.data;
+        const newLeads = data.newLeads?.students || [];
+        const waiting = data.waitingStudents?.students || [];
+        allPending = [...newLeads, ...waiting];
+      }
+
       setStats({
         teachers: teacherRes.status === 'fulfilled' ? teacherRes.value.data.data.teachers : [],
         rooms: roomRes.status === 'fulfilled' ? roomRes.value.data.data.rooms : [],
         courses: courseRes.status === 'fulfilled' ? courseRes.value.data.data.courses : [],
         config: configRes.status === 'fulfilled' ? configRes.value.data.data.config : null,
+        pendingStudents: allPending
       });
 
       setError(null);
