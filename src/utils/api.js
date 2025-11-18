@@ -103,6 +103,9 @@ const api = {
                 getClassDetail: (id, params) => axiosInstance.get(`admin/classes/${id}`, { params }),
                 previewChangeTeacher: (classId, data) => axiosInstance.patch(`admin/classes/${classId}/preview`, data),
                 applyChangeTeacher: (classId, data) => axiosInstance.patch(`admin/classes/${classId}/apply`, data),
+                createClass: (classData) => axiosInstance.post("staff/class", classData),
+                createSessions: (sessionsData) => axiosInstance.post("staff/class/session", sessionsData),
+                updateClass: (id, classData) => axiosInstance.patch(`staff/class/${id}`, classData),
         },
 
         getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),

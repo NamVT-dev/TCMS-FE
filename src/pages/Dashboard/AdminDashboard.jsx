@@ -21,7 +21,7 @@ import AdminTeacherForm from '../../components/Admin/AdminManageUser/AdminManage
 import AdminViewStaffList from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffList';
 import AdminStaffCreate from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminStaffCreate';
 import AdminViewStaffDetail from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffDetail';
-
+import AdminClassScheduleForm from '../../components/Admin/AdminManageClass/AdminClassScheduleForm';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -77,6 +77,7 @@ const AdminDashboard = () => {
             <Route path="/classes/detail/:id" element={<AdminClassDetail />} />
             <Route path="/classes/create" element={<AdminClassForm />} />
             <Route path="/classes/edit/:id" element={<AdminClassForm />} />
+            <Route path="/classes/:id/schedule-setup" element={<AdminClassScheduleForm />} />
           
 
             <Route path="/facility/rooms" element={<AdminViewRoomList />} />
