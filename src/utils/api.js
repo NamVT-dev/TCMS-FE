@@ -30,7 +30,7 @@ axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
         // ⬅️ FIX: CHỈ redirect khi 401 VÀ KHÔNG PHẢI từ endpoint login
-        if (error.response ?.status === 401 && !error.config.url.includes('auth/login')) {
+        if (error.response?.status === 401 && !error.config.url.includes('auth/login')) {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             window.location.href = "/login";
@@ -73,6 +73,7 @@ const api = {
 
     // --- Nhóm API Admin ---
     admin: {
+        getDashboardOverview: () => axiosInstance.get("/admin/dashboard"),
         getTeachers: (params) => axiosInstance.get("/admin/teachers", { params }),
         getTeacherDetail: (id) => axiosInstance.get(`/admin/teachers/${id}`),
         createTeacher: (data) => axiosInstance.post("/admin/teachers", data),
@@ -100,12 +101,12 @@ const api = {
         class: {
 
             listClasses: (params) => axiosInstance.get("admin/classes", { params }),
-                getClassDetail: (id, params) => axiosInstance.get(`admin/classes/${id}`, { params }),
-                previewChangeTeacher: (classId, data) => axiosInstance.patch(`admin/classes/${classId}/preview`, data),
-                applyChangeTeacher: (classId, data) => axiosInstance.patch(`admin/classes/${classId}/apply`, data),
-                createClass: (classData) => axiosInstance.post("staff/class", classData),
-                createSessions: (sessionsData) => axiosInstance.post("staff/class/session", sessionsData),
-                updateClass: (id, classData) => axiosInstance.patch(`staff/class/${id}`, classData),
+            getClassDetail: (id, params) => axiosInstance.get(`admin/classes/${id}`, { params }),
+            previewChangeTeacher: (classId, data) => axiosInstance.patch(`admin/classes/${classId}/preview`, data),
+            applyChangeTeacher: (classId, data) => axiosInstance.patch(`admin/classes/${classId}/apply`, data),
+            createClass: (classData) => axiosInstance.post("staff/class", classData),
+            createSessions: (sessionsData) => axiosInstance.post("staff/class/session", sessionsData),
+            updateClass: (id, classData) => axiosInstance.patch(`staff/class/${id}`, classData),
         },
 
         getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),
@@ -125,67 +126,67 @@ const api = {
         getCategories: (params) => axiosInstance.get("/categories", { params }),
     },
 
-  // --- Nhóm API Giáo viên ---
-  teacher: {
-    getShiftConfig: () => axiosInstance.get("/teacher/shift"),
-    registerShift: (scheduleData) =>
-      axiosInstance.patch("/teacher/register-shift", scheduleData),
-    getTeachCategories: () => axiosInstance.get("/teacher/categories"),
-    registerCategories: (categories) =>
-      axiosInstance.patch("/teacher/register-categories", { categories }),
+    // --- Nhóm API Giáo viên ---
+    teacher: {
+        getShiftConfig: () => axiosInstance.get("/teacher/shift"),
+        registerShift: (scheduleData) =>
+            axiosInstance.patch("/teacher/register-shift", scheduleData),
+        getTeachCategories: () => axiosInstance.get("/teacher/categories"),
+        registerCategories: (categories) =>
+            axiosInstance.patch("/teacher/register-categories", { categories }),
 
-    getMyClasses: () => axiosInstance.get("teacher/my-class"),
-    getMyClassDetail: (classId) => axiosInstance.get(`teacher/my-class/${classId}`),
-    getMySchedule: (params) => axiosInstance.get("teacher/my-schedule", { params }),
+        getMyClasses: () => axiosInstance.get("teacher/my-class"),
+        getMyClassDetail: (classId) => axiosInstance.get(`teacher/my-class/${classId}`),
+        getMySchedule: (params) => axiosInstance.get("teacher/my-schedule", { params }),
 
-    attendance: {
-      
-      getTodaySession: () => axiosInstance.get("attendance/today-session"),
+        attendance: {
 
-      
-      startSession: (sessionId) => 
-        axiosInstance.post(`attendance/start-session/${sessionId}`),
+            getTodaySession: () => axiosInstance.get("attendance/today-session"),
 
-      
-      takeAttendance: (attendanceId, attendanceData) => 
-        axiosInstance.patch(`attendance/take-attendance/${attendanceId}`, { attendance: attendanceData }),
-     
-      getAllAttendanceReport: () => axiosInstance.get("attendance"),
+
+            startSession: (sessionId) =>
+                axiosInstance.post(`attendance/start-session/${sessionId}`),
+
+
+            takeAttendance: (attendanceId, attendanceData) =>
+                axiosInstance.patch(`attendance/take-attendance/${attendanceId}`, { attendance: attendanceData }),
+
+            getAllAttendanceReport: () => axiosInstance.get("attendance"),
+        },
     },
-  },
-  learner: {
+    learner: {
 
-    getAllMyStudents: () => axiosInstance.get("learner"),
-
-
-    getStudentProfile: (studentId) => axiosInstance.get(`learner/${studentId}`),
+        getAllMyStudents: () => axiosInstance.get("learner"),
 
 
-    updateLearningGoal: (studentId, data) => axiosInstance.post(`${studentId}/goals`, data),
+        getStudentProfile: (studentId) => axiosInstance.get(`learner/${studentId}`),
 
 
-    getRoadmap: (studentId, categoryId) => axiosInstance.get(`${studentId}/roadmap`, { params: { category: categoryId } }),
+        updateLearningGoal: (studentId, data) => axiosInstance.post(`${studentId}/goals`, data),
 
 
-    createSeatHold: (data) => axiosInstance.post("enrollment", data),
+        getRoadmap: (studentId, categoryId) => axiosInstance.get(`${studentId}/roadmap`, { params: { category: categoryId } }),
 
 
-    createCustomSchedule: (data) => axiosInstance.post("custom-schedule", data),
+        createSeatHold: (data) => axiosInstance.post("enrollment", data),
 
 
-    getMyEnrolledClasses: (studentId) => 
-      axiosInstance.get(`${studentId}/classes`),
+        createCustomSchedule: (data) => axiosInstance.post("custom-schedule", data),
 
 
-    getStudentClassDetail: (studentId, classId) => 
-      axiosInstance.get(`${studentId}/classes/${classId}`),
+        getMyEnrolledClasses: (studentId) =>
+            axiosInstance.get(`${studentId}/classes`),
 
 
-    getMySchedule: (studentId, params) => 
-      axiosInstance.get(`${studentId}/schedule`, { params }),
-  },
+        getStudentClassDetail: (studentId, classId) =>
+            axiosInstance.get(`${studentId}/classes/${classId}`),
 
-// --- Nhóm Staff ---
+
+        getMySchedule: (studentId, params) =>
+            axiosInstance.get(`${studentId}/schedule`, { params }),
+    },
+
+    // --- Nhóm Staff ---
     staff: {
         getTeachers: (params) => axiosInstance.get("/staff/account?role=teacher", { params }),
         getTeacherDetail: (id) => axiosInstance.get(`/staff/account/${id}`),

@@ -5,7 +5,7 @@ import {
     School, ListChecks, CalendarDays, ClipboardList,
     BookOpen, BookOpenCheck, BookCopy, FileText,
     Building2, DoorOpen, Building, Wrench,
-    Wallet, Receipt, Coins, BadgeDollarSign, PieChart,
+    Wallet, Receipt, Coins, BanknoteArrowUp, PieChart,
     BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus,
     ChevronLeft, ShieldUser, Clock1, CalendarCog,
 } from "lucide-react";
@@ -116,7 +116,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             items: [
                 { name: "Học viên", path: "/admin/users/students", icon: UserCircle },
                 { name: "Giáo viên", path: "/admin/users/teachers", icon: GraduationCap },
-                { name: "Nhân viên", path: "/admin/users/staffs", icon: Users2 }, // ⬅️ Sửa staff (thêm 's')
+                { name: "Nhân viên", path: "/admin/users/staffs", icon: Users2 }, 
                 { name: "Xếp lớp học viên", path: "/admin/users/enrollments", icon: UserCog }
             ]
         },
@@ -125,7 +125,6 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             title: "Quản lý lớp học",
             items: [
                 { name: "Danh sách lớp", path: "/admin/classes", icon: ListChecks },
-                // { name: "Tạo lớp học", path: "/admin/classes/create", icon: CopyPlus }, // ⬅️ ĐÃ XÓA
                 { name: "Thời khóa biểu", path: "/admin/classes/schedule", icon: CalendarDays },
                 { name: "Điểm danh", path: "/admin/classes/attendance", icon: ClipboardList }
             ]
@@ -135,8 +134,6 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             title: "Quản lý khóa học",
             items: [
                 { name: "Danh sách khóa học", path: "/admin/courses", icon: BookOpenCheck },
-                { name: "Chương trình giảng dạy", path: "/admin/courses/curriculum", icon: BookCopy },
-                { name: "Tài liệu học tập", path: "/admin/courses/materials", icon: FileText }
             ]
         },
         {
@@ -153,28 +150,17 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             items: [
                 { name: "Phòng học", path: "/admin/facility/rooms", icon: DoorOpen },
                 { name: "Thời gian hoạt động", path: "/admin/facility/working-hours", icon: Clock1 },
-                { name: "Thiết bị", path: "/admin/facility/equipment", icon: Wrench }
             ]
         },
         {
             icon: Wallet,
-            title: "Quản lý tài chính",
+            title: "Báo cáo tài chính",
             items: [
-                { name: "Thu/Chi", path: "/admin/finance/transactions", icon: Receipt },
-                { name: "Học phí", path: "/admin/finance/tuition", icon: Coins },
-                { name: "Lương", path: "/admin/finance/salary", icon: BadgeDollarSign },
+                { name: "Quản lý giao dịch", path: "/admin/finance/transactions", icon: BanknoteArrowUp },
                 { name: "Báo cáo doanh thu", path: "/admin/finance/revenue", icon: PieChart }
             ]
         },
-        {
-            icon: BarChart3,
-            title: "Báo cáo & Thống kê",
-            items: [
-                { name: "Báo cáo học viên", path: "/admin/reports/students", icon: BarChart2 },
-                { name: "Báo cáo tài chính", path: "/admin/reports/finance", icon: BarChart3 },
-                { name: "Hiệu quả giảng dạy", path: "/admin/reports/teaching", icon: TrendingUp }
-            ]
-        }
+        
     ];
 
     return (
