@@ -111,6 +111,14 @@ const api = {
         },
         enrollment: {
             getStudentDemand: (params) => axiosInstance.get("/admin/student-demand", { params }),
+
+        },
+        request: {
+            getAll: (params) => axiosInstance.get("/staff/custom-requests", { params }),
+            getSummary: () => axiosInstance.get("/staff/custom-requests/summary"),
+            getOne: (id) => axiosInstance.get(`/staff/custom-requests/${id}`),
+            update: (id, data) => axiosInstance.patch(`/staff/custom-requests/${id}`, data),
+            delete: (id) => axiosInstance.delete(`/staff/custom-requests/${id}`),
         },
         finance: {
             getRevenueReport: (params) => axiosInstance.get("/admin/reports/revenue", { params }),
