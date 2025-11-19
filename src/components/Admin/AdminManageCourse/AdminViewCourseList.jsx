@@ -1,44 +1,53 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, Trash2, Eye, Edit } from "lucide-react";
+import { Search, Trash2, Eye, Plus, BookOpen, Book, Layers, Clock, DollarSign, FolderOpen, GraduationCap } from "lucide-react";
 import api from "../../../utils/api";
 import AdminCreateCourseModal from "./AdminCreateCourseModal";
 import AdminCourseDetailModal from "./AdminCourseDetailModal";
 import showToast from "../../../utils/showToast";
-import { Modal, Card, Avatar, Flex, Typography, Switch } from "antd";
+import { Modal } from "antd";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 
-const { Title, Text } = Typography;
-
 const AdminViewCourseList = () => {
-    const [courses, setCourse] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [pagination, setPagination] = useState({
-        page: 1,
-        totalPages: 1,
-        total: 0,
-        results: 0,
-    });
+    const [courses, setCourses] = useState([]);
+    const [categories, setCategories] = useState([]); // Lưu raw data từ API
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const PAGE_SIZE = 8;
 
+    // Modal states
     const [openCreate, setOpenCreate] = useState(false);
     const [openDetail, setOpenDetail] = useState(false);
-    const [detailMode, setDetailMode] = useState("view");
-    const [courseId, setCourseId] = useState(null);
+    const [selectedCourseId, setSelectedCourseId] = useState(null);
+
+    // Antd Modal hook
     const [modal, contextHolder] = Modal.useModal();
 
-    const handleView = (id) => {
-        setCourseId(id);
-        setDetailMode("view");
-        setOpenDetail(true);
-    };
+    // --- FETCH DATA ---
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [catRes, courseRes] = await Promise.all([
+                api.admin.getCategories(),
+                api.admin.getCourse({ limit: 1000 }) // Lấy tất cả để group
+            ]);
 
-    const handleEdit = (id) => {
-        setCourseId(id);
-        setDetailMode("edit");
+            // Lưu dữ liệu trả về (có thể là array hoặc object { data: [] })
+            setCategories(catRes.data?.data || []);
+            setCourses(courseRes.data?.data?.courses || []);
+        } catch (err) {
+            console.error(err);
+            showToast.error("Lỗi tải dữ liệu hệ thống");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    // --- HANDLERS ---
+    const handleView = (id) => {
+        setSelectedCourseId(id);
         setOpenDetail(true);
     };
 
@@ -46,229 +55,227 @@ const AdminViewCourseList = () => {
         modal.confirm({
             title: "Xác nhận xóa khóa học?",
             icon: <ExclamationCircleFilled />,
-            content: "Thao tác này không thể hoàn tác.",
-            okText: "Xóa",
+            content: "Hành động này sẽ xóa khóa học vĩnh viễn và không thể hoàn tác.",
+            okText: "Xóa ngay",
             cancelText: "Hủy",
-            okType: "danger",
-            getContainer: false,
-            zIndex: 2000,
+            okButtonProps: { className: "bg-red-600 hover:bg-red-700 border-none" },
+            zIndex: 3000,
             async onOk() {
-                const toastId = showToast.loading("Đang xóa khóa học...");
                 try {
                     await api.admin.deleteCourseById(id);
-                    showToast.updateSuccess(toastId, "Xóa khóa học thành công!");
-                    if (courses.length === 1 && currentPage > 1) {
-                        setCurrentPage((p) => p - 1);
-                    } else {
-                        fetchCourse();
-                    }
+                    showToast.success("Đã xóa khóa học");
+                    fetchData(); // Reload data
                 } catch (err) {
-                    console.error(err);
-                    showToast.updateError(
-                        toastId,
-                        err?.response?.data?.message || "Xóa khóa học thất bại!"
-                    );
+                    showToast.error(err?.response?.data?.message || "Lỗi khi xóa");
                 }
             },
         });
     };
 
-    const fetchCategories = async () => {
-        try {
-            const response = await api.admin.getCategories();
-            setCategories(response.data?.data || []);
-        } catch (err) {
-            console.error(err);
-            setError("Không thể tải danh mục.");
+    // --- GROUPING LOGIC (FIXED) ---
+    // 1. Trích xuất mảng category an toàn
+    const categoryList = Array.isArray(categories) ? categories : (categories?.data || []);
+
+    // 2. Filter theo search term
+    const filteredCourses = courses.filter(c =>
+        c.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // 3. Group theo Category ID
+    const groupedCourses = categoryList.reduce((acc, cat) => {
+        const coursesInCat = filteredCourses.filter(c =>
+            c.category?._id === cat._id || c.category === cat._id
+        );
+
+
+        if (coursesInCat.length > 0) {
+            acc.push({
+                category: cat,
+                courses: coursesInCat
+            });
         }
+        return acc;
+    }, []);
+
+
+    const categoryIds = categoryList.map(c => c._id);
+    const otherCourses = filteredCourses.filter(c => {
+        const cCatId = c.category?._id || c.category;
+        return !categoryIds.includes(cCatId);
+    });
+
+    if (otherCourses.length > 0) {
+        groupedCourses.push({
+            category: { _id: 'other', name: 'Khác / Chưa phân loại' },
+            courses: otherCourses
+        });
+    }
+
+    // --- RENDER HELPERS ---
+    const LevelBadge = ({ level }) => {
+        const colors = {
+            'Beginner': 'bg-green-100 text-green-700 border-green-200',
+            'Elementary': 'bg-teal-100 text-teal-700 border-teal-200',
+            'Intermediate': 'bg-blue-100 text-blue-700 border-blue-200',
+            'Advanced': 'bg-purple-100 text-purple-700 border-purple-200',
+        };
+        return (
+            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide border ${colors[level] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                {level}
+            </span>
+        );
     };
 
-    const fetchCourse = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const params = { page: currentPage, limit: PAGE_SIZE, search: searchTerm };
-            const response = await api.admin.getCourse(params);
-
-            const data = response.data;
-            const total = data.total ?? 0;
-            const results = data.results;
-
-            setCourse(data?.data?.courses ?? []);
-            setPagination({
-                page: data.page ?? currentPage,
-                totalPages: Math.ceil(total / PAGE_SIZE),
-                total,
-                results,
-            });
-        } catch (err) {
-            console.error(err);
-            setError("Không thể tải dữ liệu khóa học.");
-        } finally {
-            setLoading(false);
-        }
-    }, [currentPage, searchTerm]);
-
-    useEffect(() => {
-        fetchCategories();
-        fetchCourse();
-    }, [fetchCourse]);
-
-    if (loading) return <div className="p-6 text-center">Đang tải dữ liệu...</div>;
-    if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
-
     return (
-        <div className="bg-gray-50 min-h-screen">
+        <div className="p-6 bg-gray-50 min-h-screen font-sans">
             {contextHolder}
 
-            {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Danh sách khóa học</h1>
-                <p className="text-gray-600">Quản lý khóa học</p>
+            {/* HEADER */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                        <BookOpen className="w-8 h-8 text-purple-600" />
+                        Quản lý Khóa học
+                    </h1>
+                    <p className="text-gray-500 mt-1 text-sm">Danh sách khóa học được phân nhóm theo danh mục.</p>
+                </div>
+                <button
+                    onClick={() => setOpenCreate(true)}
+                    className="group inline-flex items-center px-5 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all shadow-sm hover:shadow-md active:scale-95"
+                >
+                    <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform" />
+                    Tạo Khóa Học
+                </button>
             </div>
 
-            {/* Search + Create Button */}
-            <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm khóa học..."
-                            value={searchTerm}
-                            onChange={(e) => {
-                                setSearchTerm(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                        />
-                    </div>
-
-                    <button
-                        onClick={() => setOpenCreate(true)}
-                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-md hover:shadow-lg"
-                    >
-                        + Thêm Mới
-                    </button>
+            {/* TOOLBAR */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 sticky top-20 z-10">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm khóa học..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white"
+                    />
                 </div>
             </div>
 
-            {/* Cards layout */}
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: "16px",
-                }}
-            >
-                {courses.length > 0 ? (
-                    courses.map((course) => (
-                        <Card
-                            key={course._id}
-                            style={{
-                                borderRadius: 12,
-                                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                            }}
-                            actions={[
-                                <div key="view" style={{ display: "flex", justifyContent: "center" }}>
-                                    <Eye onClick={() => handleView(course._id)} />
-                                </div>,
-                                <div key="edit" style={{ display: "flex", justifyContent: "center" }}>
-                                    <Edit onClick={() => handleEdit(course._id)} />
-                                </div>,
-                                <div key="delete" style={{ display: "flex", justifyContent: "center" }}>
-                                    <Trash2 onClick={() => handleDelete(course._id)} color="red" />
-                                </div>,
-                            ]}
-                        >
-                            <img
-                                src={course.imageCover}
-                                alt={course.imageCover}
-                                style={{
-                                    width: "100%",
-                                    height: 160,
-                                    objectFit: "cover",
-                                    borderBottom: "1px solid #f0f0f0",
-                                }}
-                            />
-                            <Card.Meta
-                                title={<Title style={{textAlign:"center", marginTop: 8, marginBottom: 0}} level={3}>{course.name}</Title>}
-                                description={
+            {/* CONTENT */}
+            {loading ? (
+                <div className="text-center py-20"><div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full mx-auto"></div></div>
+            ) : groupedCourses.length === 0 ? (
+                <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+                    <GraduationCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900">Không tìm thấy khóa học nào</h3>
+                </div>
+            ) : (
+                <div className="space-y-10">
+                    {groupedCourses.map((group) => (
+                        <div key={group.category._id} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Category Title */}
+                            <div className="flex items-center gap-3 mb-4 pb-2 border-b border-gray-200">
+                                <div className="p-2 bg-purple-100 rounded-lg text-purple-700">
+                                    <FolderOpen className="w-5 h-5" />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-800">{group.category.name}</h2>
+                                <span className="text-sm font-medium px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                                    {group.courses.length}
+                                </span>
+                            </div>
+
+                            {/* Courses Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {group.courses.map((course) => (
                                     <div
-                                        style={{
-                                            textAlign: "center",
-                                            marginTop: 8
-                                        }}>
-                                        <Text>
-                                            Category: {course.category?.name || "N/A"}
-                                        </Text>
-                                        <br />
-                                        <Text>
-                                            Level: {course.level || "N/A"}
-                                        </Text>
-                                        <br />
-                                        <Text>Session: {course.session || 0}</Text>
-                                        <br />
-                                        <Text>Duration: {course.durationInMinutes || 0} min</Text>
-                                        <br />
-                                        <Text>Price:</Text>
-                                        <Text strong className="text-purple-700"> {Number(course.price).toLocaleString()} VND
-                                        </Text>
+                                        key={course._id}
+                                        className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col h-full relative"
+                                    >
+                                        {/* Image */}
+                                        <div className="relative h-40 overflow-hidden bg-gray-100 flex items-center justify-center">
+                                            {course.imageCover ? (
+                                                <img
+                                                    src={course.imageCover}
+                                                    alt={course.name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = "none";
+                                                    }}
+                                                />
+                                            ) : (
+                                                <Book className="w-12 h-12 text-purple-400" />
+                                            )}
+
+                                            {/* Price badge */}
+                                            <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-purple-700 flex items-center shadow-sm">
+                                                {Number(course.price).toLocaleString()}
+                                            </div>
+                                        </div>
+
+
+                                        {/* Body */}
+                                        <div className="p-4 flex-1 flex flex-col">
+                                            <div className="mb-2">
+                                                <LevelBadge level={course.level} />
+                                            </div>
+                                            <h3
+                                                className="text-base font-bold text-gray-800 mb-1 line-clamp-2 group-hover:text-purple-600 transition-colors cursor-pointer"
+                                                onClick={() => handleView(course._id)}
+                                            >
+                                                {course.name}
+                                            </h3>
+
+                                            <div className="mt-auto grid grid-cols-2 gap-2 pt-3 text-xs text-gray-500">
+                                                <div className="flex items-center bg-gray-50 p-1.5 rounded border border-gray-100">
+                                                    <Layers className="w-3 h-3 mr-1.5 text-gray-400" />
+                                                    {course.session || 0} buổi
+                                                </div>
+                                                <div className="flex items-center bg-gray-50 p-1.5 rounded border border-gray-100">
+                                                    <Clock className="w-3 h-3 mr-1.5 text-gray-400" />
+                                                    {course.durationInMinutes || 0}p
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Footer Actions */}
+                                        <div className="px-4 py-3 bg-gray-50/50 border-t border-gray-100 flex gap-2">
+                                            <button
+                                                onClick={() => handleView(course._id)}
+                                                className="flex-1 flex items-center justify-center py-1.5 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded transition-colors"
+                                            >
+                                                <Eye className="w-4 h-4 mr-1.5" /> Chi tiết
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(course._id)}
+                                                className="w-9 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                title="Xóa"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
-                                }
-                            />
-                        </Card>
-                    ))
-                ) : (
-                    <div className="text-center text-gray-500 w-full py-10">
-                        Không có dữ liệu khóa học
-                    </div>
-                )}
-            </div>
-
-
-            {/* Pagination */}
-            <div className="mt-8 flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                    Hiển thị <span className="font-medium">{pagination.results}</span> /
-                    <span className="font-medium">{pagination.total}</span> khóa học
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Trước
-                    </button>
-                    <span className="px-3 py-1 text-sm">
-                        Trang {pagination.page} / {pagination.totalPages}
-                    </span>
-                    <button
-                        onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                        disabled={currentPage === pagination.totalPages}
-                        className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Sau
-                    </button>
-                </div>
-            </div>
+            )}
 
             {/* Modals */}
             <AdminCreateCourseModal
                 open={openCreate}
                 categories={categories}
                 onClose={() => setOpenCreate(false)}
-                onSuccess={fetchCourse}
+                onSuccess={fetchData}
             />
 
             <AdminCourseDetailModal
                 open={openDetail}
-                courseId={courseId}
+                courseId={selectedCourseId}
                 categories={categories}
-                mode={detailMode}
                 onClose={() => setOpenDetail(false)}
-                onUpdated={fetchCourse}
+                onUpdated={fetchData}
             />
         </div>
     );
