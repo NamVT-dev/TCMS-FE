@@ -116,7 +116,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             items: [
                 { name: "Học viên", path: "/admin/users/students", icon: UserCircle },
                 { name: "Giáo viên", path: "/admin/users/teachers", icon: GraduationCap },
-                { name: "Nhân viên", path: "/admin/users/staffs", icon: Users2 }, 
+                { name: "Nhân viên", path: "/admin/users/staff", icon: Users2 }, 
                 { name: "Xếp lớp học viên", path: "/admin/users/enrollments", icon: UserCog }
             ]
         },
