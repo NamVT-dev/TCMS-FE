@@ -137,6 +137,8 @@ const api = {
         getTeacherDetail: (id) => axiosInstance.get(`/staff/account/${id}`),
         getStudents: (params) => axiosInstance.get("/staff/account?role=member", { params }),
         getStudentDetail: (id) => axiosInstance.get(`/staff/account/${id}`),
+        getTransactions: (params) => axiosInstance.get("/staff/transaction", { params }),
+        getTransactionDetail: (id) => axiosInstance.get(`/staff/transaction/${id}`),
     },
 };
 

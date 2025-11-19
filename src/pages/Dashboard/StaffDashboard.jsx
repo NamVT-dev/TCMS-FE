@@ -7,6 +7,7 @@ import StaffSidebar from '../../components/Layout/StaffSidebar';
 import StaffManageTeacherView from '../../components/Staff/StaffManageUser/StaffManageTeacher/StaffManageTeacherView';
 import StaffManageStudentView from '../../components/Staff/StaffManageUser/StaffManagerSudent/StaffManageStudentView';
 import StaffViewUpdateProfile from '../../components/Staff/StaffInformation/StaffViewUpdateProfile';
+import StaffTransactionView from '../../components/Staff/StaffOverview/StaffTransactionView';
 
 const StaffDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -38,6 +39,7 @@ const StaffDashboard = () => {
         } p-6`}>
           <Routes>
             <Route path="/overview" element={<StaffOverview />} />
+            <Route path="/transactions" element={<StaffTransactionView />} />
             <Route path="/users/teachers" element={<StaffManageTeacherView />} />
             <Route path="/users/students" element={<StaffManageStudentView />} />
             <Route path="/profile" element={<StaffViewUpdateProfile />} />
