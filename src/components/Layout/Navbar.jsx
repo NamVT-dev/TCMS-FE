@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
 
 // Định nghĩa thời gian trễ trước khi đóng dropdown (miligiây)
-const CLOSE_DELAY = 100; 
+const CLOSE_DELAY = 100;
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -104,16 +104,16 @@ const Navbar = () => {
         { title: 'Cam kết hỗ trợ', description: 'Hỗ trợ học viên 24/7 trong suốt quá trình học tập' },
     ];
 
-    // Hover mở menu: Luôn hủy lệnh đóng đang chờ
+
     const handleMouseEnter = (menu) => {
         if (closeTimeout.current) {
-            clearTimeout(closeTimeout.current); // Hủy lệnh đóng
+            clearTimeout(closeTimeout.current);
             closeTimeout.current = null;
         }
         setOpenMenu(menu);
     };
 
-    // Hover đóng menu: Đặt lệnh đóng sau 100ms
+
     const handleMouseLeave = () => {
         if (closeTimeout.current) {
             clearTimeout(closeTimeout.current);
@@ -149,8 +149,8 @@ const Navbar = () => {
                             <div
                                 ref={courseRef}
                                 className="relative"
-                                onMouseEnter={() => handleMouseEnter('course')} // <-- Hủy đóng, mở menu
-                                onMouseLeave={handleMouseLeave} // <-- Đặt lệnh đóng có trễ
+                                onMouseEnter={() => handleMouseEnter('course')}
+                                onMouseLeave={handleMouseLeave}
                             >
                                 <button className="flex items-center space-x-1 text-gray-700 hover:text-current font-medium py-2">
                                     <span className={`hover:${colors.text} transition-colors`}>Khóa học</span>
@@ -163,7 +163,7 @@ const Navbar = () => {
                                 {openMenu === 'course' && (
                                     <div
                                         className="absolute left-0 top-full mt-2 w-[800px] bg-white border border-gray-200 rounded-xl shadow-2xl p-6 animate-fadeIn z-40"
-                                        // KHÔNG CẦN onMouseEnter/onMouseLeave ở đây nữa
+
                                     >
                                         <h2 className="text-lg font-bold text-gray-800 mb-4">
                                             Danh mục & Khóa học
@@ -196,12 +196,12 @@ const Navbar = () => {
                                 )}
                             </div>
 
-                            {/* Cam kết đầu ra */}
+
                             <div
                                 ref={commitmentRef}
                                 className="relative"
-                                onMouseEnter={() => handleMouseEnter('commitment')} // <-- Hủy đóng, mở menu
-                                onMouseLeave={handleMouseLeave} // <-- Đặt lệnh đóng có trễ
+                                onMouseEnter={() => handleMouseEnter('commitment')}
+                                onMouseLeave={handleMouseLeave}
                             >
                                 <button className="flex items-center space-x-1 text-gray-700 hover:text-current font-medium py-2">
                                     <span className={`hover:${colors.text} transition-colors`}>Cam kết đầu ra</span>
@@ -212,9 +212,9 @@ const Navbar = () => {
                                 </button>
 
                                 {openMenu === 'commitment' && (
-                                    <div 
+                                    <div
                                         className="absolute left-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 animate-fadeIn z-40"
-                                        // KHÔNG CẦN onMouseEnter/onMouseLeave ở đây nữa
+                                    // KHÔNG CẦN onMouseEnter/onMouseLeave ở đây nữa
                                     >
                                         <div className="space-y-3">
                                             {commitments.map((c, i) => (
@@ -236,17 +236,17 @@ const Navbar = () => {
                             {userRole === 'member' && (
                                 <>
                                     <button
-                                        onClick={() => navigate('/my-courses')}
+                                        onClick={() => navigate('/learner/my-classes')}
                                         className={`text-gray-700 hover:${colors.text} font-medium py-2 transition-colors`}
                                     >
-                                        Khóa học của tôi
+                                        Lớp học của tôi 
                                     </button>
 
                                     <button
-                                        onClick={() => navigate('/build-roadmap')}
+                                        onClick={() => navigate('/learner/roadmap')}
                                         className={`text-gray-700 hover:${colors.text} font-medium py-2 transition-colors`}
                                     >
-                                        Xây dựng lộ trình
+                                        Lộ trình học tập
                                     </button>
                                 </>
                             )}

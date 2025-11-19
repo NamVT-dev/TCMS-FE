@@ -12,9 +12,10 @@ import { UserProvider } from "./context/UserContext";
 import ProtectedRoute from "./hooks/ProtectedRoute";
 import VerifyOtp from "./pages/Auth/VerifyOtp ";
 import GuestViewCourseDetail from "./pages/Homepage/GuestViewCourseDetail";
-import StudentRegisterTest from "./components/Student/StudentOverview/StudentRegisterTest"; 
+import StudentRegisterTest from "./components/Student/StudentOverview/StudentRegisterTest";
 import ForgotPasswordForm from "./pages/Auth/ForgotPasswordForm";
 import ResetPasswordForm from "./pages/Auth/ResetPasswordForm";
+import LearnerLayout from "./pages/Dashboard/LearnerLayout";
 
 
 // Component wrapper để xử lý modal
@@ -38,7 +39,7 @@ function AppContent() {
         <Route path="/register-first-test" element={<HomePage onOpenModal={() => setIsModalOpen(true)} />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
-        <Route path="/verify-otp" element={<VerifyOtp />} />  
+        <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/courses/:id" element={<GuestViewCourseDetail />} />
         <Route path="/forgot-password" element={<ForgotPasswordForm />} />
         <Route path="/reset-password" element={<ResetPasswordForm />} />
@@ -57,6 +58,14 @@ function AppContent() {
           element={
             <ProtectedRoute allowedRoles={['teacher']}>
               <TeacherDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/learner/*"
+          element={
+            <ProtectedRoute allowedRoles={['member']}>
+              <LearnerLayout />
             </ProtectedRoute>
           }
         />
@@ -82,9 +91,9 @@ function AppContent() {
       </Routes>
 
       {/* Modal global */}
-      <StudentRegisterTest 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <StudentRegisterTest
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
     </>
   );

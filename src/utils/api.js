@@ -122,16 +122,67 @@ const api = {
         getCategories: (params) => axiosInstance.get("/categories", { params }),
     },
 
-    // --- Nhóm API Giáo viên ---
-    teacher: {
-        getShiftConfig: () => axiosInstance.get("/teacher/shift"),
-        registerShift: (scheduleData) =>
-            axiosInstance.patch("/teacher/register-shift", scheduleData),
-        getTeachCategories: () => axiosInstance.get("/teacher/categories"),
-        registerCategories: (categories) =>
-            axiosInstance.patch("/teacher/register-categories", { categories }),
+  // --- Nhóm API Giáo viên ---
+  teacher: {
+    getShiftConfig: () => axiosInstance.get("/teacher/shift"),
+    registerShift: (scheduleData) =>
+      axiosInstance.patch("/teacher/register-shift", scheduleData),
+    getTeachCategories: () => axiosInstance.get("/teacher/categories"),
+    registerCategories: (categories) =>
+      axiosInstance.patch("/teacher/register-categories", { categories }),
+
+    getMyClasses: () => axiosInstance.get("teacher/my-class"),
+    getMyClassDetail: (classId) => axiosInstance.get(`teacher/my-class/${classId}`),
+    getMySchedule: (params) => axiosInstance.get("teacher/my-schedule", { params }),
+
+    attendance: {
+      
+      getTodaySession: () => axiosInstance.get("attendance/today-session"),
+
+      
+      startSession: (sessionId) => 
+        axiosInstance.post(`attendance/start-session/${sessionId}`),
+
+      
+      takeAttendance: (attendanceId, attendanceData) => 
+        axiosInstance.patch(`attendance/take-attendance/${attendanceId}`, { attendance: attendanceData }),
+     
+      getAllAttendanceReport: () => axiosInstance.get("attendance"),
     },
-    // --- Nhóm Staff ---
+  },
+  learner: {
+
+    getAllMyStudents: () => axiosInstance.get("learner"),
+
+
+    getStudentProfile: (studentId) => axiosInstance.get(`learner/${studentId}`),
+
+
+    updateLearningGoal: (studentId, data) => axiosInstance.post(`${studentId}/goals`, data),
+
+
+    getRoadmap: (studentId, categoryId) => axiosInstance.get(`${studentId}/roadmap`, { params: { category: categoryId } }),
+
+
+    createSeatHold: (data) => axiosInstance.post("enrollment", data),
+
+
+    createCustomSchedule: (data) => axiosInstance.post("custom-schedule", data),
+
+
+    getMyEnrolledClasses: (studentId) => 
+      axiosInstance.get(`${studentId}/classes`),
+
+
+    getStudentClassDetail: (studentId, classId) => 
+      axiosInstance.get(`${studentId}/classes/${classId}`),
+
+
+    getMySchedule: (studentId, params) => 
+      axiosInstance.get(`${studentId}/schedule`, { params }),
+  },
+
+// --- Nhóm Staff ---
     staff: {
         getTeachers: (params) => axiosInstance.get("/staff/account?role=teacher", { params }),
         getTeacherDetail: (id) => axiosInstance.get(`/staff/account/${id}`),
@@ -140,6 +191,8 @@ const api = {
         getTransactions: (params) => axiosInstance.get("/staff/transaction", { params }),
         getTransactionDetail: (id) => axiosInstance.get(`/staff/transaction/${id}`),
     },
+
+
 };
 
 export default api;

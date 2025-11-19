@@ -21,6 +21,8 @@ const GuestViewCourseDetail = () => {
   const [course, setCourse] = useState(DEFAULT_COURSE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showLoginMessage, setShowLoginMessage] = useState(false);
+
 
   // 🔹 Tính tháng khuyến mãi (tháng hiện tại +1)
   const currentDate = new Date();
@@ -162,14 +164,38 @@ const GuestViewCourseDetail = () => {
                     {formatPrice(course.price)}
                   </span>
                 </p>
+
+                {/* ✅ Thêm state hiển thị thông báo login */}
                 <button
-                  onClick={() =>
-                    alert(`Bạn đã chọn đăng ký khóa học ${course.name}!`)
-                  }
+                  onClick={() => {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                      // nếu chưa đăng nhập
+                      setShowLoginMessage(true);
+                    } else {
+                      // nếu đã login thì chuyển trang
+                      navigate('/register-first-test');
+                    }
+                  }}
                   className="mt-4 w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl"
                 >
                   Đăng ký ngay
                 </button>
+
+                {/* ⚠️ Hiển thị cảnh báo nếu chưa login */}
+                {showLoginMessage && (
+                  <p className="text-center text-sm text-yellow-700 bg-yellow-100 border border-yellow-300 rounded-lg p-2 mt-3 animate-slideDown">
+                    ⚠️ Vui lòng{' '}
+                    <span
+                      onClick={() => navigate('/login?redirect=/register-first-test')}
+                      className="underline cursor-pointer hover:text-yellow-800"
+                    >
+                      đăng nhập
+                    </span>{' '}
+                    để đăng ký khóa học.
+                  </p>
+                )}
+
                 <p className="text-center text-sm text-gray-500 mt-2">
                   Ưu đãi đặc biệt tháng {promoMonth}/{promoYear}
                 </p>

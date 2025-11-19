@@ -146,7 +146,7 @@ export default function HeroSection({ onOpenModal, showLoginMessage }) {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style >{`
                 :global(.swiper-button-next),
                 :global(.swiper-button-prev) {
                     color: rgb(147, 51, 234);

@@ -1,5 +1,3 @@
-// src/components/Admin/AdminManageShedule/AdminScheduleDashboard.jsx
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../utils/api";
@@ -7,30 +5,70 @@ import NewScheduleModal from "./components/NewScheduleModal";
 import JobHistoryTable from "./components/JobHistoryTable";
 import { Plus, PieChart, AlertTriangle, XCircle, Loader2 } from "lucide-react";
 
+import ScheduleResourceOverview from "./components/ScheduleResourceOverview";
+
 function AdminScheduleDashboard() {
   const [jobs, setJobs] = useState([]);
   const [isScheduling, setIsScheduling] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
+  // ⬇️ Sửa State: Lưu trữ mảng đầy đủ
+  const [stats, setStats] = useState({
+    teachers: [],
+    rooms: [],
+    courses: [],
+    config: null
+  });
+
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
-    
+    setIsLoading(true);
+    setIsLoadingStats(true);
     try {
-      const [statusRes, jobsRes] = await Promise.all([
+      // ⬇️ Gọi 6 API (Lấy danh sách đầy đủ, giới hạn 200)
+      const [
+        statusRes,
+        jobsRes,
+        teacherRes,
+        roomRes,
+        courseRes,
+        configRes
+      ] = await Promise.allSettled([
         api.admin.schedule.getStatus(),
         api.admin.schedule.getAllJobs(),
+        api.admin.getTeachers({ active: true, limit: 200 }),
+        api.admin.getRooms({ status: 'active', limit: 200 }),
+        api.admin.getCourse({ limit: 200 }),
+        api.admin.center.getConfig()
       ]);
-      setIsScheduling(statusRes.data.data.isScheduling);
-      setJobs(jobsRes.data.data);
+
+      // Xử lý status và jobs
+      if (statusRes.status === 'fulfilled') {
+        setIsScheduling(statusRes.value.data.data.isScheduling);
+      }
+      if (jobsRes.status === 'fulfilled') {
+        setJobs(jobsRes.value.data.data);
+      }
+
+      // ⬇️ Xử lý Stats (lưu mảng)
+      setStats({
+        teachers: teacherRes.status === 'fulfilled' ? teacherRes.value.data.data.teachers : [],
+        rooms: roomRes.status === 'fulfilled' ? roomRes.value.data.data.rooms : [],
+        courses: courseRes.status === 'fulfilled' ? courseRes.value.data.data.courses : [],
+        config: configRes.status === 'fulfilled' ? configRes.value.data.data.config : null,
+      });
+
       setError(null);
     } catch (err) {
       console.error("Lỗi khi tải dữ liệu dashboard:", err);
-      setError(err.response?.data?.message || "Lỗi máy chủ");
+      setError("Lỗi máy chủ khi tải dữ liệu.");
     } finally {
       setIsLoading(false);
+      setIsLoadingStats(false);
     }
   }, []);
 
@@ -40,18 +78,17 @@ function AdminScheduleDashboard() {
 
   const handleJobCreated = (newJobId) => {
     setIsModalOpen(false);
-    fetchData(); 
+    fetchData();
     navigate(`/admin/scheduler/jobs/${newJobId}`);
   };
 
   return (
     <div className="p-6 bg-gray-50 min-h-full">
-     
+      {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-900">
           Dashboard Xếp Lịch
         </h1>
-        
         <div className="flex-shrink-0 flex items-center space-x-3">
           <button
             onClick={() => navigate("/admin/scheduler/analytics")}
@@ -60,6 +97,7 @@ function AdminScheduleDashboard() {
             <PieChart className="w-5 h-5 mr-2" />
             Xem Phân Tích
           </button>
+
           <button
             onClick={() => setIsModalOpen(true)}
             disabled={isScheduling || isLoading}
@@ -70,12 +108,16 @@ function AdminScheduleDashboard() {
             ) : (
               <Plus className="w-5 h-5 mr-2 -ml-1" />
             )}
-            {isLoading ? "Đang tải..." : (isScheduling ? "Hệ thống đang bận" : "Tạo Lịch Mới")}
+            {isLoading
+              ? "Đang tải..."
+              : isScheduling
+                ? "Hệ thống đang bận"
+                : "Tạo Lịch Mới"}
           </button>
         </div>
       </div>
 
-      
+      {/* Warning if scheduling is running */}
       {isScheduling && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-md">
           <div className="flex">
@@ -84,7 +126,7 @@ function AdminScheduleDashboard() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-yellow-700">
-                <strong>Hệ thống đang bận:</strong> Một tiến trình xếp lịch đang chạy. 
+                <strong>Hệ thống đang bận:</strong> Một tiến trình xếp lịch đang chạy.
                 Nút "Tạo Lịch Mới" sẽ được mở sau khi quá trình hoàn tất.
               </p>
             </div>
@@ -92,7 +134,7 @@ function AdminScheduleDashboard() {
         </div>
       )}
 
-      
+      {/* Error message */}
       {error && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-md">
           <div className="flex">
@@ -108,13 +150,16 @@ function AdminScheduleDashboard() {
         </div>
       )}
 
-      
-      <JobHistoryTable 
-        jobs={jobs} 
-        isLoading={isLoading}
+      {/* Resource Overview Tabs */}
+      <ScheduleResourceOverview
+        stats={stats}
+        isLoadingStats={isLoadingStats}
       />
 
-      
+      {/* Job History Table */}
+      <JobHistoryTable jobs={jobs} isLoading={isLoading} />
+
+      {/* New Schedule Modal */}
       <NewScheduleModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
