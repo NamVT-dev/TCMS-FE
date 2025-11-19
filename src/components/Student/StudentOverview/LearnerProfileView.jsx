@@ -29,9 +29,10 @@ const LearnerProfileView = () => {
         setLoading(true);
         setError(null);
         try {
-            const params = { 
+            const params = {
                 // page: currentPage, 
-                limit: PAGE_SIZE };
+                limit: PAGE_SIZE
+            };
             const response = await api.user.getLearnerProfile(params);
 
             const data = response?.data?.data ?? [];
@@ -68,7 +69,7 @@ const LearnerProfileView = () => {
         setOpenDetail(true);
     };
 
-     const handleEdit = (id) => {
+    const handleEdit = (id) => {
         setlearnnerID(id);
         setDetailMode("edit");
         setOpenDetail(true);
@@ -86,63 +87,75 @@ const LearnerProfileView = () => {
             </div>
 
             {/* Cards layout */}
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: "16px",
-                }}
-            >
-                {LearnerProfiles.length > 0 ? (
-                    LearnerProfiles.map((LearnerProfiles) => (
-                        <Card
-                            key={LearnerProfiles._id}
-                            style={{
-                                borderRadius: 12,
-                                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                            }}
-                            actions={[
-                                <div key="view" style={{ display: "flex", justifyContent: "center" }}>
-                                    <Eye onClick={() => handleView(LearnerProfiles._id)} />
-                                </div>,
-                                <div key="edit" style={{ display: "flex", justifyContent: "center" }}>
-                                    <Edit onClick={() => handleEdit(LearnerProfiles._id)} />
-                                </div>
-                            ]}
-                        >
-                            <img
-                                src={LearnerProfiles.photo}
-                                alt={LearnerProfiles.photo}
-                                style={{
-                                    width: "100%",
-                                    height: 160,
-                                    objectFit: "cover",
-                                    borderBottom: "1px solid #f0f0f0",
-                                }}
-                            />
-                            <Card.Meta
-                                title={<Title style={{ textAlign: "center", marginTop: 8, marginBottom: 0 }} level={3}>{LearnerProfiles.name}</Title>}
-                                description={
-                                    <div
-                                        style={{
-                                            textAlign: "center",
-                                            marginTop: 8
-                                        }}>
-                                        <Text strong className="text-purple-700"> {LearnerProfiles.testScore || ""} {LearnerProfiles.category[0].name || ""}
-                                        </Text>
-                                    </div>
-                                }
-                            />
-                        </Card>
-                    ))
-                ) : (
-                    <div className="text-center text-gray-500 w-full py-10">
-                        Không có dữ liệu thông tin học viên.
-                    </div>
-                )}
+            <div className="w-full bg-white rounded-xl shadow-md p-6">
+                {/* Table */}
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                        <thead>
+                            <tr className="bg-gray-100 text-left text-gray-700">
+                                <th className="p-4 font-semibold">Học viên</th>
+                                <th className="p-4 font-semibold">Điểm thi</th>
+                                <th className="p-4 font-semibold">Chứng chỉ</th>
+                                <th className="p-4 font-semibold text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {LearnerProfiles.map((item) => (
+                                <tr
+                                    key={item._id}
+                                    className="border-b hover:bg-gray-50 transition-all"
+                                >
+                                    {/* Avatar + Name */}
+                                    <td className="p-4 flex items-center gap-4">
+                                        <img
+                                            src={item.photo}
+                                            alt=""
+                                            className="w-14 h-14 rounded-full object-cover border"
+                                        />
+                                        <span className="text-gray-800 font-medium text-[15px]">
+                                            {item.name}
+                                        </span>
+                                    </td>
+
+                                    {/* Score */}
+                                    <td className="p-4">
+                                        <span className="text-purple-600 font-semibold">
+                                            {item.testScore}
+                                        </span>
+                                    </td>
+
+                                    {/* Certificate Badge */}
+                                    <td className="p-4">
+                                        <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-sm font-medium">
+                                            {item.category?.[0]?.name}
+                                        </span>
+                                    </td>
+
+                                    {/* Actions */}
+                                    <td className="p-4 text-center">
+                                        <div className="flex justify-center gap-6">
+                                            <button
+                                                onClick={() => handleView(item._id)}
+                                                className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                                            >
+                                                <Eye size={20} />
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleEdit(item._id)}
+                                                className="text-green-600 hover:text-green-800 transition-colors duration-200"
+                                            >
+                                                <Edit size={20} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-
-
             {/* Pagination */}
             {/* <div className="mt-8 flex items-center justify-between">
                 <div className="text-sm text-gray-700">

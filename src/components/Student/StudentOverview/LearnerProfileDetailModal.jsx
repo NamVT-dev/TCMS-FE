@@ -28,13 +28,13 @@ const LearnerProfileDetailModal = ({
 }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [saving, setSaving] = useState(false);
+    //const [saving, setSaving] = useState(false);
     const isEdit = mode === "edit";
     const { Title } = Typography;
     // preview & file state
     const [imageUrl, setImageUrl] = useState("");
     const [imageFile, setImageFile] = useState(null);
-    const [fileList, setFileList] = useState([]);
+    //const [fileList, setFileList] = useState([]);
 
     useEffect(() => {
         if (!open || !learnnerID) return;
@@ -51,7 +51,7 @@ const LearnerProfileDetailModal = ({
                 });
 
                 setImageUrl(data?.photo || "");
-                setFileList([]);
+                //setFileList([]);
             } finally {
                 setLoading(false);
             }
@@ -76,7 +76,7 @@ const LearnerProfileDetailModal = ({
         } catch (err) {
             showToast.updateError(toastId, err?.response?.data?.message || "Cập nhật thông tin học viên thất bại!");
         } finally {
-            setSaving(false);
+            //setSaving(false);
         }
     };
 
@@ -89,9 +89,35 @@ const LearnerProfileDetailModal = ({
                 </Title>
             }
             onCancel={onClose}
-            onOk={() => (isEdit ? form.submit() : onClose?.())}
-            okText={isEdit ? "Lưu" : "Đóng"}
-            confirmLoading={saving}
+            footer={
+                isEdit ? (
+                    // 👉 Chế độ chỉnh sửa → chỉ có nút Lưu & Hủy
+                    <div className="flex justify-end gap-3">
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            onClick={() => form.submit()}
+                            className="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700"
+                        >
+                            Lưu
+                        </button>
+                    </div>
+                ) : (
+                    // 👉 Chế độ xem → chỉ có nút Đóng
+                    <div className="flex justify-end">
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700"
+                        >
+                            Đóng
+                        </button>
+                    </div>
+                )
+            }
             width={800}
             destroyOnClose>
             {loading ? (
@@ -106,58 +132,66 @@ const LearnerProfileDetailModal = ({
                         {/* Trái: Upload ảnh (giống Create) */}
                         <Col xs={24} md={8}>
                             <Form.Item label={<span style={{ fontWeight: 600 }}></span>}>
+
+                                {/* Khung Avatar Preview */}
+                                <div
+                                    onClick={() => {
+                                        if (isEdit) document.getElementById("avatarInput").click();
+                                    }}
+                                    style={{
+                                        width: "100%",
+                                        aspectRatio: "1/1",
+                                        borderRadius: 12,
+                                        overflow: "hidden",
+                                        border: "1px solid #e6e6e6",
+                                        background: "#f5f6fa",
+                                        cursor: isEdit ? "pointer" : "default",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center"
+                                    }}
+                                >
+                                    <img
+                                        src={imageUrl}
+                                        alt=""
+                                        style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            objectFit: "cover"
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Input Upload ẨN HOÀN TOÀN */}
                                 <Upload
-                                    className="course-uploader"
-                                    listType="picture-card"
-                                    showUploadList={false}
+                                    id="avatarInput"
                                     accept="image/*"
+                                    showUploadList={false}
                                     beforeUpload={(file) => {
                                         const okType = file.type.startsWith("image/");
                                         const okSize = file.size / 1024 / 1024 <= 5;
                                         if (!okType) {
                                             showToast.error("Chỉ được tải lên file ảnh!");
-                                            return Upload.LIST_IGNORE
-                                        };
+                                            return Upload.LIST_IGNORE;
+                                        }
                                         if (!okSize) {
-                                            showToast.error("Ảnh tải lên phải nhỏ hơn 5MB!");
+                                            showToast.error("Ảnh phải nhỏ hơn 5MB!");
                                             return Upload.LIST_IGNORE;
                                         }
                                         return false;
                                     }}
                                     onChange={(info) => {
-                                        const list = info.fileList.slice(-1);
-                                        setFileList(list);
-                                        const f = list[0]?.originFileObj;
+                                        const f = info.fileList[0]?.originFileObj;
                                         if (f) {
                                             setImageFile(f);
                                             setImageUrl(URL.createObjectURL(f));
                                         }
                                     }}
-                                    fileList={fileList}
-                                    disabled={!isEdit}
-                                    style={{ width: "100%" }}
+                                    style={{ display: "none" }}
                                 >
-                                    {imageUrl ? (
-                                        <div className="image-square">
-                                            <img
-                                                src={imageUrl}
-                                                alt="course"
-                                                style={{
-                                                    width: "160",
-                                                    height: "160",
-                                                    objectFit: "cover",
-                                                    display: "block",
-                                                    borderRadius: "8px"
-                                                }}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <PlusOutlined />
-                                            <div style={{ marginTop: 8 }}>Tải ảnh</div>
-                                        </div>
-                                    )}
+                                    <div></div>
                                 </Upload>
+
                             </Form.Item>
                         </Col>
 
@@ -205,20 +239,36 @@ const LearnerProfileDetailModal = ({
                             </Row>
                         </Col>
                     </Row>
-                    <style>{`
-          .course-uploader.ant-upload-wrapper .ant-upload.ant-upload-select-picture-card {
-            width: 100% !important;
-          }
-          .image-square {
-            width: 80%;
-            aspect-ratio: 1 / 1;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #e6e6e6;
-            box-shadow: 0 4px 14px rgba(31,93,255,0.12);
-            background: #f7f9ff;
-          }
-        `}</style>
+                    <style>
+                        {`
+                            .avatar-uploader .ant-upload {
+                                width: 100% !important;
+                            }
+
+                            .avatar-frame {
+                                width: 100%;
+                                aspect-ratio: 1 / 1; /* Khung luôn vuông */
+                                border-radius: 12px;
+                                overflow: hidden;
+                                border: 1px solid #e2e2e2;
+                                background: #fafafa;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            }
+
+                            .avatar-img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;  /* Ảnh luôn đẹp, không méo */
+                                display: block;
+                            }
+
+                            .upload-placeholder {
+                                color: #888;
+                            }
+                            `}
+                    </style>
                 </Form>
             )}
         </Modal>

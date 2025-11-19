@@ -154,78 +154,67 @@ const AdminViewCourseList = () => {
             </div>
 
             {/* Cards layout */}
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: "16px",
-                }}
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
                 {courses.length > 0 ? (
                     courses.map((course) => (
-                        <Card
+                        <div
                             key={course._id}
-                            style={{
-                                borderRadius: 12,
-                                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                            }}
-                            actions={[
-                                <div key="view" style={{ display: "flex", justifyContent: "center" }}>
-                                    <Eye onClick={() => handleView(course._id)} />
-                                </div>,
-                                <div key="edit" style={{ display: "flex", justifyContent: "center" }}>
-                                    <Edit onClick={() => handleEdit(course._id)} />
-                                </div>,
-                                <div key="delete" style={{ display: "flex", justifyContent: "center" }}>
-                                    <Trash2 onClick={() => handleDelete(course._id)} color="red" />
-                                </div>,
-                            ]}
+                            className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 border overflow-hidden flex flex-col"
                         >
+                            {/* Ảnh */}
                             <img
                                 src={course.imageCover}
-                                alt={course.imageCover}
-                                style={{
-                                    width: "100%",
-                                    height: 160,
-                                    objectFit: "cover",
-                                    borderBottom: "1px solid #f0f0f0",
-                                }}
+                                alt={course.name}
+                                className="w-full h-40 object-cover"
                             />
-                            <Card.Meta
-                                title={<Title style={{textAlign:"center", marginTop: 8, marginBottom: 0}} level={3}>{course.name}</Title>}
-                                description={
-                                    <div
-                                        style={{
-                                            textAlign: "center",
-                                            marginTop: 8
-                                        }}>
-                                        <Text>
-                                            Category: {course.category?.name || "N/A"}
-                                        </Text>
-                                        <br />
-                                        <Text>
-                                            Level: {course.level || "N/A"}
-                                        </Text>
-                                        <br />
-                                        <Text>Session: {course.session || 0}</Text>
-                                        <br />
-                                        <Text>Duration: {course.durationInMinutes || 0} min</Text>
-                                        <br />
-                                        <Text>Price:</Text>
-                                        <Text strong className="text-purple-700"> {Number(course.price).toLocaleString()} VND
-                                        </Text>
-                                    </div>
-                                }
-                            />
-                        </Card>
+
+                            {/* Nội dung */}
+                            <div className="p-4 flex flex-col flex-grow text-center">
+                                <h3 className="font-semibold text-lg text-gray-900 mb-1 line-clamp-2">
+                                    {course.name}
+                                </h3>
+
+                                <p className="text-gray-500 text-sm">
+                                    Danh mục: <span className="font-medium">{course.category?.name}</span>
+                                </p>
+
+                                <p className="text-gray-500 text-sm">Level: {course.level}</p>
+
+                                <p className="text-gray-500 text-sm">
+                                    {course.session} buổi • {course.durationInMinutes} phút / buổi
+                                </p>
+
+                                <p className="mt-2 font-semibold text-base">
+                                    {Number(course.price).toLocaleString()} VND
+                                </p>
+
+                                {/* Action buttons */}
+                                <div className="flex justify-center mt-4 gap-6">
+                                    <Eye
+                                        className="cursor-pointer text-blue-600 hover:text-blue-400 transition"
+                                        size={20}
+                                        onClick={() => handleView(course._id)}
+                                    />
+                                    <Edit
+                                        className="cursor-pointer text-green-600 hover:text-green-400 transition"
+                                        size={20}
+                                        onClick={() => handleEdit(course._id)}
+                                    />
+                                    <Trash2
+                                        className="cursor-pointer text-red-600 hover:text-red-400 transition"
+                                        size={20}
+                                        onClick={() => handleDelete(course._id)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     ))
                 ) : (
-                    <div className="text-center text-gray-500 w-full py-10">
+                    <div className="text-center text-gray-500 w-full py-10 col-span-full">
                         Không có dữ liệu khóa học
                     </div>
                 )}
             </div>
-
 
             {/* Pagination */}
             <div className="mt-8 flex items-center justify-between">
