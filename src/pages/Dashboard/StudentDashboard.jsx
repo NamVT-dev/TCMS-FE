@@ -4,12 +4,9 @@ import { Routes, Route } from 'react-router-dom';
 import Navbar from '../../components/Layout/Navbar';
 import StudentSidebar from '../../components/Layout/StudentSidebar';
 import StudentProfile from '../../components/Student/StudentInformation/StudentProfile';
-import StudentViewSchedule from '../../components/Student/StudentLearn/StudentViewSchedule';
 import StudentOverview from '../../components/Student/StudentOverview/StudentOverview';
 import LearnerProfileView from '../../components/Student/StudentOverview/LearnerProfileView';
 import StudentChangePassword from '../../components/Student/StudentInformation/StudentChangePassword';
-import StudentMarkRecord from '../../components/Student/StudentLearn/StudentMarkRecord';
-import StudentViewClass from '../../components/Student/StudentLearn/StudentViewClass';
 import StudentPaymentHistoryView from '../../components/Student/StudentInformation/StudentPaymentHistoryView';
 
 const StudentDashboard = () => {
@@ -45,9 +42,9 @@ const StudentDashboard = () => {
             <Route path="/learner-profile" element={<LearnerProfileView />} />
             <Route path="/profile" element={<StudentProfile />} />
             <Route path="/change-password" element={<StudentChangePassword />} />
-            <Route path="/schedule" element={<StudentViewSchedule />} />
-            <Route path="/mark-record" element={<StudentMarkRecord />} />
-            <Route path="/class" element={<StudentViewClass />} />
+       
+           
+            
             <Route path="/payment-history" element={<StudentPaymentHistoryView />} />
           </Routes>
         </div>
