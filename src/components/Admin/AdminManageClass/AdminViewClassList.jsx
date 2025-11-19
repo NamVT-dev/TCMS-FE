@@ -3,6 +3,8 @@ import { Search, Eye, Trash2, Loader2, ListFilter, Plus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
 import { useDebounce } from '../../../hooks/useDebounce';
+// ⬇️ 1. Import Modal
+import AdminCreateClassModal from './AdminCreateClassModal';
 
 // Component Phân trang
 const Pagination = ({ page, totalPages, onPageChange }) => {
@@ -22,7 +24,7 @@ const Pagination = ({ page, totalPages, onPageChange }) => {
           key={p}
           onClick={() => onPageChange(p)}
           className={`px-3 py-1 rounded-md text-sm ${p === page
-              ? 'bg-purple-600 text-white' // ⬅️ Màu Purple
+              ? 'bg-purple-600 text-white'
               : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
             }`}
         >
@@ -46,6 +48,9 @@ const AdminViewClassList = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ⬇️ 2. State quản lý Modal
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
@@ -146,8 +151,9 @@ const AdminViewClassList = () => {
           <p className="text-gray-600">Thêm, xem, và xóa các lớp học trong hệ thống.</p>
         </div>
 
+        {/* ⬇️ 3. Sửa nút tạo lớp để mở Modal */}
         <button
-          onClick={() => navigate('/admin/classes/create')}
+          onClick={() => setIsCreateModalOpen(true)}
           className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow-sm"
         >
           <Plus className="w-5 h-5 mr-2" />
@@ -269,6 +275,13 @@ const AdminViewClassList = () => {
           </div>
         )}
       </div>
+
+      {/* ⬇️ 4. Render Modal ở cuối */}
+      <AdminCreateClassModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => fetchClasses(page, debouncedSearch, selectedCourse, selectedStatus)}
+      />
     </div>
   );
 };

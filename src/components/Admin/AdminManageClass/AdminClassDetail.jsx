@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../../../utils/api";
-import { Loader2, ArrowLeft, BookOpen, User, Home, Calendar, Clock, Edit, Users } from "lucide-react";
+import { Loader2, ArrowLeft, BookOpen, User, Home, Calendar, Clock, Edit, Users, CalendarPlus } from "lucide-react";
 import ClassScheduleCalendar from "./ClassScheduleCalendar";
 import ChangeTeacherModal from "./ChangeTeacherModal";
-
 
 const InfoCard = ({ icon: Icon, title, children }) => (
     <div className="bg-white shadow rounded-lg p-5">
@@ -15,7 +14,6 @@ const InfoCard = ({ icon: Icon, title, children }) => (
         <div className="text-gray-700 space-y-2">{children}</div>
     </div>
 );
-
 
 const WeeklyScheduleCard = ({ schedules }) => {
     const formatMinutes = (minutes) => {
@@ -81,7 +79,20 @@ const AdminClassDetail = () => {
     }, [fetchClassDetail]);
 
     const handleTeacherChanged = () => {
-        fetchClassDetail(); 
+        fetchClassDetail();
+    };
+
+    // Callback khi session được update thành công
+    const handleSessionUpdated = (updatedSession) => {
+        // Update session trong state
+        setSessions(prevSessions =>
+            prevSessions.map(session =>
+                session._id === updatedSession._id ? updatedSession : session
+            )
+        );
+
+        // Optional: Refresh toàn bộ nếu cần
+        // fetchClassDetail();
     };
 
     if (loading) {
@@ -111,6 +122,13 @@ const AdminClassDetail = () => {
                     Quay lại Danh sách lớp
                 </Link>
                 <div className="flex space-x-3">
+                    <button
+                        onClick={() => navigate(`/admin/classes/${id}/schedule-setup`)}
+                        className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shadow-sm"
+                    >
+                        <CalendarPlus className="w-5 h-5 mr-2" />
+                        {classData.weeklySchedules?.length > 0 ? "Sửa Lịch Học" : "Tạo Lịch Học"}
+                    </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm"
@@ -144,9 +162,14 @@ const AdminClassDetail = () => {
                     <WeeklyScheduleCard schedules={classData.weeklySchedules} />
                 </div>
                 <div className="lg:col-span-2">
-                    <ClassScheduleCalendar sessions={sessions} classInfo={classData} />
+                    <ClassScheduleCalendar
+                        sessions={sessions}
+                        classInfo={classData}
+                        onSessionUpdated={handleSessionUpdated}
+                    />
                 </div>
             </div>
+
             <ChangeTeacherModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
