@@ -51,9 +51,8 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
         <div className="mb-2">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-purple-50 rounded-lg transition-colors duration-200 ${
-                    isOpen ? "bg-purple-50" : ""
-                }`}
+                className={`w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-purple-50 rounded-lg transition-colors duration-200 ${isOpen ? "bg-purple-50" : ""
+                    }`}
             >
                 <div className="flex items-center space-x-3">
                     <div className={`p-2 rounded-lg ${isOpen ? "bg-purple-100" : "bg-gray-100"}`}>
@@ -64,9 +63,8 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
                     </span>
                 </div>
                 <ChevronRight
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                        isOpen ? "rotate-90 text-purple-600" : "text-gray-400"
-                    }`}
+                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-90 text-purple-600" : "text-gray-400"
+                        }`}
                 />
             </button>
 
@@ -78,11 +76,10 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
                             <Link
                                 key={index}
                                 to={item.path}
-                                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${
-                                    isActive
-                                        ? "bg-purple-100 text-purple-600 font-medium"
-                                        : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
-                                }`}
+                                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${isActive
+                                    ? "bg-purple-100 text-purple-600 font-medium"
+                                    : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                                    }`}
                             >
                                 {item.icon && <item.icon className="w-4 h-4" />}
                                 <span>{item.name}</span>
@@ -101,20 +98,13 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
 
     const menuItems = [
         {
-            icon: LayoutDashboard,
-            title: "Tổng quan",
-            items: [
-                { name: "Tổng quan học viên", path: "/student/overview", icon: LayoutDashboard },
-                { name: "Hồ sơ học viên", path: "/student/learner-profile", icon: Info}
-            ]
-        },
-        {
             icon: UserPen,
             title: "Cá nhân",
             items: [
                 { name: "Thông tin cá nhân", path: "/student/profile", icon: UserCircle },
                 { name: "Thay đổi mật khẩu", path: "/student/change-password", icon: KeyRound },
-                { name: "Lịch sử thanh toán", path: "/student/payment-history", icon: ShoppingCart }
+                { name: "Lịch sử thanh toán", path: "/student/payment-history", icon: ShoppingCart },
+                { name: "Hồ sơ học viên", path: "/student/learner-profile", icon: Info }
             ]
         },
         {
@@ -129,9 +119,8 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
     ];
 
     return (
-        <div className={`${
-            isCollapsed ? 'w-20' : 'w-72'
-        } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
+        <div className={`${isCollapsed ? 'w-20' : 'w-72'
+            } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
             {/* Toggle Button */}
             <button
                 onClick={onToggle}

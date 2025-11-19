@@ -239,7 +239,7 @@ const StudentChangePassword = () => {
             disabled={!isFormValid() || loading}
             className={`w-full font-semibold py-3 rounded-xl shadow-lg transition-all duration-200 ${
               isFormValid()
-                ? "bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white"
+                ? "bg-gradient-to-r bg-purple-600 text-white"
                 : "bg-gray-200 text-gray-500 cursor-not-allowed"
             }`}
           >
