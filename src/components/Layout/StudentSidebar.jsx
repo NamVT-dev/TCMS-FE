@@ -4,9 +4,7 @@ import {
     LayoutDashboard,
     UserPen,
     KeyRound,
-    CalendarDays,
-    BookOpen,
-    GraduationCap,
+    
     ChevronRight,
     ChevronLeft,
     UserCircle,
@@ -116,16 +114,8 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
                 { name: "Thay đổi mật khẩu", path: "/student/change-password", icon: KeyRound },
                 { name: "Lịch sử thanh toán", path: "/student/payment-history", icon: ShoppingCart }
             ]
-        },
-        {
-            icon: BookOpen,
-            title: "Học tập",
-            items: [
-                { name: "Lịch học của tôi", path: "/student/schedule", icon: CalendarDays },
-                { name: "Khóa học đã đăng ký", path: "/student/courses", icon: BookOpen },
-                { name: "Điểm số", path: "/student/grades", icon: GraduationCap }
-            ]
         }
+        
     ];
 
     return (
