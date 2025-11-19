@@ -16,9 +16,9 @@ import AdminScheduleDashboard from '../../components/Admin/AdminManageShedule/Ad
 import AdminScheduleJobDetail from '../../components/Admin/AdminManageShedule/AdminScheduleJobDetail';
 import AdminScheduleAnalytics from '../../components/Admin/AdminManageShedule/AdminScheduleAnalytics';
 import AdminViewTeacherDetail from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherDetail';
-import AdminTeacherForm from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminTeacherForm';
+import AdminTeacherModal from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminTeacherModal';
 import AdminViewStaffList from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffList';
-import AdminStaffCreate from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminStaffCreate';
+import AdminStaffModal from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminStaffModal';
 import AdminViewStaffDetail from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffDetail';
 import AdminClassScheduleForm from '../../components/Admin/AdminManageClass/AdminClassScheduleForm';
 import AdminRevenueReport from '../../components/Admin/AdminManageFinance/AdminRevenueReport';
@@ -61,16 +61,16 @@ const AdminDashboard = () => {
             />
             <Route
               path="/users/teachers/create"
-              element={<AdminTeacherForm />}
+              element={<AdminTeacherModal />}
             />
             <Route
               path="/users/teachers/edit/:id"
-              element={<AdminTeacherForm />}
+              element={<AdminTeacherModal />}
             />
            
             <Route path="/users/staff" element={<AdminViewStaffList />} />
-            <Route path="/users/staff/create" element={<AdminStaffCreate />} />
-            <Route path="/users/staff/edit/:id" element={<AdminStaffCreate />} />
+            <Route path="/users/staff/create" element={<AdminStaffModal />} />
+            <Route path="/users/staff/edit/:id" element={<AdminStaffModal />} />
             <Route path="/users/staff/detail/:id" element={<AdminViewStaffDetail />} />
           
 

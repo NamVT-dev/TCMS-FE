@@ -81,7 +81,7 @@ const api = {
         getStaffs: (params) => axiosInstance.get("/admin/staff", { params }),
         getStaffDetail: (id) => axiosInstance.get(`/admin/staff/${id}`),
         createStaff: (data) => axiosInstance.post("/admin/staff", data),
-        updateStaff: (id, formData) => axiosInstance.patch(`/admin/staff/${id}`, formData),
+        updateStaff: (id, formData) => axiosInstance.patch(`admin/staff/${id}`, formData),
         deleteStaff: (id) => axiosInstance.delete(`/admin/staff/${id}`),
 
         center: {
