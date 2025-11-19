@@ -8,7 +8,6 @@ import AdminViewStudentList from '../../components/Admin/AdminManageUser/AdminMa
 import AdminViewTeacherList from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherList';
 import AdminViewClassList from '../../components/Admin/AdminManageClass/AdminViewClassList';
 import AdminClassDetail from '../../components/Admin/AdminManageClass/AdminClassDetail';
-import AdminClassForm from '../../components/Admin/AdminManageClass/AdminClassForm';
 import AdminViewRoomList from '../../components/Admin/AdminManageRoom/AdminViewRoomList';
 import AdminViewEnrollmentList from '../../components/Admin/AdminManageUser/AdminManageEnrollment/AdminViewEnrollList';
 import AdminViewTimeWorkingCenter from '../../components/Admin/AdminManageRoom/AdminViewTimeWorkingCenter';
@@ -23,6 +22,7 @@ import AdminStaffCreate from '../../components/Admin/AdminManageUser/AdminManage
 import AdminViewStaffDetail from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffDetail';
 import AdminClassScheduleForm from '../../components/Admin/AdminManageClass/AdminClassScheduleForm';
 import AdminRevenueReport from '../../components/Admin/AdminManageFinance/AdminRevenueReport';
+import AdminViewDetailSessionClass from '../../components/Admin/AdminManageClass/AdminViewDetailSessionClass';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -76,9 +76,9 @@ const AdminDashboard = () => {
            
             <Route path="/classes" element={<AdminViewClassList />} />
             <Route path="/classes/detail/:id" element={<AdminClassDetail />} />
-            <Route path="/classes/create" element={<AdminClassForm />} />
-            <Route path="/classes/edit/:id" element={<AdminClassForm />} />
+
             <Route path="/classes/:id/schedule-setup" element={<AdminClassScheduleForm />} />
+            <Route path="/classes/:id/sessions" element= {<AdminViewDetailSessionClass/>}/>
           
 
             <Route path="/facility/rooms" element={<AdminViewRoomList />} />

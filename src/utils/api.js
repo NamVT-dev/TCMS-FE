@@ -107,6 +107,7 @@ const api = {
             createSessions: (sessionsData) => axiosInstance.post("staff/class/session", sessionsData),
             updateClass: (id, classData) => axiosInstance.patch(`staff/class/${id}`, classData),
             updateSession: (id, data) => axiosInstance.patch(`admin/session/${id}`, data),
+            cancelClass: (id) => axiosInstance.patch(`admin/classes/${id}/cancel`),
         },
         enrollment: {
             getStudentDemand: (params) => axiosInstance.get("/admin/student-demand", { params }),
