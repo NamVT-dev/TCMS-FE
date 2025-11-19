@@ -1,56 +1,37 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Eye, Trash2, Loader2, ListFilter, Plus } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Search, Eye, Trash2, Loader2, Plus, Edit } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; 
 import api from '../../../utils/api';
 import { useDebounce } from '../../../hooks/useDebounce';
-// ⬇️ 1. Import Modal
-import AdminCreateClassModal from './AdminCreateClassModal';
+import AdminCreateClassModal from './AdminCreateClassModal'; 
 
-// Component Phân trang
 const Pagination = ({ page, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
   const pages = [...Array(totalPages).keys()].map(i => i + 1);
   return (
     <div className="flex space-x-2">
-      <button
-        onClick={() => onPageChange(page - 1)}
-        disabled={page === 1}
-        className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-      >
-        Trước
-      </button>
+      <button onClick={() => onPageChange(page - 1)} disabled={page === 1} className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50">Trước</button>
       {pages.map(p => (
-        <button
-          key={p}
-          onClick={() => onPageChange(p)}
-          className={`px-3 py-1 rounded-md text-sm ${p === page
-              ? 'bg-purple-600 text-white'
-              : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
-            }`}
-        >
-          {p}
-        </button>
+        <button key={p} onClick={() => onPageChange(p)} className={`px-3 py-1 rounded-md text-sm ${p === page ? 'bg-purple-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-100'}`}>{p}</button>
       ))}
-      <button
-        onClick={() => onPageChange(page + 1)}
-        disabled={page === totalPages}
-        className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-      >
-        Sau
-      </button>
+      <button onClick={() => onPageChange(page + 1)} disabled={page === totalPages} className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50">Sau</button>
     </div>
   );
 };
 
 const AdminViewClassList = () => {
   const navigate = useNavigate();
+  const location = useLocation(); 
+  
   const [classes, setClasses] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ⬇️ 2. State quản lý Modal
+  
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  const [modalPrefillData, setModalPrefillData] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
@@ -69,6 +50,30 @@ const AdminViewClassList = () => {
     { value: "archived", label: "Đã lưu trữ" },
     { value: "canceled", label: "Đã hủy" },
   ];
+
+  
+  useEffect(() => {
+    if (location.pathname.includes('/classes/create')) {
+      setIsCreateModalOpen(true);
+     
+      if (location.state && location.state.prefill) {
+        setModalPrefillData(location.state.prefill);
+      } else {
+        setModalPrefillData(null);
+      }
+    } else {
+      setIsCreateModalOpen(false);
+      setModalPrefillData(null);
+    }
+  }, [location.pathname, location.state]);
+
+  const openCreateModal = () => {
+    navigate('/admin/classes/create');
+  };
+
+  const closeCreateModal = () => {
+    navigate('/admin/classes');
+  };
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -145,19 +150,11 @@ const AdminViewClassList = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Quản lý Lớp học
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản lý Lớp học</h1>
           <p className="text-gray-600">Thêm, xem, và xóa các lớp học trong hệ thống.</p>
         </div>
-
-        {/* ⬇️ 3. Sửa nút tạo lớp để mở Modal */}
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow-sm"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Tạo Lớp Mới
+        <button onClick={openCreateModal} className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow-sm">
+          <Plus className="w-5 h-5 mr-2" /> Tạo Lớp Mới
         </button>
       </div>
 
@@ -165,39 +162,17 @@ const AdminViewClassList = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Tìm theo tên lớp, mã lớp..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-            />
+            <input type="text" placeholder="Tìm theo tên lớp, mã lớp..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none" />
           </div>
           <div className="relative">
-            <select
-              value={selectedCourse}
-              onChange={(e) => { setSelectedCourse(e.target.value); setPage(1); }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none appearance-none"
-            >
+            <select value={selectedCourse} onChange={(e) => { setSelectedCourse(e.target.value); setPage(1); }} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none appearance-none">
               <option value="">Tất cả Khóa học</option>
-              {courses.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
-              ))}
+              {courses.map((c) => (<option key={c._id} value={c._id}>{c.name}</option>))}
             </select>
           </div>
           <div className="relative">
-            <select
-              value={selectedStatus}
-              onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none appearance-none"
-            >
-              {statusOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
+            <select value={selectedStatus} onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none appearance-none">
+              {statusOptions.map((opt) => (<option key={opt.value} value={opt.value}>{opt.label}</option>))}
             </select>
           </div>
         </div>
@@ -217,47 +192,20 @@ const AdminViewClassList = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {loading && (
-                <tr>
-                  <td colSpan="6" className="p-6 text-center">
-                    <Loader2 className="w-8 h-8 mx-auto animate-spin text-purple-600" />
-                  </td>
-                </tr>
-              )}
-              {!loading && error && (
-                <tr><td colSpan="6" className="p-6 text-center text-red-600">{error}</td></tr>
-              )}
-              {!loading && !error && classes.length === 0 && (
-                <tr>
-                  <td colSpan="6" className="text-center p-6 text-gray-500">Không tìm thấy lớp học nào.</td>
-                </tr>
-              )}
+              {loading && (<tr><td colSpan="6" className="p-6 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-purple-600" /></td></tr>)}
+              {!loading && error && (<tr><td colSpan="6" className="p-6 text-center text-red-600">{error}</td></tr>)}
+              {!loading && !error && classes.length === 0 && (<tr><td colSpan="6" className="text-center p-6 text-gray-500">Không tìm thấy lớp học nào.</td></tr>)}
               {!loading && !error && classes.map((cls) => (
                 <tr key={cls._id} className="hover:bg-gray-50 transition-colors duration-150">
                   <td className="px-6 py-4 font-medium text-gray-900">{cls.name}</td>
                   <td className="px-6 py-4 text-gray-700">{cls.course?.name || "N/A"}</td>
                   <td className="px-6 py-4 text-gray-700">{getTeacherNames(cls.weeklySchedules)}</td>
                   <td className="px-6 py-4 text-gray-700">{cls.maxStudent || "N/A"}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(cls.status)}`}>
-                      {getStatusText(cls.status)}
-                    </span>
-                  </td>
+                  <td className="px-6 py-4"><span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(cls.status)}`}>{getStatusText(cls.status)}</span></td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center space-x-3">
-                      <Link
-                        to={`/admin/classes/detail/${cls._id}`}
-                        className="text-blue-600 hover:text-blue-800" title="Xem Chi tiết"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(cls._id, cls.name)}
-                        className="text-red-600 hover:text-red-800"
-                        title="Xóa Lớp"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <Link to={`/admin/classes/detail/${cls._id}`} className="text-blue-600 hover:text-blue-800" title="Xem Chi tiết"><Eye className="w-5 h-5" /></Link>
+                      <button onClick={() => handleDelete(cls._id, cls.name)} className="text-red-600 hover:text-red-800" title="Xóa Lớp"><Trash2 className="w-5 h-5" /></button>
                     </div>
                   </td>
                 </tr>
@@ -265,22 +213,20 @@ const AdminViewClassList = () => {
             </tbody>
           </table>
         </div>
-
         {(!loading && totalResults > 0) && (
           <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-gray-200">
-            <div className="text-sm text-gray-700">
-              Hiển thị <span className="font-medium">{(page - 1) * limit + 1}</span> - <span className="font-medium">{Math.min(page * limit, totalResults)}</span> / <span className="font-medium">{totalResults}</span> lớp
-            </div>
+            <div className="text-sm text-gray-700">Hiển thị <span className="font-medium">{(page - 1) * limit + 1}</span> - <span className="font-medium">{Math.min(page * limit, totalResults)}</span> / <span className="font-medium">{totalResults}</span> lớp</div>
             <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
       </div>
 
-      {/* ⬇️ 4. Render Modal ở cuối */}
+      
       <AdminCreateClassModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={closeCreateModal}
         onSuccess={() => fetchClasses(page, debouncedSearch, selectedCourse, selectedStatus)}
+        prefillData={modalPrefillData} 
       />
     </div>
   );

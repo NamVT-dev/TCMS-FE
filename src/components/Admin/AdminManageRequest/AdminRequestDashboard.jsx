@@ -24,16 +24,14 @@ const AdminRequestDashboard = () => {
   };
 
   const handleCreateClass = (item) => {
-    // Chuyển hướng sang form tạo lớp, truyền state để autofill
-    // Lưu ý: AdminClassForm của bạn cần logic để nhận useLocation().state
+    
     navigate("/admin/classes/create", {
       state: {
         prefill: {
           courseId: item.targetType === "Course" ? item.targetInfo._id : null,
-          // Nếu là Category thì có thể user phải tự chọn course thuộc category đó
+         
           categoryId: item.targetType === "Category" ? item.targetInfo._id : null,
-          // Map lịch (Backend trả về days: [2,3..] nhưng ở đây group theo từng ngày đơn lẻ 
-          // nên item.dayOfWeek là 1 số)
+          
           schedule: [
             { dayOfWeek: item.dayOfWeek, shiftName: item.shift }
           ]
@@ -79,8 +77,8 @@ const AdminRequestDashboard = () => {
                 {item.targetType === 'Course' && <p className="text-sm text-gray-500 mb-3">{item.targetInfo?.level}</p>}
 
                 <div className="bg-gray-50 p-3 rounded border text-sm text-gray-700 space-y-1">
-                  <p>🗓 Thứ: <strong>{item.dayOfWeek}</strong></p>
-                  <p>⏰ Ca: <strong>{item.shift}</strong></p>
+                  <p> Thứ: <strong>{item.dayOfWeek}</strong></p>
+                  <p> Ca: <strong>{item.shift}</strong></p>
                 </div>
 
                 <div className="mt-4">

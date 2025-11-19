@@ -50,6 +50,9 @@ const AdminDashboard = () => {
             <Route path="/overview" element={<AdminOverview />} />
             <Route path="/users/students" element={<AdminViewStudentList />} />
 
+          
+            <Route path="/requests/dashboard" element={<AdminRequestDashboard />} />
+            <Route path="/requests/list" element={<AdminRequestList />} />
 
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
             <Route
@@ -64,21 +67,19 @@ const AdminDashboard = () => {
               path="/users/teachers/edit/:id"
               element={<AdminTeacherForm />}
             />
-            {/* --- KẾT THÚC ROUTE GIÁO VIÊN --- */}
-
-            {/* --- NHÂN VIÊN --- */}
+           
             <Route path="/users/staff" element={<AdminViewStaffList />} />
             <Route path="/users/staff/create" element={<AdminStaffCreate />} />
             <Route path="/users/staff/edit/:id" element={<AdminStaffCreate />} />
             <Route path="/users/staff/detail/:id" element={<AdminViewStaffDetail />} />
-            {/* --- KẾT THÚC ROUTE NHÂN VIÊN --- */}
+          
 
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
 
-           
             <Route path="/classes" element={<AdminViewClassList />} />
+            <Route path="/classes/create" element={<AdminViewClassList />} />
+            
             <Route path="/classes/detail/:id" element={<AdminClassDetail />} />
-
             <Route path="/classes/:id/schedule-setup" element={<AdminClassScheduleForm />} />
             <Route path="/classes/:id/sessions" element= {<AdminViewDetailSessionClass/>}/>
           
@@ -90,9 +91,6 @@ const AdminDashboard = () => {
             <Route path="/scheduler/dashboard" element={<AdminScheduleDashboard />} />
             <Route path="/scheduler/jobs/:jobId" element={<AdminScheduleJobDetail />} />
             <Route path="/scheduler/analytics" element={<AdminScheduleAnalytics />} />
-
-            <Route path="/requests/dashboard" element={<AdminRequestDashboard />} />
-            <Route path="/requests/list" element={<AdminRequestList />} />
 
             <Route path="/finance/revenue" element={<AdminRevenueReport />} />
           </Routes>

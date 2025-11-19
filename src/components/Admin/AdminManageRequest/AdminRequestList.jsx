@@ -10,12 +10,12 @@ const AdminRequestList = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Filter & Pagination
+  
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [statusFilter, setStatusFilter] = useState(""); // '' | open | processed | closed
+  const [statusFilter, setStatusFilter] = useState(""); 
   
-  // Modal
+
   const [selectedId, setSelectedId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -34,7 +34,7 @@ const AdminRequestList = () => {
       if (statusFilter) params.status = statusFilter;
 
       const res = await api.admin.request.getAll(params);
-      setRequests(res.data.data.data); // Backend: { data: { data: [...] } }
+      setRequests(res.data.data.data); 
       setTotalPages(res.data.totalPages);
     } catch (error) {
       console.error("Fetch requests error", error);
@@ -58,7 +58,7 @@ const AdminRequestList = () => {
     setIsModalOpen(true);
   };
 
-  // Helpers
+  
   const getStatusBadge = (status) => {
     switch (status) {
       case "open": return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium flex items-center w-fit"><AlertCircle className="w-3 h-3 mr-1"/> Chờ xử lý</span>;
@@ -73,7 +73,7 @@ const AdminRequestList = () => {
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold text-gray-800">Quản Lý Yêu Cầu Riêng</h1>
         
-        {/* Filter Bar */}
+       
         <div className="flex items-center bg-white p-1 rounded-lg border shadow-sm">
           {["", "open", "processed", "closed"].map((st) => (
             <button

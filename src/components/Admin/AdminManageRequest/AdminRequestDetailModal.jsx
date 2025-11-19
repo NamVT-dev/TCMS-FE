@@ -8,17 +8,17 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState(null);
   
-  // State quản lý chế độ xem/sửa
+
   const [isEditing, setIsEditing] = useState(false);
   
-  // Form state
+  
   const [status, setStatus] = useState("open");
   const [adminNote, setAdminNote] = useState("");
 
-  // Reset state khi mở modal mới
+  
   useEffect(() => {
     if (isOpen && requestId) {
-      setIsEditing(false); // Mặc định là chế độ xem (disable input)
+      setIsEditing(false); 
       fetchDetail();
     }
   }, [isOpen, requestId]);
@@ -28,16 +28,13 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
     try {
       const res = await api.admin.request.getOne(requestId);
       
-      // --- FIX LỖI 1: Xử lý cấu trúc dữ liệu trả về ---
-      // Factory getOne thường trả về dạng { status: "success", data: { data: doc } }
-      // hoặc { status: "success", data: { doc: doc } }
-      // Code cũ gọi res.data.data bị thiếu cấp, hoặc backend trả về tên field khác.
+      
       const responseRoot = res.data;
       
-      // Logic tìm doc an toàn: thử truy cập vào các key phổ biến
+     
       let doc = null;
       if (responseRoot.data) {
-        // Kiểm tra xem data có lồng thêm lớp data/doc/request không
+       
         doc = responseRoot.data.data || responseRoot.data.doc || responseRoot.data.request || responseRoot.data;
       }
 
@@ -60,13 +57,11 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
     setSaving(true);
     try {
       await api.admin.request.update(requestId, { status, adminNote });
-      
-      // --- FIX LỖI 3: Cập nhật UI sau khi Save ---
-      setIsEditing(false); // Tắt chế độ sửa
+   
       alert("Cập nhật thành công!");
-      onSuccess(); // Reload list bên ngoài
+      onSuccess(); 
       
-      // Fetch lại để đảm bảo dữ liệu hiển thị là mới nhất
+      
       fetchDetail();
     } catch (error) {
       alert(error.response?.data?.message || "Lỗi khi cập nhật");
@@ -76,7 +71,7 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
   };
 
   const handleCancelEdit = () => {
-    // Hủy bỏ thay đổi: reset về giá trị ban đầu và tắt edit mode
+    
     if (data) {
       setStatus(data.status);
       setAdminNote(data.adminNote || "");
@@ -87,11 +82,11 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    // --- FIX LỖI 2: Background mờ nhẹ (backdrop-blur) ---
+    
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-all duration-300">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col animate-in fade-in zoom-in duration-200">
         
-        {/* Header */}
+      
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-xl font-bold text-gray-800">
             Chi tiết Yêu cầu <span className="text-gray-500 text-base font-normal">#{requestId?.slice(-6)}</span>
@@ -101,7 +96,7 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
           </button>
         </div>
 
-        {/* Body */}
+
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="p-10 flex justify-center items-center h-64">
@@ -110,7 +105,7 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
           ) : (
             data && (
               <div className="p-6 space-y-6">
-                {/* Thông tin học viên */}
+              
                 <div className="flex items-start gap-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
                   <div className="p-3 bg-white rounded-full shadow-sm">
                     <User className="w-6 h-6 text-purple-600" />
@@ -124,7 +119,7 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
                   </div>
                 </div>
 
-                {/* Nội dung yêu cầu (Read-only) */}
+               
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="flex items-center text-sm font-medium text-gray-500 mb-2">
@@ -155,7 +150,7 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
                   </div>
                 </div>
 
-                {/* Ghi chú của học viên */}
+              
                 {data.studentNote && (
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-2">Ghi chú từ học viên</label>
@@ -167,7 +162,7 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
 
                 <div className="border-t border-gray-100 my-4"></div>
 
-                {/* --- FIX LỖI 3: Phần xử lý của Admin (View vs Edit) --- */}
+            
                 <div className={`space-y-4 p-4 rounded-lg transition-colors duration-300 ${isEditing ? 'bg-blue-50 border border-blue-100' : ''}`}>
                   <div className="flex justify-between items-center">
                     <h3 className="font-bold text-gray-800 flex items-center">
@@ -182,7 +177,7 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
                       <select
                         value={status}
                         onChange={(e) => setStatus(e.target.value)}
-                        disabled={!isEditing} // Disable khi không edit
+                        disabled={!isEditing} 
                         className={`w-full border rounded p-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all
                           ${!isEditing ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white border-gray-300'}
                         `}
@@ -197,7 +192,7 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
                       <textarea
                         value={adminNote}
                         onChange={(e) => setAdminNote(e.target.value)}
-                        disabled={!isEditing} // Disable khi không edit
+                        disabled={!isEditing} 
                         rows={3}
                         placeholder={isEditing ? "Nhập ghi chú xử lý..." : "Chưa có ghi chú"}
                         className={`w-full border rounded p-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all
@@ -212,10 +207,10 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
           )}
         </div>
 
-        {/* Footer Buttons */}
+        
         <div className="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-lg">
           {!isEditing ? (
-            // Chế độ Xem: Hiển thị nút Đóng và Cập nhật
+          
             <>
               <button 
                 onClick={onClose} 
@@ -232,7 +227,7 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
               </button>
             </>
           ) : (
-            // Chế độ Sửa: Hiển thị nút Hủy và Lưu
+          
             <>
               <button 
                 onClick={handleCancelEdit} 
