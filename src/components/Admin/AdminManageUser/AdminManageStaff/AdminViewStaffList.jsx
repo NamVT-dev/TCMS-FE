@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Eye, Trash2, Loader2, Plus, User } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useDebounce } from '../../../../hooks/useDebounce';
 import { Modal } from "antd";
 import showToast from "../../../../utils/showToast";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-import AdminStaffModal from './AdminStaffModal'; // Import Modal tạo mới
+import AdminStaffModal from './AdminStaffModal';
 
-// Component Phân trang
+// ... (Pagination Component giữ nguyên) ...
 const Pagination = ({ page, totalPages, onPageChange }) => {
     if (totalPages <= 1) return null;
     const getPages = () => {
@@ -38,7 +38,10 @@ const AdminViewStaffList = () => {
     const [staffs, setStaffs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
     const navigate = useNavigate();
+    const location = useLocation();
+    const { id: paramId } = useParams();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
@@ -51,8 +54,27 @@ const AdminViewStaffList = () => {
     
     // Modal State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    
+    // Staff hiện tại chưa hỗ trợ Edit modal trong code mẫu, chỉ Create.
+    // Nhưng ta vẫn bắt URL edit để nếu sau này mở rộng thì sẵn sàng.
+
     const [modal, contextHolder] = Modal.useModal();
+
+    // --- LOGIC TỰ ĐỘNG MỞ MODAL ---
+    useEffect(() => {
+        if (location.pathname.includes('/staff/create')) {
+            setIsCreateModalOpen(true);
+        } else {
+            setIsCreateModalOpen(false);
+        }
+    }, [location.pathname]);
+
+    const handleOpenCreate = () => {
+        navigate('/admin/users/staff/create');
+    };
+
+    const handleCloseModal = () => {
+        navigate('/admin/users/staff');
+    };
 
     const fetchStaffs = useCallback(async (currentPage, search, status) => {
         setLoading(true);
@@ -118,7 +140,7 @@ const AdminViewStaffList = () => {
                     <p className="text-gray-500 mt-1">Quản lý hồ sơ nhân viên và phân quyền hệ thống.</p>
                 </div>
                 <button
-                    onClick={() => setIsCreateModalOpen(true)}
+                    onClick={handleOpenCreate}
                     className="inline-flex items-center px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium shadow-lg shadow-purple-200 transition-all active:scale-95"
                 >
                     <Plus className="w-5 h-5 mr-2" />
@@ -229,7 +251,7 @@ const AdminViewStaffList = () => {
 
             <AdminStaffModal 
                 isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
+                onClose={handleCloseModal}
                 onSuccess={() => fetchStaffs(page, debouncedSearch, selectedStatus)}
             />
         </div>

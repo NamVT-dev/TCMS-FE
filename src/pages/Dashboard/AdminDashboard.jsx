@@ -16,9 +16,7 @@ import AdminScheduleDashboard from '../../components/Admin/AdminManageShedule/Ad
 import AdminScheduleJobDetail from '../../components/Admin/AdminManageShedule/AdminScheduleJobDetail';
 import AdminScheduleAnalytics from '../../components/Admin/AdminManageShedule/AdminScheduleAnalytics';
 import AdminViewTeacherDetail from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherDetail';
-import AdminTeacherModal from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminTeacherModal';
 import AdminViewStaffList from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffList';
-import AdminStaffModal from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminStaffModal';
 import AdminViewStaffDetail from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffDetail';
 import AdminClassScheduleForm from '../../components/Admin/AdminManageClass/AdminClassScheduleForm';
 import AdminRevenueReport from '../../components/Admin/AdminManageFinance/AdminRevenueReport';
@@ -54,23 +52,16 @@ const AdminDashboard = () => {
             <Route path="/requests/dashboard" element={<AdminRequestDashboard />} />
             <Route path="/requests/list" element={<AdminRequestList />} />
 
+          
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
-            <Route
-              path="/users/teachers/detail/:id"
-              element={<AdminViewTeacherDetail />}
-            />
-            <Route
-              path="/users/teachers/create"
-              element={<AdminTeacherModal />}
-            />
-            <Route
-              path="/users/teachers/edit/:id"
-              element={<AdminTeacherModal />}
-            />
-           
+            <Route path="/users/teachers/create" element={<AdminViewTeacherList />} />
+            <Route path="/users/teachers/edit/:id" element={<AdminViewTeacherList />} />
+            <Route path="/users/teachers/detail/:id" element={<AdminViewTeacherDetail />} />
+            
+          
             <Route path="/users/staff" element={<AdminViewStaffList />} />
-            <Route path="/users/staff/create" element={<AdminStaffModal />} />
-            <Route path="/users/staff/edit/:id" element={<AdminStaffModal />} />
+            <Route path="/users/staff/create" element={<AdminViewStaffList />} />
+            <Route path="/users/staff/edit/:id" element={<AdminViewStaffList />} />
             <Route path="/users/staff/detail/:id" element={<AdminViewStaffDetail />} />
           
 
