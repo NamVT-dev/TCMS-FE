@@ -2,37 +2,64 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Loading from '../UI/Loading';
-import { Calendar, Users, Clock, ArrowRightIcon } from 'lucide-react';
+import { Calendar, Users, ArrowRightIcon, CheckCircle, BookOpen } from 'lucide-react';
 import StudentScheduleModal from './StudentScheduleModal';
 
 // === Component Card Lớp học ===
 const ClassCard = ({ classItem }) => {
-  const { _id, name, classCode, preferredTeacher, startAt, endAt } = classItem;
+  const { _id, name, classCode, preferredTeacher, endAt } = classItem;
+
+  // Logic kiểm tra trạng thái
+  const isEnded = new Date() > new Date(endAt);
+
   return (
-    <div className="flex flex-col bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-xl">
-      <div className="h-2 bg-purple-600"></div>
-      <div className="p-6 flex-grow">
-        <h3 className="text-xl font-bold text-purple-800 mb-2">{name}</h3>
-        <p className="text-sm font-medium text-gray-500 mb-5">{classCode}</p>
-        <div className="space-y-3">
-          <div className="flex items-center text-gray-700">
-            <Users className="w-5 h-5 mr-3 text-purple-500 flex-shrink-0" />
-            <span><span className="font-medium">Giáo viên:</span> {preferredTeacher?.profile?.fullname || 'N/A'}</span>
-          </div>
-          <div className="flex items-start text-gray-700">
-            <Clock className="w-5 h-5 mr-3 text-purple-500 mt-1 flex-shrink-0" />
-            <span className="flex-1"><span className="font-medium">Thời gian:</span> 
-              {new Date(startAt).toLocaleDateString('vi-VN')} - {new Date(endAt).toLocaleDateString('vi-VN')}
+    <div className="flex flex-col bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-xl hover:border-purple-200 h-full group">
+      {/* Thanh màu trên cùng: Xanh lá nếu xong, Tím nếu đang học */}
+      <div className={`h-2 ${isEnded ? 'bg-green-500' : 'bg-purple-600'}`}></div>
+      
+      <div className="p-6 flex-grow flex flex-col">
+        <div className="flex justify-between items-start mb-3">
+            <h3 className="text-xl font-bold text-gray-800 line-clamp-2 group-hover:text-purple-700 transition-colors">
+              {name}
+            </h3>
+        </div>
+        
+        {/* Hiển thị Trạng thái */}
+        <div className="mb-5">
+            {isEnded ? (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                    <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
+                    Đã hoàn thành
+                </span>
+            ) : (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                    <BookOpen className="w-3.5 h-3.5 mr-1.5" />
+                    Đang học
+                </span>
+            )}
+        </div>
+
+        <div className="space-y-3 mt-auto pt-4 border-t border-gray-50">
+          <div className="flex items-center text-gray-600 text-sm">
+            <Users className="w-4 h-4 mr-2 text-purple-400 flex-shrink-0" />
+            <span className="truncate">
+                <span className="font-medium text-gray-700">GV:</span> {preferredTeacher?.profile?.fullname || 'Chưa cập nhật'}
             </span>
           </div>
         </div>
       </div>
-      <div className="p-5 bg-gray-50/70 border-t border-gray-100 flex justify-end">
+
+      <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
         <button 
-          className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-sm hover:shadow-md"
+          className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all shadow-sm hover:shadow-md text-white
+            ${isEnded 
+                ? 'bg-green-600 hover:bg-green-700' // Màu xanh cho lớp đã xong
+                : 'bg-purple-600 hover:bg-purple-700' // Màu tím chủ đạo cho lớp đang học
+            }
+          `}
         >
           Xem chi tiết
-          <ArrowRightIcon className="w-4 h-4 ml-2" />
+          <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
     </div>
@@ -51,13 +78,13 @@ const MyClassesPage = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // 1. Tải danh sách tất cả student (dùng API: /learner)
+  // 1. Tải danh sách tất cả student
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         setIsLoading(true);
         const res = await api.learner.getAllMyStudents();
-        setStudents(res.data.data); // API trả về mảng data
+        setStudents(res.data.data); 
         if (res.data.data && res.data.data.length > 0) {
           setSelectedStudentId(res.data.data[0]._id);
         }
@@ -70,7 +97,7 @@ const MyClassesPage = () => {
     fetchStudents();
   }, []);
 
-  // 2. Tải danh sách lớp học CỦA student được chọn
+  // 2. Tải danh sách lớp học
   useEffect(() => {
     if (!selectedStudentId) {
       setClasses([]);
@@ -79,12 +106,11 @@ const MyClassesPage = () => {
     const fetchClasses = async () => {
       try {
         setIsClassesLoading(true);
-        setError(null); // Xóa lỗi cũ
-        // Dùng API đã sửa: /:id/classes
+        setError(null); 
         const res = await api.learner.getMyEnrolledClasses(selectedStudentId);
-        setClasses(res.data.data.classes); // API trả về { data: { classes: [...] } }
+        setClasses(res.data.data.classes); 
       } catch (err) {
-        setError("Lỗi khi tải danh sách lớp học."); // Đây là lỗi bạn thấy
+        setError("Lỗi khi tải danh sách lớp học."); 
       } finally {
         setIsClassesLoading(false);
       }
@@ -92,9 +118,7 @@ const MyClassesPage = () => {
     fetchClasses();
   }, [selectedStudentId]);
 
-  // Hàm xử lý khi bấm vào Card
   const handleClassClick = (classId) => {
-    // Điều hướng đến trang chi tiết (route đã thêm ở LearnerLayout)
     navigate(`/learner/${selectedStudentId}/classes/${classId}`);
   };
 
@@ -103,38 +127,47 @@ const MyClassesPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      {/* 1. Bộ lọc chọn học viên và nút xem lịch */}
-      <div className="mb-6 p-4 bg-white shadow-lg rounded-xl border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div className="container mx-auto p-6 font-inter min-h-screen bg-gray-50/30">
+      
+      {/* Header Title */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Lớp học của tôi</h1>
+        <p className="text-gray-500 text-sm mt-1">Quản lý và theo dõi tiến độ các lớp học</p>
+      </div>
+
+      {/* 1. Bộ lọc & Action Bar */}
+      <div className="mb-8 p-5 bg-white shadow-sm rounded-xl border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center w-full md:w-auto">
-          <label htmlFor="student-select" className="text-lg font-semibold text-gray-700 mr-3">
-            Chọn học viên:
+          <label htmlFor="student-select" className="text-sm font-bold text-gray-700 mr-3 uppercase tracking-wide whitespace-nowrap">
+            Học viên:
           </label>
-          <select
-            id="student-select"
-            value={selectedStudentId}
-            onChange={(e) => setSelectedStudentId(e.target.value)}
-            className="block w-full md:w-64 p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500"
-            disabled={students.length === 0}
-          >
-            {students.length === 0 ? (
-              <option>Không tìm thấy học viên</option>
-            ) : (
-              students.map(student => (
-                <option key={student._id} value={student._id}>
-                  {student.name}
-                </option>
-              ))
-            )}
-          </select>
+          <div className="relative w-full md:w-72">
+            <select
+                id="student-select"
+                value={selectedStudentId}
+                onChange={(e) => setSelectedStudentId(e.target.value)}
+                className="block w-full p-2.5 pl-4 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all outline-none"
+                disabled={students.length === 0}
+            >
+                {students.length === 0 ? (
+                <option>Không tìm thấy học viên</option>
+                ) : (
+                students.map(student => (
+                    <option key={student._id} value={student._id}>
+                    {student.name}
+                    </option>
+                ))
+                )}
+            </select>
+          </div>
         </div>
         
         <button
           onClick={() => setIsModalOpen(true)}
           disabled={!selectedStudentId}
-          className="inline-flex items-center justify-center w-full md:w-auto px-5 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center w-full md:w-auto px-5 py-2.5 bg-white text-gray-700 border border-gray-300 font-medium rounded-lg hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed group shadow-sm"
         >
-          <Calendar className="w-5 h-5 mr-2" />
+          <Calendar className="w-5 h-5 mr-2 text-gray-400 group-hover:text-purple-600 transition-colors" />
           Xem lịch tổng quan
         </button>
       </div>
@@ -143,18 +176,22 @@ const MyClassesPage = () => {
       {isClassesLoading ? (
         <Loading fullscreen={false} message="Đang tải lớp học..." />
       ) : error ? (
-        <div className="text-red-600 bg-red-50 p-4 rounded-lg">{error}</div>
+        <div className="text-red-600 bg-red-50 p-4 rounded-lg border border-red-100 text-center">{error}</div>
       ) : classes.length === 0 ? (
-        <p className="text-gray-600 p-4 bg-white rounded-lg shadow-md">
-          Học viên này chưa đăng ký lớp học nào.
-        </p>
+        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500 text-lg font-medium">Học viên này chưa đăng ký lớp học nào.</p>
+            <p className="text-gray-400 text-sm mt-2">Vui lòng đăng ký khóa học mới để bắt đầu.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {classes.map(classItem => (
             <div 
               key={classItem._id} 
               onClick={() => handleClassClick(classItem._id)} 
-              className="cursor-pointer"
+              className="cursor-pointer h-full"
             >
               <ClassCard classItem={classItem} />
             </div>

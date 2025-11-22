@@ -1,27 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeftIcon, 
   CalendarDaysIcon, 
-  BookOpenIcon, 
   MapPinIcon,
   ClockIcon,
   CheckCircleIcon,
-  UserIcon,
   UserGroupIcon,
-  SparklesIcon
+  SparklesIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
 } from '@heroicons/react/24/outline';
 import api from '../../utils/api';
 import Loading from '../UI/Loading';
-import { format, isPast, isToday, isFuture } from 'date-fns';
+import { format, isPast, isToday } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 const StudentClassDetail = () => {
   const { studentId, classId } = useParams();
   const navigate = useNavigate();
+  
+  // --- Data State ---
   const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // --- UI State ---
+  const [isExpanded, setIsExpanded] = useState(false); // Trạng thái mở rộng/thu gọn lịch
+  const scrollContainerRef = useRef(null); // Ref của khung chứa danh sách
+  const nextSessionRef = useRef(null); // Ref của buổi học sắp tới
 
   useEffect(() => {
     if (!studentId || !classId) {
@@ -46,6 +53,15 @@ const StudentClassDetail = () => {
     fetchClassDetail();
   }, [studentId, classId, navigate]);
 
+  // --- Auto Scroll Logic ---
+  // Khi component load xong hoặc khi user bấm "Thu gọn", tự động cuộn tới buổi học tiếp theo
+  useEffect(() => {
+    if (!isLoading && classData && !isExpanded && nextSessionRef.current && scrollContainerRef.current) {
+      // Scroll nhẹ nhàng tới element nextSessionRef nằm giữa khung
+      nextSessionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isLoading, classData, isExpanded]);
+
   if (isLoading) return <Loading fullscreen={true} message="Đang tải chi tiết lớp..." />;
   
   if (error) return (
@@ -64,7 +80,7 @@ const StudentClassDetail = () => {
   const { classInfo, sessions, enrollments } = classData;
   const sortedSessions = sessions?.sort((a, b) => new Date(a.startAt) - new Date(b.startAt)) || [];
   
-  // Tìm buổi học tiếp theo gần nhất
+  // Tìm index buổi học tiếp theo gần nhất
   const nextSessionIndex = sortedSessions.findIndex(s => !isPast(new Date(s.endAt)));
 
   const teacherInfo = sessions?.[0]?.teacher || classInfo.preferredTeacher;
@@ -72,20 +88,29 @@ const StudentClassDetail = () => {
   const teacherEmail = teacherInfo?.email || '---';
   const teacherPhoto = teacherInfo?.profile?.photo;
 
+  const getStatusLabel = (status) => {
+      if (status === 'approved') return 'Đang hoạt động';
+      if (status === 'finished') return 'Kết thúc'; 
+      if (status === 'canceled') return 'Đã hủy';
+      return status;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-12 font-sans">
-      {/* --- HEADER BANNER (Modern Glassmorphism) --- */}
-      <div className="relative bg-gradient-to-br from-[#6366f1] to-[#a855f7] text-white pt-8 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* --- HEADER BANNER --- */}
+      {/* 1. Đã xóa pt-4/pt-8, padding-top giờ dựa vào content bên trong để sát lề trên */}
+      <div className="relative bg-gradient-to-br from-[#6366f1] to-[#a855f7] text-white pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        
         {/* Background Decoration */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20">
             <div className="absolute top-[-10%] right-[-5%] w-64 h-64 rounded-full bg-white blur-3xl"></div>
             <div className="absolute bottom-[-10%] left-[-10%] w-80 h-80 rounded-full bg-purple-300 blur-3xl"></div>
         </div>
 
-        <div className="max-w-6xl mx-auto relative z-10">
+        <div className="max-w-6xl mx-auto relative z-10 pt-6"> {/* Thêm pt-6 ở đây để đẩy nội dung xuống 1 chút cho đẹp, nhưng khung tím vẫn sát lề */}
             <button
                 onClick={() => navigate('/learner/my-classes')}
-                className="flex items-center text-white/80 hover:text-white mb-6 transition-colors group text-sm font-medium"
+                className="flex items-center text-white/80 hover:text-white mb-4 transition-colors group text-sm font-medium"
             >
                 <ArrowLeftIcon className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                 Quay lại
@@ -97,8 +122,11 @@ const StudentClassDetail = () => {
                         <span className="px-3 py-1 rounded-full bg-white/20 border border-white/10 text-xs font-semibold backdrop-blur-md shadow-sm">
                             {classInfo.course?.name || "Khóa học"}
                         </span>
-                        <span className={`px-3 py-1 rounded-full border text-xs font-bold backdrop-blur-md uppercase tracking-wider ${classInfo.status === 'approved' ? 'bg-green-400/20 border-green-400/30 text-green-100' : 'bg-white/10 border-white/20 text-gray-100'}`}>
-                            {classInfo.status === 'approved' ? 'Đang hoạt động' : classInfo.status}
+                        <span className={`px-3 py-1 rounded-full border text-xs font-bold backdrop-blur-md uppercase tracking-wider 
+                            ${classInfo.status === 'approved' ? 'bg-green-400/20 border-green-400/30 text-green-100' 
+                            : classInfo.status === 'finished' ? 'bg-gray-400/20 border-gray-400/30 text-gray-100' 
+                            : 'bg-white/10 border-white/20 text-gray-100'}`}>
+                            {getStatusLabel(classInfo.status)}
                         </span>
                     </div>
                     <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight drop-shadow-sm">
@@ -110,16 +138,15 @@ const StudentClassDetail = () => {
                     </p>
                 </div>
                 
-                {/* Stats Box */}
                 <div className="flex gap-3">
-                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[100px] text-center shadow-lg">
+                      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[100px] text-center shadow-lg">
                         <p className="text-[10px] text-indigo-100 uppercase font-bold tracking-wider mb-1">Sĩ số</p>
                         <p className="text-2xl font-extrabold">{enrollments.length}<span className="text-sm text-indigo-200 font-medium"></span></p>
-                     </div>
-                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[100px] text-center shadow-lg">
+                      </div>
+                      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[100px] text-center shadow-lg">
                         <p className="text-[10px] text-indigo-100 uppercase font-bold tracking-wider mb-1">Số buổi</p>
                         <p className="text-2xl font-extrabold">{sessions.length}</p>
-                     </div>
+                      </div>
                 </div>
             </div>
         </div>
@@ -131,8 +158,9 @@ const StudentClassDetail = () => {
             
             {/* LEFT COLUMN (2/3): TIMELINE STYLE */}
             <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    {/* Header Box */}
+                    <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
                         <h2 className="text-lg font-bold text-gray-800 flex items-center">
                             <CalendarDaysIcon className="w-5 h-5 mr-2 text-indigo-600" />
                             Lịch trình học tập
@@ -142,9 +170,18 @@ const StudentClassDetail = () => {
                         </span>
                     </div>
                     
-                    <div className="p-6 relative">
-                        {/* Vertical Line (đường kẻ dọc vẫn giữ để kết nối các buổi) */}
-                        <div className="absolute left-9 top-6 bottom-6 w-0.5 bg-gray-100 hidden sm:block"></div>
+                    {/* 2. List Sessions Container 
+                        - max-h-[500px]: Giới hạn chiều cao
+                        - overflow-y-auto: Cho phép cuộn nếu dài
+                        - transition-all: Hiệu ứng mượt khi mở rộng
+                    */}
+                    <div 
+                        ref={scrollContainerRef}
+                        className={`p-6 relative transition-all duration-500 ease-in-out
+                            ${isExpanded ? 'max-h-none overflow-visible' : 'max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'}
+                        `}
+                    >
+                        <div className={`absolute left-9 top-6 bottom-6 w-0.5 bg-gray-100 hidden sm:block ${isExpanded ? '' : 'min-h-[1000px]'}`}></div>
 
                         {sortedSessions.length > 0 ? (
                             <div className="space-y-6">
@@ -155,10 +192,13 @@ const StudentClassDetail = () => {
                                     const isNext = index === nextSessionIndex; 
                                     
                                     return (
-                                        <div key={session._id} className="relative flex flex-col sm:flex-row gap-5 group">
+                                        <div 
+                                            key={session._id} 
+                                            // Gán ref vào buổi học tiếp theo để auto-scroll
+                                            ref={isNext ? nextSessionRef : null}
+                                            className="relative flex flex-col sm:flex-row gap-5 group"
+                                        >
                                             
-                                            {/* ĐÃ GỠ BỎ PHẦN TIMELINE DOT (HÌNH TRÒN) TẠI ĐÂY */}
-
                                             {/* Date Box */}
                                             <div className={`flex-shrink-0 w-full sm:w-20 h-20 rounded-2xl flex flex-col items-center justify-center border transition-all z-10 bg-white
                                                 ${isHappening 
@@ -187,7 +227,7 @@ const StudentClassDetail = () => {
                                                         : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm'
                                                 }
                                             `}>
-                                                {isNext && <div className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">NEXT</div>}
+                                                {isNext && <div className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">NEXT</div>}
                                                 
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div className="flex items-center gap-2">
@@ -230,6 +270,26 @@ const StudentClassDetail = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Footer Expand/Collapse Button */}
+                    {sortedSessions.length > 3 && (
+                        <div className="p-3 border-t border-gray-100 bg-gray-50 text-center sticky bottom-0 z-20">
+                            <button 
+                                onClick={() => setIsExpanded(!isExpanded)}
+                                className="inline-flex items-center text-xs font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider px-4 py-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                            >
+                                {isExpanded ? (
+                                    <>
+                                        Thu gọn <ChevronUpIcon className="w-4 h-4 ml-1" />
+                                    </>
+                                ) : (
+                                    <>
+                                        Xem toàn bộ lịch trình ({sessions.length} buổi) <ChevronDownIcon className="w-4 h-4 ml-1" />
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -252,7 +312,7 @@ const StudentClassDetail = () => {
                             </div>
                         </div>
                         <div className="text-center">
-                            <h3 className="text-lg font-bold text-gray-800">{teacherName}</h3>
+                            <h3 className="text-lg font-bold text-gray-800">Giáo viên: {teacherName}</h3>
                             <p className="text-sm text-gray-500 mb-4">{teacherEmail}</p>
                             <button className="w-full py-2 rounded-lg border border-indigo-100 text-indigo-600 text-sm font-medium hover:bg-indigo-50 transition-colors">
                                 Xem hồ sơ
