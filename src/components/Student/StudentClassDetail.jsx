@@ -114,7 +114,7 @@ const StudentClassDetail = () => {
                 <div className="flex gap-3">
                      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[100px] text-center shadow-lg">
                         <p className="text-[10px] text-indigo-100 uppercase font-bold tracking-wider mb-1">Sĩ số</p>
-                        <p className="text-2xl font-extrabold">{enrollments.length}<span className="text-sm text-indigo-200 font-medium">/{classInfo.maxStudent}</span></p>
+                        <p className="text-2xl font-extrabold">{enrollments.length}<span className="text-sm text-indigo-200 font-medium"></span></p>
                      </div>
                      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[100px] text-center shadow-lg">
                         <p className="text-[10px] text-indigo-100 uppercase font-bold tracking-wider mb-1">Số buổi</p>

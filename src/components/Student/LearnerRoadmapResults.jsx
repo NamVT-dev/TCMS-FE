@@ -35,15 +35,15 @@ const ClassCard = ({ cls, studentId, onRegisterClick }) => {
           ))}
         </div>
 
-        <div className="flex justify-between items-center text-sm">
-          <div className="text-gray-700">
-            <User className="w-4 h-4 inline mr-1 text-gray-400" />
-            Sĩ số: <span className="font-bold">{currentSize} / {maxStudent}</span>
-          </div>
+        <div className="flex justify-end">
           <button
             onClick={() => onRegisterClick(cls._id)}
             disabled={currentSize >= maxStudent}
-            className="px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition disabled:bg-gray-400"
+            className={`px-4 py-2 font-semibold rounded-lg transition ${
+              currentSize >= maxStudent
+                ? 'bg-red-500 text-white cursor-not-allowed'
+                : 'bg-purple-600 text-white hover:bg-purple-700'
+            }`}
           >
             {currentSize >= maxStudent ? "Đã đầy" : "Đăng ký"}
           </button>
