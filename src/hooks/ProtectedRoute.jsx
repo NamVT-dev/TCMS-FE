@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   if (!allowedRoles.includes(user.role)) {
     const roleRoutes = {
       admin: '/admin/overview',
-      teacher: '/teacher/overview',
+      teacher: '/teacher/timetable',
       member: '/',
     };
     return <Navigate to={roleRoutes[user.role] || '/login'} replace />;

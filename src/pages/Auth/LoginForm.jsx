@@ -8,15 +8,13 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, error } = useAuth();
+  const { login, error, isLoading } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await login(email, password);
-    if (res === false) return;
-    navigate("/"); // thành công thì điều hướng
+    // ⬅️ UserContext đã xử lý navigate rồi, không cần làm gì thêm
   };
-
 
   return (
     <div className="min-h-screen w-full flex bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900">
@@ -67,6 +65,7 @@ const LoginForm = () => {
                   placeholder="your.email@example.com"
                   className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -85,11 +84,13 @@ const LoginForm = () => {
                   placeholder="••••••••"
                   className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   required
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -106,26 +107,32 @@ const LoginForm = () => {
                 <input
                   type="checkbox"
                   className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  disabled={isLoading}
                 />
                 <span className="text-gray-600">Ghi nhớ đăng nhập</span>
               </label>
-              <a
-                 onClick={() => navigate("/forgot-password")}
-  className="text-purple-600 hover:text-purple-800 font-medium transition-colors cursor-pointer"
->
-  Quên mật khẩu?
-</a>
+
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="text-purple-600 hover:text-purple-800 font-medium transition-colors"
+                disabled={isLoading}
+              >
+                Quên mật khẩu?
+              </button>
             </div>
+
 
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              Đăng nhập
+              {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </button>
 
-            {/* Error message hiển thị cố định dưới nút */}
+            {/* Error message */}
             {error && (
               <div className="flex justify-center">
                 <p className="inline-block text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-600 hover:text-white transition-all duration-200">
@@ -140,9 +147,10 @@ const LoginForm = () => {
             Chưa có tài khoản?{" "}
             <button
               onClick={() => navigate("/register")}
+              disabled={isLoading}
               className="inline-block px-3 py-1 text-purple-600 hover:text-white font-semibold 
                 hover:bg-purple-600 rounded-lg transition-all duration-200 ease-in-out 
-                hover:shadow-md active:transform active:translate-y-0.5"
+                hover:shadow-md active:transform active:translate-y-0.5 disabled:opacity-50"
             >
               Đăng ký ngay
             </button>
