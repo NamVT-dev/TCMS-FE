@@ -1,4 +1,4 @@
-// src/pages/Teacher/TeacherRegisterSchedule.jsx (hoặc đường dẫn của bạn)
+// src/pages/Teacher/TeacherRegisterSchedule.jsx
 
 import React, { useEffect, useState, useCallback } from "react";
 import api from "../../../utils/api";
@@ -33,10 +33,6 @@ export default function TeacherRegisterSchedule() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState(null);
-
-  // ⬇️ SỬA LOGIC: selectedCategories sẽ là mảng các ID [string]
-  const [categories, setCategories] = useState([]); // Mảng các object [{_id, name}]
-  const [selectedCategories, setSelectedCategories] = useState([]); // Mảng các ID [string]
   const [slots, setSlots] = useState([]);
   const [centerConfig, setCenterConfig] = useState(null);
 
@@ -44,26 +40,16 @@ export default function TeacherRegisterSchedule() {
     setLoading(true);
     setError(null);
     try {
-      const [meRes, catRes, cfgRes] = await Promise.allSettled([
+      const [meRes, cfgRes] = await Promise.allSettled([
         api.user.getMe(),
-        api.teacher.getTeachCategories(),
         api.teacher.getShiftConfig(),
       ]);
 
       if (meRes.status === "fulfilled") {
         const teacher = meRes.value?.data?.data?.data || {};
-        // ⬇️ SỬA LOGIC: Giả sử teachCategories là mảng ID
-        setSelectedCategories(teacher.teachCategories || []);
         setSlots(normalizeSlots(teacher.availability || []));
       } else {
         throw new Error("Không thể tải thông tin giáo viên");
-      }
-
-      if (catRes.status === "fulfilled") {
-        // ⬇️ SỬA LOGIC: Đảm bảo categories là mảng
-        setCategories(catRes.value?.data?.data?.categories || []);
-      } else {
-        console.error("Lỗi khi tải danh sách môn học:", catRes.reason);
       }
 
       if (cfgRes.status === "fulfilled") {
@@ -82,12 +68,6 @@ export default function TeacherRegisterSchedule() {
   useEffect(() => {
     loadData();
   }, [loadData]);
-
-  // ⬇️ SỬA LOGIC: Toggle bằng ID
-  const toggleCategory = (categoryId) =>
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId]
-    );
 
   // Thêm / xóa ngày
   const toggleDay = (dayId) => {
@@ -146,12 +126,10 @@ export default function TeacherRegisterSchedule() {
   // Helper: Lấy thông tin ca từ centerConfig
   const getShiftInfo = (shiftKey) => {
     if (!centerConfig?.shifts) {
-      console.log('centerConfig.shifts không tồn tại:', centerConfig);
       return null;
     }
     const shift = centerConfig.shifts.find(s => s.name === shiftKey);
     if (!shift) {
-      console.log(`Không tìm thấy ca ${shiftKey} trong:`, centerConfig.shifts);
       return null;
     }
     return {
@@ -171,10 +149,7 @@ export default function TeacherRegisterSchedule() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Vô hiệu hóa API lỗi
-      // await api.teacher.registerCategories(selectedCategories); 
       await api.teacher.registerShift({ slots: buildShiftPayloadSlots() });
-  
       await loadData(); 
       setEditing(false);
       alert("Đã lưu thay đổi.");
@@ -224,52 +199,57 @@ export default function TeacherRegisterSchedule() {
           {editing ? "Cập nhật lịch giảng dạy" : "Lịch giảng dạy"}
         </h2>
 
-        {/* --- Môn giảng dạy --- */}
+        {/* --- Lịch hiện tại (đang có hiệu lực) --- */}
         <section className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-3">Môn giảng dạy (Tạm thời vô hiệu hóa)</h3>
-          {!editing ? (
-            selectedCategories?.length ? (
-              <div className="flex flex-wrap gap-2 opacity-70">
-                {selectedCategories.map((c_id) => {
-                  // Tìm tên category từ mảng `categories`
-                  const catName = categories.find(cat => cat._id === c_id)?.name || c_id;
-                  return (
-                    <span
-                      key={c_id}
-                      className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
-                    >
-                      {catName}
-                    </span>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-gray-500">Chưa đăng ký môn nào</p>
-            )
+          <h3 className="text-lg font-semibold text-gray-700 mb-3">Lịch hiện tại (đang có hiệu lực)</h3>
+          {currentVisibleSlots.length === 0 ? (
+            <p className="text-gray-500">Hiện không có lịch nào trong khoảng hiệu lực.</p>
           ) : (
-            <div className="flex flex-wrap gap-3 opacity-70">
-              {categories.length === 0 && <p className="text-gray-500 text-sm">Không tải được danh sách môn học.</p>}
-              
-              {/* ⬇️ BẮT ĐẦU SỬA LỖI RENDER */}
-              {categories.map((c) => (
-                <label
-                  key={c._id} // ⬅️ Sửa 1: Dùng _id cho key
-                  className="flex items-center gap-2 px-3 py-1 border rounded-md hover:bg-purple-50 cursor-not-allowed"
-                >
-                  <input
-                    type="checkbox"
-                    // ⬅️ Sửa 2: So sánh bằng c._id
-                    checked={selectedCategories.includes(c._id)} 
-                    // ⬅️ Sửa 3: Truyền c._id
-                    onChange={() => toggleCategory(c._id)} 
-                    className="accent-purple-600"
-                    disabled={true} 
-                  />
-                  {/* ⬅️ Sửa 4: Hiển thị c.name */}
-                  <span className="text-sm">{c.name}</span> 
-                </label>
-              ))}
-              {/* ⬆️ KẾT THÚC SỬA LỖI RENDER */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {currentVisibleSlots.map((s) => {
+                const dayLabel = DAY_NAMES.find((d) => d.id === s.dayOfWeek)?.label;
+                return (
+                  <div key={s.dayOfWeek} className="flex items-center justify-between border rounded-lg px-4 py-3 bg-white">
+                    <div>
+                      <div className="text-sm font-semibold text-purple-700">{dayLabel}</div>
+                      <div className="text-sm text-gray-600">
+                        {s.shifts.length ? (
+                          <div className="space-y-1">
+                            {s.shifts
+                              .slice()
+                              .sort((a, b) => {
+                                const numA = parseInt(a.replace(/\D/g, '')) || 0;
+                                const numB = parseInt(b.replace(/\D/g, '')) || 0;
+                                return numA - numB;
+                              })
+                              .map((shift, idx) => {
+                                const shiftInfo = getShiftInfo(shift);
+                                return (
+                                  <div key={shift}>
+                                    {shift}
+                                    {shiftInfo && (
+                                      <span className="text-xs text-gray-500 ml-1">
+                                        ({shiftInfo.timeRange})
+                                      </span>
+                                    )}
+                                    {idx < s.shifts.length - 1 && ', '}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        ) : (
+                          "Không có ca"
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {s.effective?.start || s.effective?.end
+                        ? `${s.effective?.start || "?"} → ${s.effective?.end || "?"}`
+                        : "Không giới hạn"}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
@@ -327,7 +307,7 @@ export default function TeacherRegisterSchedule() {
                   <div key={slot.dayOfWeek} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3">
                       <div className="text-lg font-bold text-purple-700">{dayLabel}</div>
-                      <div className="text-sm text-gray-500 mt-1 sm:mt-0">Ngày hiệu lực (bỏ trống = luôn luôn)</div>
+                      <div className="text-sm text-gray-500 mt-1 sm:mt-0">Ngày kết thúc để trống, giá trị sẽ có hiệu lực vĩnh viễn.</div>
                     </div>
 
                     {/* shifts */}
@@ -407,61 +387,6 @@ export default function TeacherRegisterSchedule() {
                 );
               })}
           </div>
-        </section>
-
-        {/* --- Lịch hiện tại --- */}
-        <section className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-3">Lịch hiện tại (đang có hiệu lực)</h3>
-          {currentVisibleSlots.length === 0 ? (
-            <p className="text-gray-500">Hiện không có lịch nào trong khoảng hiệu lực.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {currentVisibleSlots.map((s) => {
-                const dayLabel = DAY_NAMES.find((d) => d.id === s.dayOfWeek)?.label;
-                return (
-                  <div key={s.dayOfWeek} className="flex items-center justify-between border rounded-lg px-4 py-3 bg-white">
-                    <div>
-                      <div className="text-sm font-semibold text-purple-700">{dayLabel}</div>
-                      <div className="text-sm text-gray-600">
-                        {s.shifts.length ? (
-                          <div className="space-y-1">
-                            {s.shifts
-                              .slice()
-                              .sort((a, b) => {
-                                const numA = parseInt(a.replace(/\D/g, '')) || 0;
-                                const numB = parseInt(b.replace(/\D/g, '')) || 0;
-                                return numA - numB;
-                              })
-                              .map((shift, idx) => {
-                                const shiftInfo = getShiftInfo(shift);
-                                return (
-                                  <div key={shift}>
-                                    {shift}
-                                    {shiftInfo && (
-                                      <span className="text-xs text-gray-500 ml-1">
-                                        ({shiftInfo.timeRange})
-                                      </span>
-                                    )}
-                                    {idx < s.shifts.length - 1 && ', '}
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        ) : (
-                          "Không có ca"
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {s.effective?.start || s.effective?.end
-                        ? `${s.effective?.start || "?"} → ${s.effective?.end || "?"}`
-                        : "Không giới hạn"}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </section>
 
         {/* --- Buttons --- */}
