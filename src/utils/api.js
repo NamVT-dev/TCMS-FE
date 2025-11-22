@@ -97,6 +97,7 @@ const api = {
             getConfig: () => axiosInstance.get("/admin/center/config"),
             updateConfig: (data) =>
                 axiosInstance.patch("/admin/center/config", data),
+            toggleAvailability: (data) => axiosInstance.patch("/admin/center/isOpen", data),
         },
 
         schedule: {

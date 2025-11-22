@@ -63,13 +63,14 @@ export default function TeacherRegisterSchedule() {
     } finally {
       setLoading(false);
     }
-  }, []); 
+  }, []);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // Thêm / xóa ngày
+  const isAvailabilityOpen = centerConfig?.isAvailabilityOpen;
+
   const toggleDay = (dayId) => {
     if (!editing) return;
     setSlots((prev) => {
@@ -88,7 +89,6 @@ export default function TeacherRegisterSchedule() {
     });
   };
 
-  // Toggle ca trong ngày
   const toggleShift = (dayId, shiftKey) => {
     if (!editing) return;
     setSlots((prev) =>
@@ -116,14 +116,12 @@ export default function TeacherRegisterSchedule() {
     );
   };
 
-  // Helper: Chuyển phút thành giờ:phút (HH:MM)
   const minutesToTime = (minutes) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
   };
 
-  // Helper: Lấy thông tin ca từ centerConfig
   const getShiftInfo = (shiftKey) => {
     if (!centerConfig?.shifts) {
       return null;
@@ -150,7 +148,7 @@ export default function TeacherRegisterSchedule() {
     setLoading(true);
     try {
       await api.teacher.registerShift({ slots: buildShiftPayloadSlots() });
-      await loadData(); 
+      await loadData();
       setEditing(false);
       alert("Đã lưu thay đổi.");
     } catch (err) {
@@ -162,7 +160,7 @@ export default function TeacherRegisterSchedule() {
   };
 
   const handleCancel = async () => {
-    await loadData(); 
+    await loadData();
     setEditing(false);
   };
 
@@ -267,11 +265,10 @@ export default function TeacherRegisterSchedule() {
               return (
                 <label
                   key={d.id}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer border ${
-                    isActive
-                      ? "bg-purple-600 text-white border-purple-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-purple-50"
-                  } ${!editing ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer border ${isActive
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-purple-50"
+                    } ${!editing ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   <input
                     type="checkbox"
@@ -318,7 +315,6 @@ export default function TeacherRegisterSchedule() {
                         availableShifts
                           .slice()
                           .sort((a, b) => {
-                            // Sắp xếp theo số thứ tự ca (S1, S2, S3...)
                             const numA = parseInt(a.replace(/\D/g, '')) || 0;
                             const numB = parseInt(b.replace(/\D/g, '')) || 0;
                             return numA - numB;
@@ -389,12 +385,20 @@ export default function TeacherRegisterSchedule() {
           </div>
         </section>
 
+        {/* --- Thông báo nếu không thay đổi được lịch --- */}
+        {isAvailabilityOpen === false && (
+          <div className="bg-red-100 text-red-700 p-4 rounded-lg mt-6">
+            <p>Thời gian thay đổi lịch làm đã đóng. Vui lòng liên hệ admin để được thay đổi lịch làm.</p>
+          </div>
+        )}
+
         {/* --- Buttons --- */}
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
           {!editing ? (
             <button
               onClick={() => setEditing(true)}
-              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+              className={`inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 ${isAvailabilityOpen === false ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isAvailabilityOpen === false}
             >
               <Edit className="w-4 h-4 mr-2" />
               Cập nhật
@@ -411,7 +415,7 @@ export default function TeacherRegisterSchedule() {
               <button
                 onClick={handleSave}
                 className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400"
-                disabled={loading}
+                disabled={loading || isAvailabilityOpen === false}
               >
                 {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Lưu thay đổi
