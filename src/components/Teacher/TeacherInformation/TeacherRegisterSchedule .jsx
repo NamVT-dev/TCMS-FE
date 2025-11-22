@@ -219,7 +219,7 @@ export default function TeacherRegisterSchedule() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="max-w-8xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           {editing ? "Cập nhật lịch giảng dạy" : "Lịch giảng dạy"}
         </h2>

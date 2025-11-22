@@ -1,38 +1,108 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import api from "../../../utils/api";
 
 const TeacherViewUpdateProfile = () => {
-  const [profile, setProfile] = useState({
-    name: "Nguyễn Văn A",
-    email: "teacher@example.com",
-    title: "Giáo viên TOEIC",
-    gender: "Nam",
-    dob: "1990-05-12",
-    phone: "0987654321",
-    address: "123 Nguyễn Trãi, Hà Nội",
-    avatar: "https://i.pravatar.cc/150?img=3",
-  });
-
+  const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.user.getMe();
+        const user = res.data.data.data;
+
+        setProfile({
+          name: user.profile.fullname,
+          email: user.email,
+          title: user.role === "member" ? "Học viên" : user.role,
+          gender: user.profile.gender === "male" ? "Nam" : "Nữ",
+          dob: user.profile.dob.split("T")[0],
+          phone: user.profile.phoneNumber,
+          avatar: user.profile.photo,
+        });
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin user:", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (isEditing) {
+    if (isEditing && profile) {
       setProfile({ ...profile, [name]: value });
     }
   };
 
   const handleUpdate = () => {
     setIsEditing(true);
+    setMessage({ text: "", type: "" });
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    alert("Đã lưu thay đổi:\n" + JSON.stringify(profile, null, 2));
+  const handleSave = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("profile[fullname]", profile.name);
+      formData.append("profile[phoneNumber]", profile.phone);
+      formData.append("profile[dob]", profile.dob);
+      formData.append(
+        "profile[gender]",
+        profile.gender === "Nam" ? "male" : "female"
+      );
+
+      // ✅ Nếu có file mới thì gửi file
+      // ✅ Nếu không có file mới thì gửi lại avatar cũ để giữ nguyên ảnh
+      if (selectedFile) {
+        formData.append("profile[photo]", selectedFile);
+      } else if (profile.avatar) {
+        formData.append("profile[photo]", profile.avatar);
+      }
+
+      const res = await api.user.updateProfile(formData);
+
+      if (res.data.status === "success") {
+        const updated = res.data.data.user.profile;
+        setProfile({
+          ...profile,
+          name: updated.fullname,
+          phone: updated.phoneNumber,
+          dob: updated.dob.split("T")[0],
+          gender: updated.gender === "male" ? "Nam" : "Nữ",
+          avatar: updated.photo,
+        });
+        setMessage({ text: "Cập nhật hồ sơ thành công!", type: "success" });
+      } else {
+        setMessage({
+          text: res.data.message || "Cập nhật thất bại!",
+          type: "error",
+        });
+      }
+    } catch (err) {
+      setMessage({
+        text: err.response?.data?.message || "Đã xảy ra lỗi!",
+        type: "error",
+      });
+    } finally {
+      setIsEditing(false);
+      setSelectedFile(null);
+      setTimeout(() => setMessage({ text: "", type: "" }), 4000);
+    }
   };
+
+  if (!profile) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-gray-600 text-lg">
+        Đang tải thông tin...
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 py-10">
-      <div className="bg-white shadow-lg rounded-2xl p-10 w-full max-w-10xl">
+      <div className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-6xl mx-auto">
         {/* Avatar */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
@@ -45,7 +115,7 @@ const TeacherViewUpdateProfile = () => {
               <>
                 <label
                   htmlFor="avatar-upload"
-                  className="absolute bottom-0 right-0 bg-sky-600 text-white rounded-full p-2 cursor-pointer hover:bg-sky-700 transition"
+                  className="absolute bottom-0 right-0 bg-purple-600 text-white rounded-full p-2 cursor-pointer hover:bg-purple-700 transition"
                 >
                   ✏️
                 </label>
@@ -54,12 +124,16 @@ const TeacherViewUpdateProfile = () => {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) =>
-                    setProfile({
-                      ...profile,
-                      avatar: URL.createObjectURL(e.target.files[0]),
-                    })
-                  }
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setSelectedFile(file);
+                      setProfile({
+                        ...profile,
+                        avatar: URL.createObjectURL(file),
+                      });
+                    }
+                  }}
                 />
               </>
             )}
@@ -71,7 +145,6 @@ const TeacherViewUpdateProfile = () => {
 
         {/* Form */}
         <div className="grid grid-cols-2 gap-6">
-          {/* Họ và tên */}
           <div>
             <label className="block text-gray-700 mb-2">Họ và tên</label>
             <input
@@ -82,13 +155,12 @@ const TeacherViewUpdateProfile = () => {
               disabled={!isEditing}
               className={`w-full border rounded-lg p-2 focus:outline-none ${
                 isEditing
-                  ? "bg-sky-50 border-sky-400 focus:ring-2 focus:ring-sky-400"
+                  ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
                   : "bg-gray-100 border-gray-300 text-gray-700"
               }`}
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-gray-700 mb-2">Email</label>
             <input
@@ -100,7 +172,6 @@ const TeacherViewUpdateProfile = () => {
             />
           </div>
 
-          {/* Chức danh */}
           <div>
             <label className="block text-gray-700 mb-2">Chức danh</label>
             <input
@@ -112,7 +183,6 @@ const TeacherViewUpdateProfile = () => {
             />
           </div>
 
-          {/* Giới tính */}
           <div>
             <label className="block text-gray-700 mb-2">Giới tính</label>
             <select
@@ -122,17 +192,15 @@ const TeacherViewUpdateProfile = () => {
               disabled={!isEditing}
               className={`w-full border rounded-lg p-2 focus:outline-none ${
                 isEditing
-                  ? "bg-sky-50 border-sky-400 focus:ring-2 focus:ring-sky-400"
+                  ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
                   : "bg-gray-100 border-gray-300 text-gray-700"
               }`}
             >
               <option>Nam</option>
               <option>Nữ</option>
-              <option>Khác</option>
             </select>
           </div>
 
-          {/* Ngày sinh */}
           <div>
             <label className="block text-gray-700 mb-2">Ngày sinh</label>
             <input
@@ -143,13 +211,12 @@ const TeacherViewUpdateProfile = () => {
               disabled={!isEditing}
               className={`w-full border rounded-lg p-2 focus:outline-none ${
                 isEditing
-                  ? "bg-sky-50 border-sky-400 focus:ring-2 focus:ring-sky-400"
+                  ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
                   : "bg-gray-100 border-gray-300 text-gray-700"
               }`}
             />
           </div>
 
-          {/* Điện thoại */}
           <div>
             <label className="block text-gray-700 mb-2">Điện thoại</label>
             <input
@@ -160,24 +227,7 @@ const TeacherViewUpdateProfile = () => {
               disabled={!isEditing}
               className={`w-full border rounded-lg p-2 focus:outline-none ${
                 isEditing
-                  ? "bg-sky-50 border-sky-400 focus:ring-2 focus:ring-sky-400"
-                  : "bg-gray-100 border-gray-300 text-gray-700"
-              }`}
-            />
-          </div>
-
-          {/* Địa chỉ */}
-          <div className="col-span-2">
-            <label className="block text-gray-700 mb-2">Địa chỉ</label>
-            <input
-              type="text"
-              name="address"
-              value={profile.address}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${
-                isEditing
-                  ? "bg-sky-50 border-sky-400 focus:ring-2 focus:ring-sky-400"
+                  ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
                   : "bg-gray-100 border-gray-300 text-gray-700"
               }`}
             />
@@ -185,30 +235,43 @@ const TeacherViewUpdateProfile = () => {
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-end mt-10 gap-4">
-          <button
-            onClick={handleUpdate}
-            disabled={isEditing}
-            className={`px-6 py-2 rounded-lg transition font-medium ${
-              isEditing
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-gray-600 text-white hover:bg-gray-700"
-            }`}
-          >
-            Cập nhật
-          </button>
-          {isEditing && (
+        <div className="flex justify-end mt-10 gap-4 flex-col items-end">
+          <div className="flex gap-4">
             <button
-              onClick={handleSave}
-              className="px-6 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition font-medium"
+              onClick={handleUpdate}
+              disabled={isEditing}
+              className={`px-6 py-2 rounded-lg transition font-medium ${
+                isEditing
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gray-600 text-white hover:bg-gray-700"
+              }`}
             >
-              Lưu
+              Cập nhật
             </button>
+            {isEditing && (
+              <button
+                onClick={handleSave}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
+              >
+                Lưu
+              </button>
+            )}
+          </div>
+
+          {message.text && (
+            <p
+              className={`mt-2 px-4 py-2 rounded-lg text-white text-sm w-fit ${
+                message.type === "success" ? "bg-green-600" : "bg-red-500"
+              }`}
+            >
+              {message.text}
+            </p>
           )}
         </div>
       </div>
     </div>
   );
 };
+
 
 export default TeacherViewUpdateProfile;

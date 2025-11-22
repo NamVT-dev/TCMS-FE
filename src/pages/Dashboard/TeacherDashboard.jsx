@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from '../../components/Layout/Navbar';
 import TeacherSidebar from '../../components/Layout/TeacherSidebar';
-import TeacherOverview from '../../components/Teacher/TeacherOverview/TeacherOverview';
 import TeacherViewUpdateProfile from '../../components/Teacher/TeacherInformation/TeacherViewUpdateProfile';
 import TeacherRegisterSchedule from '../../components/Teacher/TeacherInformation/TeacherRegisterSchedule ';
 import TeacherViewSchedule from '../../components/Teacher/TeacherWork/TeacherTimtable/TeacherViewScheduel';
@@ -12,6 +11,7 @@ import TeacherMyClasses from '../../components/Teacher/TeacherWork/TeacherMyClas
 import TodayAttendancePage from '../../components/Teacher/TeacherAttendance/TodayAttendancePage';
 import AttendanceDetailPage from '../../components/Teacher/TeacherAttendance/AttendanceDetailPage';
 import AttendanceHistoryPage from '../../components/Teacher/TeacherAttendance/AttendanceHistoryPage';
+import TeacherChangePassword from '../../components/Teacher/TeacherInformation/TeacherChangePassword';
 
 const TeacherDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -40,7 +40,7 @@ const TeacherDashboard = () => {
         <div className={`flex-1 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-20' : 'ml-72'
           } p-6`}>
           <Routes>
-            <Route path="/overview" element={<TeacherOverview />} />
+            
             <Route path="/profile" element={<TeacherViewUpdateProfile />} />
             <Route path="/work-schedule" element={<TeacherRegisterSchedule />} />
             <Route path="/timetable" element={<TeacherViewSchedule />} />
@@ -49,6 +49,7 @@ const TeacherDashboard = () => {
             <Route path="/attendance" element={<TodayAttendancePage />} />
             <Route path="/attendance/:attendanceId" element={<AttendanceDetailPage />} />
             <Route path="/attendance-history" element={<AttendanceHistoryPage />} />
+            <Route path="/change-password" element={<TeacherChangePassword />} />
           </Routes>
         </div>
       </div>

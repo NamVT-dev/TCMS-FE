@@ -11,33 +11,33 @@ const Navbar = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
 
-    const [openMenu, setOpenMenu] = useState(null); // 'course' | 'commitment' | null
+    const [openMenu, setOpenMenu] = useState(null); 
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [coursesByCategory, setCoursesByCategory] = useState({});
 
     const courseRef = useRef(null);
     const commitmentRef = useRef(null);
     const userDropdownRef = useRef(null);
-    const closeTimeout = useRef(null); // <-- REF MỚI: Quản lý Timeout đóng menu
+    const closeTimeout = useRef(null); 
 
     const isLoggedIn = !!user;
     const userName = user?.profile?.fullname || user?.email || 'Người dùng';
     const userAvatar = user?.profile?.photo;
     const userRole = user?.role;
 
-    // 🎨 Định nghĩa màu sắc theo Role 🎨
+    
     const colorMap = {
+        admin: {
+            from: 'from-purple-600', to: 'to-purple-800', border: 'border-purple-500', text: 'text-purple-700',
+            hoverBg: 'hover:bg-purple-50', bg: 'bg-purple-100', icon: 'text-purple-600',
+            buttonBg: 'bg-purple-600 hover:bg-purple-700', buttonBorder: 'border-purple-600 hover:bg-purple-50', buttonText: 'text-purple-700',
+        },
         teacher: {
-            from: 'from-sky-600', to: 'to-sky-800', border: 'border-sky-500', text: 'text-sky-700',
-            hoverBg: 'hover:bg-sky-50', bg: 'bg-sky-100', icon: 'text-sky-600',
-            buttonBg: 'bg-sky-600 hover:bg-sky-700', buttonBorder: 'border-sky-600 hover:bg-sky-50', buttonText: 'text-sky-700',
+            from: 'from-purple-600', to: 'to-purple-800', border: 'border-purple-500', text: 'text-purple-700',
+            hoverBg: 'hover:bg-purple-50', bg: 'bg-purple-100', icon: 'text-purple-600',
+            buttonBg: 'bg-purple-600 hover:bg-purple-700', buttonBorder: 'border-purple-600 hover:bg-purple-50', buttonText: 'text-purple-700',
         },
         staff: {
-            from: 'from-sky-600', to: 'to-sky-800', border: 'border-sky-500', text: 'text-sky-700',
-            hoverBg: 'hover:bg-sky-50', bg: 'bg-sky-100', icon: 'text-sky-600',
-            buttonBg: 'bg-sky-600 hover:bg-sky-700', buttonBorder: 'border-sky-600 hover:bg-sky-50', buttonText: 'text-sky-700',
-        },
-        admin: {
             from: 'from-purple-600', to: 'to-purple-800', border: 'border-purple-500', text: 'text-purple-700',
             hoverBg: 'hover:bg-purple-50', bg: 'bg-purple-100', icon: 'text-purple-600',
             buttonBg: 'bg-purple-600 hover:bg-purple-700', buttonBorder: 'border-purple-600 hover:bg-purple-50', buttonText: 'text-purple-700',
@@ -48,6 +48,7 @@ const Navbar = () => {
             buttonBg: 'bg-purple-600 hover:bg-purple-700', buttonBorder: 'border-purple-600 hover:bg-purple-50', buttonText: 'text-purple-700',
         }
     };
+
 
     const colors = colorMap[userRole] || colorMap.admin;
 
@@ -72,10 +73,10 @@ const Navbar = () => {
         fetchCourses();
     }, []);
 
-    // Đóng menu & dropdown user khi click ra ngoài
+    
     useEffect(() => {
         const handleOutsideClick = (e) => {
-            // Logic đóng menu Khóa học/Cam kết
+            
             if (openMenu) {
                 if (courseRef.current && courseRef.current.contains(e.target)) {
                     return;
@@ -86,7 +87,7 @@ const Navbar = () => {
                 setOpenMenu(null);
             }
 
-            // Logic đóng dropdown User
+            
             if (dropdownOpen) {
                 if (userDropdownRef.current && !userDropdownRef.current.contains(e.target)) {
                     setDropdownOpen(false);
