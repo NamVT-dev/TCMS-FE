@@ -54,6 +54,14 @@ const api = {
             axiosInstance.post("auth/forgotPassword", { email }),
         resetPassword: (data) => axiosInstance.post("auth/resetPassword", data),
     },
+    notification: {
+        getAll: () => axiosInstance.get("/notifications"),
+        
+        markRead: (id) => axiosInstance.patch(`/notifications/${id}/read`),
+
+        get: (id) => axiosInstance.get(`/notifications/${id}`),
+        
+    },
 
     // --- User ---
     user: {
@@ -228,6 +236,8 @@ const api = {
 
         getMySchedule: (studentId, params) =>
             axiosInstance.get(`${studentId}/schedule`, { params }),
+
+
     },
 
     // --- Staff ---
