@@ -3,6 +3,7 @@ import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import toast from "react-hot-toast";
+import Navbar from "../../components/Layout/Navbar";  // Import Navbar
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -67,122 +68,128 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900">
-      {/* Form Section - 55% */}
-      <div className="w-full md:w-[55%] flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl px-8 py-10 space-y-6">
-          {/* Logo */}
-          <div className="flex flex-col items-center space-y-3">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
-              TutorCenter
-            </h1>
+    <div className="min-h-screen w-full flex flex-col">
+      {/* Navbar at the top */}
+      <Navbar />
+
+      {/* Main content area */}
+      <div className="flex-1 flex bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900">
+        {/* Form Section - 55% */}
+        <div className="w-full md:w-[55%] flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl px-8 py-10 space-y-6">
+            {/* Logo */}
+            <div className="flex flex-col items-center space-y-3">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+                TutorCenter
+              </h1>
+            </div>
+
+            <div className="text-center space-y-1">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800">Tạo tài khoản mới!</h2>
+              <p className="text-gray-500 text-sm">Đăng ký để bắt đầu hành trình học tập</p>
+            </div>
+
+            {/* Thông báo */}
+            {message && <p className="text-green-600 text-center font-medium">{message}</p>}
+            {error && <p className="text-red-500 text-center font-medium">{error}</p>}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Họ tên - Email (1 dòng) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField 
+                  label="Họ và tên" 
+                  icon={<User />} 
+                  name="name" 
+                  type="text"
+                  placeholder="Nguyễn Văn A" 
+                  value={formData.name} 
+                  onChange={handleChange} 
+                  required 
+                />
+                <InputField 
+                  label="Email" 
+                  icon={<Mail />} 
+                  name="email" 
+                  type="email"
+                  placeholder="your.email@example.com" 
+                  value={formData.email} 
+                  onChange={handleChange} 
+                  required 
+                />
+              </div>
+
+              {/* Số điện thoại - Ngày sinh (1 dòng) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField 
+                  label="Số điện thoại" 
+                  icon={<Phone />} 
+                  name="phoneNumber" 
+                  type="tel"
+                  placeholder="0123456789" 
+                  value={formData.phoneNumber} 
+                  onChange={handleChange} 
+                  required 
+                />
+                <InputField 
+                  label="Ngày sinh" 
+                  icon={<Calendar />} 
+                  name="dob" 
+                  type="date"
+                  value={formData.dob} 
+                  onChange={handleChange} 
+                  required 
+                />
+              </div>
+
+              {/* Password fields (2 cột) */}
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                <PasswordField 
+                  label="Mật khẩu" 
+                  name="password" 
+                  value={formData.password}
+                  onChange={handleChange} 
+                  show={showPassword} 
+                  setShow={setShowPassword} 
+                />
+                <PasswordField 
+                  label="Xác nhận mật khẩu" 
+                  name="passwordConfirm" 
+                  value={formData.passwordConfirm}
+                  onChange={handleChange} 
+                  show={showConfirmPassword} 
+                  setShow={setShowConfirmPassword} 
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Đang xử lý..." : "Đăng ký"}
+              </button>
+            </form>
+
+            <p className="text-center text-sm text-gray-600">
+              Đã có tài khoản?{" "}
+              <button
+                onClick={() => navigate("/login")}
+                className="inline-block px-3 py-1 text-purple-600 hover:text-white font-semibold hover:bg-purple-600 rounded-lg transition-all"
+              >
+                Đăng nhập ngay
+              </button>
+            </p>
           </div>
-
-          <div className="text-center space-y-1">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800">Tạo tài khoản mới!</h2>
-            <p className="text-gray-500 text-sm">Đăng ký để bắt đầu hành trình học tập</p>
-          </div>
-
-          {/* Thông báo */}
-          {message && <p className="text-green-600 text-center font-medium">{message}</p>}
-          {error && <p className="text-red-500 text-center font-medium">{error}</p>}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Họ tên - Email (1 dòng) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField 
-                label="Họ và tên" 
-                icon={<User />} 
-                name="name" 
-                type="text"
-                placeholder="Nguyễn Văn A" 
-                value={formData.name} 
-                onChange={handleChange} 
-                required 
-              />
-              <InputField 
-                label="Email" 
-                icon={<Mail />} 
-                name="email" 
-                type="email"
-                placeholder="your.email@example.com" 
-                value={formData.email} 
-                onChange={handleChange} 
-                required 
-              />
-            </div>
-
-            {/* Số điện thoại - Ngày sinh (1 dòng) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField 
-                label="Số điện thoại" 
-                icon={<Phone />} 
-                name="phoneNumber" 
-                type="tel"
-                placeholder="0123456789" 
-                value={formData.phoneNumber} 
-                onChange={handleChange} 
-                required 
-              />
-              <InputField 
-                label="Ngày sinh" 
-                icon={<Calendar />} 
-                name="dob" 
-                type="date"
-                value={formData.dob} 
-                onChange={handleChange} 
-                required 
-              />
-            </div>
-
-            {/* Password fields (2 cột) */}
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-              <PasswordField 
-                label="Mật khẩu" 
-                name="password" 
-                value={formData.password}
-                onChange={handleChange} 
-                show={showPassword} 
-                setShow={setShowPassword} 
-              />
-              <PasswordField 
-                label="Xác nhận mật khẩu" 
-                name="passwordConfirm" 
-                value={formData.passwordConfirm}
-                onChange={handleChange} 
-                show={showConfirmPassword} 
-                setShow={setShowConfirmPassword} 
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "Đang xử lý..." : "Đăng ký"}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-gray-600">
-            Đã có tài khoản?{" "}
-            <button
-              onClick={() => navigate("/login")}
-              className="inline-block px-3 py-1 text-purple-600 hover:text-white font-semibold hover:bg-purple-600 rounded-lg transition-all"
-            >
-              Đăng nhập ngay
-            </button>
-          </p>
         </div>
-      </div>
 
-      {/* Image Section - 45% */}
-      <div className="hidden md:block md:w-[45%]">
-        <img 
-          src="/images/banner.png" 
-          alt="Register Illustration" 
-          className="w-full h-full object-cover rounded-l-[32px]" 
-        />
+        {/* Image Section - 45% */}
+        <div className="hidden md:block md:w-[45%]">
+          <img 
+            src="/images/banner.png" 
+            alt="Register Illustration" 
+            className="w-full h-full object-cover rounded-l-[32px]" 
+          />
+        </div>
       </div>
     </div>
   );
