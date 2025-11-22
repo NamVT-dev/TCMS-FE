@@ -107,6 +107,7 @@ const api = {
                 axiosInstance.post(`schedule/jobs/${jobId}/finalize`),
             getAnalytics: () => axiosInstance.get("schedule/analytics"),
             getStatus: () => axiosInstance.get("schedule/status"),
+            deleteJob: (id) => axiosInstance.delete(`schedule/jobs/${id}`),
         },
 
         class: {
