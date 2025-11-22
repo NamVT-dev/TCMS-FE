@@ -203,7 +203,7 @@ const AdminViewTeacherList = () => {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-bold text-gray-900">{teacher.profile?.fullname || teacher.username}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">{teacher.username}</div>
+                          
                         </div>
                       </div>
                     </td>
