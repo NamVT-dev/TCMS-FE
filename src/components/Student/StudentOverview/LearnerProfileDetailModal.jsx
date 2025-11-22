@@ -200,7 +200,7 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
 
                                         {/* Classes */}
                                         <div className="pt-3 border-t border-gray-200">
-                                            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Lớp đã tham gia</p>
+                                            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Lớp học hiện tại</p>
                                             {learnerData.class?.length > 0 ? (
                                                 <span className="text-sm font-medium text-gray-800">
                                                     Đã tham gia {learnerData.class.length} lớp học.

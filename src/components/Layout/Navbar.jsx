@@ -55,8 +55,9 @@ const Navbar = () => {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const res = await api.user.getCourses();
-                const courses = res.data.data.courses || [];
+                const res = await api.user.getCourses({ page: 1, limit: 999999 });
+                const courses = res.data.data.courses;
+
                 const grouped = courses.reduce((acc, course) => {
                     const cat = course.category.name || 'Khác';
                     if (!acc[cat]) acc[cat] = [];
@@ -239,7 +240,7 @@ const Navbar = () => {
                                         onClick={() => navigate('/learner/my-classes')}
                                         className={`text-gray-700 hover:${colors.text} font-medium py-2 transition-colors`}
                                     >
-                                        Lớp học của tôi 
+                                        Lớp học của tôi
                                     </button>
 
                                     <button
