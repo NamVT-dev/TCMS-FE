@@ -3,7 +3,7 @@ import axios from "axios";
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 10000,
-    withCredentials: true, 
+    withCredentials: true,
 });
 
 axiosInstance.interceptors.request.use(
@@ -12,7 +12,7 @@ axiosInstance.interceptors.request.use(
             typeof FormData !== "undefined" && config.data instanceof FormData;
 
         if (isFD) {
-            if (config.headers) delete config.headers["Content-Type"]; 
+            if (config.headers) delete config.headers["Content-Type"];
         } else {
             if (config.headers) config.headers["Content-Type"] = "application/json";
         }
@@ -24,21 +24,21 @@ axiosInstance.interceptors.request.use(
 
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const url = error.config?.url || "";
-   
-    if (
-      error.response?.status === 401 &&
-      !url.includes("auth/login") &&
-      !url.includes("auth/updatePassword")
-    ) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+    (response) => response,
+    (error) => {
+        const url = error.config?.url || "";
+
+        if (
+            error.response?.status === 401 &&
+            !url.includes("auth/login") &&
+            !url.includes("auth/updatePassword")
+        ) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
 );
 
 
@@ -56,11 +56,11 @@ const api = {
     },
     notification: {
         getAll: () => axiosInstance.get("/notifications"),
-        
+
         markRead: (id) => axiosInstance.patch(`/notifications/${id}/read`),
 
         get: (id) => axiosInstance.get(`/notifications/${id}`),
-        
+
     },
 
     // --- User ---
@@ -251,6 +251,26 @@ const api = {
         getStudentDetail: (id) =>
             axiosInstance.get(`/staff/account/${id}`),
     },
+
+    substitute: {
+        // 1. Lấy chi tiết 1 yêu cầu (Teacher + Admin)
+        getOne: (id) => axiosInstance.get(`/substitute/requests/${id}`),
+
+        // 2. Hủy yêu cầu (Teacher)
+        cancel: (id) => axiosInstance.delete(`/substitute/requests/${id}`),
+
+        // 3. Tạo yêu cầu mới (Teacher)
+        create: (data) => axiosInstance.post("/substitute/requests", data),
+
+        // 4. Phản hồi yêu cầu - Chấp nhận/Từ chối (Teacher được mời)
+        respond: (id, data) => axiosInstance.patch(`/substitute/requests/${id}/respond`, data),
+
+        // 5. Admin xử lý - Duyệt/Từ chối (Admin)
+        adminProcess: (id, data) => axiosInstance.patch(`/substitute/requests/${id}/process`, data),
+
+        // 6. Lấy gợi ý giáo viên rảnh (Teacher + Admin)
+        getSuggestions: (sessionId) => axiosInstance.get("/substitute/suggestions", { params: { sessionId } }),
+    }
 };
 
 export default api;
