@@ -10,8 +10,9 @@ const CourseSection = () => {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const res = await api.user.getCourses();
+                const res = await api.user.getCourses({ page: 1, limit: 999999 });
                 const courses = res.data.data.courses;
+
 
                 const grouped = courses.reduce((acc, course) => {
                     const cat = course.category.name || "Khác";
@@ -40,7 +41,7 @@ const CourseSection = () => {
             </section>
         );
     }
-    
+
     const handleNavigateToDetail = (courseId) => {
         navigate(`/courses/${courseId}`);
     };

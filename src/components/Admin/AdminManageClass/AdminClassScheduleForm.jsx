@@ -7,7 +7,7 @@ import moment from 'moment-timezone';
 const inputClass = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm";
 const TIMEZONE = "Asia/Ho_Chi_Minh";
 
-// Định nghĩa danh sách ngày đầy đủ để map label
+
 const ALL_DAYS = [
     { id: 1, label: "Thứ 2" },
     { id: 2, label: "Thứ 3" },
@@ -18,7 +18,7 @@ const ALL_DAYS = [
     { id: 0, label: "Chủ Nhật" },
 ];
 
-// --- Helper Functions ---
+
 const calculateScheduleDates = (startDateStr, weeklySlots, totalSessions) => {
     if (!startDateStr || !weeklySlots.length || !totalSessions) return { dates: [], endDate: null };
 
@@ -68,14 +68,14 @@ const AdminClassScheduleForm = () => {
     const [teachers, setTeachers] = useState([]);
     const [rooms, setRooms] = useState([]);
 
-    // ⬇️ State mới lưu toàn bộ config
+   
     const [centerConfig, setCenterConfig] = useState(null);
     const [centerShifts, setCenterShifts] = useState([]);
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    // 1. Load Dữ liệu
+    
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
@@ -94,8 +94,8 @@ const AdminClassScheduleForm = () => {
                 setTeachers(teacherRes.data.data.teachers || []);
                 setRooms(roomRes.data.data.rooms || []);
 
-                setCenterConfig(config); // Lưu config
-                setCenterShifts(config.shifts || []); // Lưu shifts definitions
+                setCenterConfig(config); 
+                setCenterShifts(config.shifts || []); 
 
                 // Fill lịch hiện tại
                 if (cls.weeklySchedules && cls.weeklySchedules.length > 0) {
@@ -109,13 +109,12 @@ const AdminClassScheduleForm = () => {
                         };
                     }));
                 } else {
-                    // Tạo dòng trống mặc định
-                    // Tìm ngày đầu tiên active trong tuần
+                    
                     const firstActiveDay = config.activeDaysOfWeek && config.activeDaysOfWeek.length > 0
                         ? config.activeDaysOfWeek[0]
                         : 1;
 
-                    // Tìm shift đầu tiên active cho ngày đó
+                    
                     const dayShiftRule = config.dayShifts?.find(d => d.dayOfWeek === firstActiveDay);
                     const firstShiftName = dayShiftRule?.shifts?.[0];
                     const firstShift = config.shifts.find(s => s.name === firstShiftName) || config.shifts[0];
@@ -141,7 +140,7 @@ const AdminClassScheduleForm = () => {
         loadData();
     }, [id]);
 
-    // 2. Tự động tính toán Preview
+   
     useEffect(() => {
         if (classInfo && weeklySchedules.length > 0) {
             const totalSessions = classInfo.course?.session || 0;
@@ -158,19 +157,19 @@ const AdminClassScheduleForm = () => {
         }
     }, [classInfo, weeklySchedules]);
 
-    // --- Handlers ---
+   
     const handleScheduleChange = (index, field, value) => {
         const newSchedules = [...weeklySchedules];
 
         if (field === 'dayOfWeek') {
-            // Khi đổi ngày -> Reset Ca học nếu Ca cũ không hợp lệ với Ngày mới
+          
             const newDay = Number(value);
             newSchedules[index]['dayOfWeek'] = newDay;
 
-            // Kiểm tra xem shift hiện tại có được phép trong ngày mới không
+          
             const allowedShiftNames = centerConfig?.dayShifts?.find(ds => ds.dayOfWeek === newDay)?.shifts || [];
             if (!allowedShiftNames.includes(newSchedules[index].shiftName)) {
-                // Reset shift nếu không hợp lệ
+              
                 newSchedules[index].shiftName = '';
                 newSchedules[index].startMinute = null;
                 newSchedules[index].endMinute = null;
@@ -190,7 +189,7 @@ const AdminClassScheduleForm = () => {
     };
 
     const addScheduleSlot = () => {
-        // Logic tìm ngày/ca mặc định hợp lệ
+        
         const firstActiveDay = centerConfig?.activeDaysOfWeek?.[0] ?? 1;
         const dayShiftRule = centerConfig?.dayShifts?.find(d => d.dayOfWeek === firstActiveDay);
         const firstShiftName = dayShiftRule?.shifts?.[0];
@@ -213,7 +212,7 @@ const AdminClassScheduleForm = () => {
         setWeeklySchedules(weeklySchedules.filter((_, idx) => idx !== i));
     };
 
-    // 3. Submit
+    
     const handleSubmit = async () => {
         if (calculatedSessions.length === 0) return alert("Vui lòng điền đầy đủ thông tin lịch học để tạo danh sách.");
 
@@ -229,10 +228,10 @@ const AdminClassScheduleForm = () => {
                 }))
             };
 
-            // 1. Cập nhật Class Info
+            
             await api.admin.class.updateClass(id, classPayload);
 
-            // 2. Tạo Sessions
+       
             const sessionsPayload = calculatedSessions.map(s => ({
                 class: id,
                 course: classInfo.course._id,
@@ -282,15 +281,14 @@ const AdminClassScheduleForm = () => {
                     <div className="space-y-3">
                         {weeklySchedules.map((slot, idx) => {
 
-                            // ⬇️ LOGIC LỌC CA THEO NGÀY
-                            // Tìm các ca được phép cho ngày đang chọn (slot.dayOfWeek)
+                           
                             const allowedShiftNames = centerConfig?.dayShifts?.find(d => d.dayOfWeek === Number(slot.dayOfWeek))?.shifts || [];
-                            // Lọc danh sách shift đầy đủ để chỉ hiện các ca được phép
+                           
                             const availableShifts = centerShifts.filter(s => allowedShiftNames.includes(s.name));
 
                             return (
                                 <div key={idx} className="grid grid-cols-1 md:grid-cols-5 gap-3 p-3 border rounded-md items-end bg-gray-50">
-                                    {/* Dropdown Ngày: Chỉ hiện ngày Active */}
+                                
                                     <div>
                                         <label className="text-xs text-gray-500">Thứ</label>
                                         <select value={slot.dayOfWeek} onChange={e => handleScheduleChange(idx, 'dayOfWeek', e.target.value)} className={inputClass}>
@@ -300,7 +298,7 @@ const AdminClassScheduleForm = () => {
                                         </select>
                                     </div>
 
-                                    {/* Dropdown Ca: Chỉ hiện ca Active của ngày đó */}
+                               
                                     <div>
                                         <label className="text-xs text-gray-500">Ca học</label>
                                         <select value={slot.shiftName} onChange={e => handleScheduleChange(idx, 'shiftName', e.target.value)} className={inputClass} required>

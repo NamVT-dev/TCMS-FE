@@ -3,7 +3,7 @@ import { Eye, EyeOff, Lock, Check, X, AlertCircle } from "lucide-react";
 import api from "../../../utils/api";
 import toast from "react-hot-toast";
 
-const StudentChangePassword = () => {
+const TeacherChangePassword = () => {
   const [formData, setFormData] = useState({
     oldPassword: "",
     newPassword: "",
@@ -291,4 +291,4 @@ const StudentChangePassword = () => {
   );
 };
 
-export default StudentChangePassword;
+export default TeacherChangePassword;

@@ -10,17 +10,18 @@ import {
     Row,
     Col,
     Upload,
+    Button,
+    Space
 } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, SaveOutlined, RollbackOutlined } from "@ant-design/icons";
 import api from "../../../utils/api";
 import showToast from "../../../utils/showToast";
 
-const { Option } = Select;
+const { Title } = Typography;
 
 const AdminCourseDetailModal = ({
     open,
     courseId,
-    mode = "view",
     onClose,
     onUpdated,
     categories,
@@ -28,40 +29,51 @@ const AdminCourseDetailModal = ({
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const isEdit = mode === "edit";
-    const { Title } = Typography;
-    // preview & file state
+    
+    const [isEditing, setIsEditing] = useState(false); 
+
     const [imageUrl, setImageUrl] = useState("");
     const [imageFile, setImageFile] = useState(null);
     const [fileList, setFileList] = useState([]);
 
     useEffect(() => {
-        if (!open || !courseId) return;
-        (async () => {
-            setLoading(true);
-            try {
-                const res = await api.admin.getCourseById(courseId);
-                const data = res?.data?.data?.course;
+        if (open && courseId) {
+            setIsEditing(false);
+            fetchDetail();
+        } else {
+            form.resetFields();
+            setImageUrl("");
+            setFileList([]);
+        }
+    }, [open, courseId]);
 
+    const fetchDetail = async () => {
+        setLoading(true);
+        try {
+            const res = await api.admin.getCourseById(courseId);
+            const data = res?.data?.data?.course;
+            if (data) {
                 form.setFieldsValue({
-                    name: data?.name,
-                    price: data?.price,
-                    category: data?.category?._id,
-                    level: data?.level,
-                    session: data?.session,
-                    durationInMinutes: data?.durationInMinutes,
-                    description: data?.description || "",
+                    name: data.name,
+                    price: data.price,
+                    category: data.category?._id || data.category,
+                    level: data.level,
+                    session: data.session,
+                    durationInMinutes: data.durationInMinutes,
+                    description: data.description || "",
                 });
-
-                setImageUrl(data?.imageCover || "");
+                setImageUrl(data.imageCover || "");
                 setFileList([]);
-            } finally {
-                setLoading(false);
             }
-        })();
-    }, [open, courseId, form]);
+        } catch (err) {
+            showToast.error("Lỗi tải chi tiết khóa học");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const onFinish = async (values) => {
+        setSaving(true);
         const toastId = showToast.loading("Đang cập nhật khóa học...");
         try {
             const fd = new FormData();
@@ -72,88 +84,123 @@ const AdminCourseDetailModal = ({
             fd.append("session", String(values.session));
             fd.append("description", values.description || "");
             fd.append("durationInMinutes", String(values.durationInMinutes));
+            
             if (imageFile instanceof File) {
                 fd.append("imageCover", imageFile);
             }
+            
             await api.admin.updateCourseById(courseId, fd);
             showToast.updateSuccess(toastId, "Cập nhật thành công!");
-            onUpdated?.();
-            onClose?.();
+            
+            setIsEditing(false);
+            if (onUpdated) onUpdated();
         } catch (err) {
-            showToast.updateError(toastId, err?.response?.data?.message || "Cập nhật khóa học thất bại!");
+            showToast.updateError(toastId, err?.response?.data?.message || "Cập nhật thất bại!");
         } finally {
             setSaving(false);
         }
     };
 
+   
+    const categoryOptions = (Array.isArray(categories) ? categories : categories?.data || []).map(c => ({
+        label: c.name,
+        value: c._id
+    }));
+
+    const renderFooter = () => {
+        
+        if (loading) return null;
+        
+        if (isEditing) {
+            return (
+                <Space>
+                    <Button 
+                        icon={<RollbackOutlined />} 
+                        onClick={() => {
+                            setIsEditing(false);
+                            fetchDetail(); 
+                        }}
+                    >
+                        Hủy bỏ
+                    </Button>
+                    <Button 
+                        type="primary" 
+                        icon={<SaveOutlined />} 
+                        loading={saving} 
+                        onClick={() => form.submit()}
+                        style={{ backgroundColor: '#7e22ce', borderColor: '#7e22ce' }}
+                    >
+                        Lưu thay đổi
+                    </Button>
+                </Space>
+            );
+        }
+
+        return (
+            <Space>
+                <Button onClick={onClose}>Đóng</Button>
+                <Button 
+                    type="primary" 
+                    icon={<EditOutlined />} 
+                    onClick={() => setIsEditing(true)}
+                    style={{ backgroundColor: '#2563eb', borderColor: '#2563eb' }}
+                >
+                    Cập nhật
+                </Button>
+            </Space>
+        );
+    };
+
     return (
         <Modal
             open={open}
-            title={
-                <Title level={3} style={{ margin: 0, textAlign: "center" }}>
-                    {isEdit ? "Chỉnh sửa khóa học" : "Chi tiết khóa học"}
-                </Title>
-            }
+            title={<Title level={4} style={{ margin: 0 }}>{isEditing ? "Chỉnh sửa" : "Chi tiết"}</Title>}
             onCancel={onClose}
-            onOk={() => (isEdit ? form.submit() : onClose?.())}
-            okText={isEdit ? "Lưu" : "Đóng"}
-            confirmLoading={saving}
+            footer={renderFooter()} 
             width={800}
-            destroyOnClose>
-            {loading ? (
-                <div className="py-6 text-center">
-                    <Spin />
-                </div>
-            ) : (
-                <Form form={form} layout="vertical" onFinish={onFinish} disabled={!isEdit}>
-                    <Row gutter={[16, 16]}>
-                        {/* Trái: Upload ảnh (giống Create) */}
+            centered
+            maskClosable={!isEditing} 
+            
+            destroyOnHidden
+        >
+           
+            <Spin spinning={loading}>
+                <Form 
+                    form={form} 
+                    layout="vertical" 
+                    onFinish={onFinish} 
+                    disabled={!isEditing}
+                    className="mt-4"
+                    
+                    style={{ opacity: loading ? 0.5 : 1, pointerEvents: loading ? 'none' : 'auto' }}
+                >
+                    <Row gutter={[24, 24]}>
                         <Col xs={24} md={8}>
-                            <Form.Item label={<span style={{ fontWeight: 600 }}></span>}>
+                            <Form.Item label={<span className="font-semibold">Hình ảnh</span>}>
                                 <Upload
-                                    className="course-uploader"
                                     listType="picture-card"
                                     showUploadList={false}
                                     accept="image/*"
                                     beforeUpload={(file) => {
                                         const okType = file.type.startsWith("image/");
-                                        const okSize = file.size / 1024 / 1024 <= 5;
-                                        if (!okType){
-                                            showToast.error("Chỉ được tải lên file ảnh!");
-                                            return Upload.LIST_IGNORE
-                                        } ;
-                                        if (!okSize){
-                                            showToast.error("Ảnh tải lên phải nhỏ hơn 5MB!");
-                                            return Upload.LIST_IGNORE;
-                                        } 
+                                        if (!okType) return Upload.LIST_IGNORE;
                                         return false;
                                     }}
                                     onChange={(info) => {
-                                        const list = info.fileList.slice(-1);
-                                        setFileList(list);
-                                        const f = list[0]?.originFileObj;
+                                        const f = info.fileList.slice(-1)[0]?.originFileObj;
                                         if (f) {
                                             setImageFile(f);
                                             setImageUrl(URL.createObjectURL(f));
+                                            setFileList(info.fileList.slice(-1));
                                         }
                                     }}
                                     fileList={fileList}
-                                    disabled={!isEdit}
-                                    style={{ width: "100%" }}
+                                    disabled={!isEditing}
+                                    className="course-uploader"
                                 >
                                     {imageUrl ? (
-                                        <div className="image-square">
-                                            <img
-                                                src={imageUrl}
-                                                alt="course"
-                                                style={{
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    objectFit: "cover",
-                                                    display: "block",
-                                                    borderRadius: 8
-                                                }}
-                                            />
+                                        <div className="w-full h-full overflow-hidden rounded-lg border border-gray-200">
+                                            <img src={imageUrl} alt="cover" className="w-full h-full object-cover" />
                                         </div>
                                     ) : (
                                         <div>
@@ -165,122 +212,66 @@ const AdminCourseDetailModal = ({
                             </Form.Item>
                         </Col>
 
-                        {/* Phải: thông tin khóa học (giống Create) */}
                         <Col xs={24} md={16}>
                             <Form.Item
-                                label={<span style={{ fontWeight: 600 }}>Tên khóa học</span>}
+                                label={<span className="font-semibold">Tên khóa học</span>}
                                 name="name"
-                                rules={[
-                                    { required: true, message: "Tên khóa học không được để trống!" },
-                                    { max: 150, message: "Tên tối đa 150 ký tự" }
-                                ]}
+                                rules={[{ required: true, message: "Vui lòng nhập tên" }]}
                             >
-                                <Input placeholder="Nhập tên khóa học" />
+                                <Input size="large" />
                             </Form.Item>
 
                             <Form.Item
-                                label={<span style={{ fontWeight: 600 }}>Danh mục</span>}
+                                label={<span className="font-semibold">Danh mục</span>}
                                 name="category"
-                                rules={[{ required: true, message: "Danh mục không được để trống!" }]}
+                                rules={[{ required: true }]}
                             >
-                                <Select
-                                    placeholder="Chọn danh mục"
-                                    optionFilterProp="label"
-                                    options={(categories?.data || []).map((cat) => ({
-                                        label: cat.name,
-                                        value: cat._id
-                                    }))}
-                                />
+                                <Select placeholder="Chọn danh mục" size="large" options={categoryOptions} />
                             </Form.Item>
 
-                            <Row gutter={[12, 12]}>
-                                <Col xs={24} md={12}>
-                                    <Form.Item
-                                        label={<span style={{ fontWeight: 600 }}>Mức độ</span>}
-                                        name="level"
-                                        rules={[{ required: true, message: "Mức độ khóa học không được để trống!" }]}
-                                    >
-                                        <Select
-                                            allowClear
-                                            placeholder="Chọn mức độ"
-                                            options={[
-                                                { label: "Beginner", value: "Beginner" },
-                                                { label: "Intermediate", value: "Intermediate" },
-                                                { label: "Advanced", value: "Advanced" }
-                                            ]}
-                                        />
+                            <Row gutter={16}>
+                                <Col span={12}>
+                                    <Form.Item label={<span className="font-semibold">Mức độ</span>} name="level" rules={[{ required: true }]}>
+                                        <Select size="large" options={["Beginner", "Elementary", "Intermediate", "Advanced"].map(l=>({label:l, value:l}))} />
                                     </Form.Item>
                                 </Col>
-                                <Col xs={24} md={12}>
-                                    <Form.Item
-                                        label={<span style={{ fontWeight: 600 }}>Giá (VND)</span>}
-                                        name="price"
-                                        rules={[{ required: true, message: "Giá khóa học không được để trống!" }]}
-                                    >
-                                        <InputNumber
-                                            min={0}
-                                            style={{ width: "100%" }}
-                                            placeholder="Nhập giá khóa học"
-                                            formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                                            parser={(v) => v.replace(/,/g, "")}
-                                        />
+                                <Col span={12}>
+                                    <Form.Item label={<span className="font-semibold">Giá (VND)</span>} name="price" rules={[{ required: true }]}>
+                                        <InputNumber style={{ width: "100%" }} size="large" formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} parser={(v) => v.replace(/,/g, "")} />
                                     </Form.Item>
                                 </Col>
                             </Row>
                         </Col>
                     </Row>
 
-                    <Row gutter={[16, 16]}>
-                        <Col xs={24} md={12}>
-                            <Form.Item
-                                label={<span style={{ fontWeight: 600 }}>Số buổi học</span>}
-                                name="session"
-                                rules={[{ required: true, message: "Số buổi học không được để trống!" }]}
-                            >
-                                <InputNumber min={1} style={{ width: "100%" }} placeholder="Nhập số buổi học" />
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Form.Item label={<span className="font-semibold">Số buổi</span>} name="session" rules={[{ required: true }]}>
+                                <InputNumber min={1} style={{ width: "100%" }} size="large" />
                             </Form.Item>
                         </Col>
-                        <Col xs={24} md={12}>
-                            <Form.Item
-                                label={<span style={{ fontWeight: 600 }}>Thời lượng buổi học (phút)</span>}
-                                name="durationInMinutes"
-                                rules={[{ required: true, message: "Thời lượng mỗi buổi không được để trống!" }]}
-                            >
-                                <InputNumber min={1} style={{ width: "100%" }} placeholder="Nhập thời lượng mỗi buổi" />
+                        <Col span={12}>
+                            <Form.Item label={<span className="font-semibold">Thời lượng (phút)</span>} name="durationInMinutes" rules={[{ required: true }]}>
+                                <InputNumber min={1} style={{ width: "100%" }} size="large" />
                             </Form.Item>
                         </Col>
                     </Row>
 
-                    {/* Mô tả full width */}
-                    <Form.Item
-                        label={<span style={{ fontWeight: 600 }}>Mô tả</span>}
-                        name="description"
-                        style={{ marginTop: 12 }}
-                        rules={[{ required: true, message: "Mô tả không được để trống!" }]}
-                    >
-                        <Input.TextArea rows={6} placeholder="Nhập mô tả chi tiết về khóa học" />
+                    <Form.Item label={<span className="font-semibold">Mô tả chi tiết</span>} name="description">
+                        <Input.TextArea rows={4} />
                     </Form.Item>
 
-                    {/* CSS giống Create: ô ảnh vuông full-width */}
                     <style>{`
-          .course-uploader.ant-upload-wrapper .ant-upload.ant-upload-select-picture-card {
-            width: 100% !important;
-          }
-          .image-square {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #e6e6e6;
-            box-shadow: 0 4px 14px rgba(31,93,255,0.12);
-            background: #f7f9ff;
-          }
-        `}</style>
+                        .course-uploader .ant-upload.ant-upload-select-picture-card {
+                            width: 100% !important;
+                            height: 200px !important;
+                            border-radius: 12px;
+                        }
+                    `}</style>
                 </Form>
-            )}
+            </Spin>
         </Modal>
     );
-
 };
 
 export default AdminCourseDetailModal;

@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import api from "../../../utils/api";
-import { Loader2, ArrowLeft, BookOpen, User, Home, Calendar, Clock, Edit, Users, CalendarPlus } from "lucide-react";
+import api from "../../../utils/api"; // Đảm bảo đường dẫn đúng
+import { 
+    Loader2, ArrowLeft, BookOpen, User, Home, 
+    Calendar, Clock, Users, CalendarPlus, Ban, Eye 
+} from "lucide-react";
 import ClassScheduleCalendar from "./ClassScheduleCalendar";
 import ChangeTeacherModal from "./ChangeTeacherModal";
 
+// Component InfoCard giữ nguyên
 const InfoCard = ({ icon: Icon, title, children }) => (
     <div className="bg-white shadow rounded-lg p-5">
         <div className="flex items-center mb-3">
@@ -15,6 +19,7 @@ const InfoCard = ({ icon: Icon, title, children }) => (
     </div>
 );
 
+// Component WeeklyScheduleCard giữ nguyên
 const WeeklyScheduleCard = ({ schedules }) => {
     const formatMinutes = (minutes) => {
         if (minutes === undefined || minutes === null) return '';
@@ -30,7 +35,7 @@ const WeeklyScheduleCard = ({ schedules }) => {
                 <h3 className="text-lg font-semibold text-gray-800">Lịch Học Hàng Tuần</h3>
             </div>
             <div className="space-y-4">
-                {schedules.map((slot, index) => {
+                {schedules?.map((slot, index) => {
                     const timeText = `${formatMinutes(slot.startMinute)} - ${formatMinutes(slot.endMinute)}`;
                     return (
                         <div key={index} className="p-3 bg-purple-50 rounded-md border border-purple-200">
@@ -45,6 +50,7 @@ const WeeklyScheduleCard = ({ schedules }) => {
                         </div>
                     );
                 })}
+                {(!schedules || schedules.length === 0) && <p className="text-gray-500 italic">Chưa có lịch tuần cố định.</p>}
             </div>
         </div>
     );
@@ -82,17 +88,51 @@ const AdminClassDetail = () => {
         fetchClassDetail();
     };
 
-    // Callback khi session được update thành công
     const handleSessionUpdated = (updatedSession) => {
-        // Update session trong state
         setSessions(prevSessions =>
             prevSessions.map(session =>
                 session._id === updatedSession._id ? updatedSession : session
             )
         );
+    };
 
-        // Optional: Refresh toàn bộ nếu cần
-        // fetchClassDetail();
+    // --- Xử lý Hủy Lớp ---
+    const handleCancelClass = async () => {
+        if (!classData) return;
+        
+        // Kiểm tra điều kiện phía Client cho chắc chắn (dù server có check rồi)
+        const hasStudents = classData.student && classData.student.length > 0;
+        const hasReserved = classData.reservedCount > 0;
+
+        if (hasStudents || hasReserved) {
+            alert("Không thể hủy lớp khi đang có học viên (Confirmed hoặc Holding). Vui lòng chuyển học viên sang lớp khác trước.");
+            return;
+        }
+
+        if (!window.confirm(`Bạn có chắc chắn muốn HỦY lớp "${classData.name}" không? Hành động này sẽ hủy toàn bộ lịch học liên quan.`)) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await api.admin.class.cancelClass(id);
+            alert("Hủy lớp thành công!");
+            // Sau khi hủy, load lại data để cập nhật status
+            fetchClassDetail();
+        } catch (err) {
+            alert(err.response?.data?.message || "Lỗi khi hủy lớp.");
+            setLoading(false);
+        }
+    };
+
+    // --- Xử lý nút Lịch Học ---
+    const handleScheduleAction = () => {
+        if (sessions && sessions.length > 0) {
+            navigate(`/admin/classes/${id}/sessions`); // Route này trỏ tới AdminViewDetailSessionClass
+        }else {
+            // Nếu chưa có session -> Sang trang setup lịch
+            navigate(`/admin/classes/${id}/schedule-setup`);
+        }
     };
 
     if (loading) {
@@ -111,6 +151,11 @@ const AdminClassDetail = () => {
         return <div className="p-6 text-center text-gray-500">Không tìm thấy dữ liệu lớp.</div>;
     }
 
+    // Kiểm tra xem đã có lịch chi tiết chưa
+    const hasSessions = sessions && sessions.length > 0;
+    // Kiểm tra xem lớp đã bị hủy chưa để disable các nút thao tác
+    const isCanceled = classData.status === "canceled";
+
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="flex justify-between items-center mb-4">
@@ -121,47 +166,83 @@ const AdminClassDetail = () => {
                     <ArrowLeft className="h-5 w-5 mr-2" />
                     Quay lại Danh sách lớp
                 </Link>
+                
+                {/* Button Group */}
                 <div className="flex space-x-3">
+                    {/* 1. Nút Lịch Học (Logic thay đổi theo yêu cầu) */}
                     <button
-                        onClick={() => navigate(`/admin/classes/${id}/schedule-setup`)}
-                        className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shadow-sm"
+                        onClick={handleScheduleAction}
+                        disabled={isCanceled}
+                        className={`inline-flex items-center px-4 py-2 text-white rounded-lg shadow-sm transition
+                            ${isCanceled 
+                                ? 'bg-gray-400 cursor-not-allowed' 
+                                : 'bg-purple-600 hover:bg-purple-700'}`}
                     >
-                        <CalendarPlus className="w-5 h-5 mr-2" />
-                        {classData.weeklySchedules?.length > 0 ? "Sửa Lịch Học" : "Tạo Lịch Học"}
+                        {hasSessions ? (
+                            <>
+                                <Eye className="w-5 h-5 mr-2" />
+                                Xem Lịch Chi Tiết
+                            </>
+                        ) : (
+                            <>
+                                <CalendarPlus className="w-5 h-5 mr-2" />
+                                {classData.weeklySchedules?.length > 0 ? "Tạo Lịch Học (Từ Weekly)" : "Tạo Lịch Học"}
+                            </>
+                        )}
                     </button>
+
+                    {/* 2. Nút Đổi Giáo Viên */}
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm"
+                        disabled={isCanceled}
+                        className={`inline-flex items-center px-4 py-2 text-white rounded-lg shadow-sm transition
+                            ${isCanceled 
+                                ? 'bg-gray-400 cursor-not-allowed' 
+                                : 'bg-blue-600 hover:bg-blue-700'}`}
                     >
                         <Users className="w-5 h-5 mr-2" />
                         Đổi Giáo viên
                     </button>
-                    <button
-                        onClick={() => navigate(`/admin/classes/edit/${id}`)}
-                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-sm"
-                    >
-                        <Edit className="w-5 h-5 mr-2" />
-                        Sửa Lớp
-                    </button>
+
+                    {/* 3. Nút Hủy Lớp (Thay cho nút Sửa Lớp) */}
+                    {/* Chỉ hiển thị nút Hủy nếu lớp chưa bị hủy */}
+                    {!isCanceled && (
+                        <button
+                            onClick={handleCancelClass}
+                            className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-sm"
+                        >
+                            <Ban className="w-5 h-5 mr-2" />
+                            Hủy Lớp
+                        </button>
+                    )}
+                    {isCanceled && (
+                        <span className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-500 rounded-lg border border-gray-300 cursor-not-allowed">
+                            <Ban className="w-5 h-5 mr-2" />
+                            Đã Hủy
+                        </span>
+                    )}
                 </div>
             </div>
 
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 mb-1">
+                <h1 className="text-3xl font-bold text-gray-800 mb-1 flex items-center gap-3">
                     {classData.name}
+                    {isCanceled && <span className="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full font-medium">Đã Hủy</span>}
                 </h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1 space-y-6">
                     <InfoCard icon={BookOpen} title="Thông Tin Khóa Học">
+                        <p><strong>Mã lớp:</strong> {classData.classCode || "N/A"}</p>
                         <p><strong>Khóa học:</strong> {classData.course?.name || "N/A"}</p>
-                        <p><strong>Trạng thái:</strong> {classData.status}</p>
-                        <p><strong>Sĩ số:</strong> {classData.minStudent} - {classData.maxStudent} HS</p>
+                        <p><strong>Trạng thái:</strong> <span className="uppercase">{classData.status}</span></p>
+                        <p><strong>Sĩ số:</strong> {classData.student?.length || 0} / {classData.maxStudent} HS</p>
                     </InfoCard>
                     <WeeklyScheduleCard schedules={classData.weeklySchedules} />
                 </div>
                 <div className="lg:col-span-2">
+                    {/* Calendar hiển thị tổng quan */}
                     <ClassScheduleCalendar
                         sessions={sessions}
                         classInfo={classData}

@@ -15,7 +15,6 @@ function AdminScheduleDashboard() {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  
   const [stats, setStats] = useState({
     teachers: [],
     rooms: [],
@@ -26,11 +25,11 @@ function AdminScheduleDashboard() {
 
   const navigate = useNavigate();
 
+  // Hàm fetchData được bọc useCallback để có thể truyền xuống dưới làm callback
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setIsLoadingStats(true);
     try {
-
       const startDate = moment().subtract(6, 'months').format('YYYY-MM-DD');
       const endDate = moment().add(6, 'months').format('YYYY-MM-DD');
 
@@ -58,7 +57,6 @@ function AdminScheduleDashboard() {
       if (jobsRes.status === 'fulfilled') {
         setJobs(jobsRes.value.data.data);
       }
-
 
       let allPending = [];
       if (studentRes.status === 'fulfilled') {
@@ -170,8 +168,12 @@ function AdminScheduleDashboard() {
         isLoadingStats={isLoadingStats}
       />
 
-      {/* Job History Table */}
-      <JobHistoryTable jobs={jobs} isLoading={isLoading} />
+      
+      <JobHistoryTable 
+        jobs={jobs} 
+        isLoading={isLoading} 
+        onDeleteSuccess={fetchData} 
+      />
 
       {/* New Schedule Modal */}
       <NewScheduleModal

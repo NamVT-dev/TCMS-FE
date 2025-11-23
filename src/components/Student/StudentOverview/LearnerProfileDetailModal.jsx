@@ -1,279 +1,251 @@
-import React, { useEffect, useState } from "react";
-import {
-    Modal,
-    Form,
-    Input,
-    Radio,
-    DatePicker,
-    Select,
-    Spin,
-    Typography,
-    Row,
-    Col,
-    Upload,
-} from "antd";
-import { PlusOutlined } from "@ant-design/icons";
-import api from "../../../utils/api";
+import React, { useState, useEffect } from 'react';
+import api from '../../../utils/api';
+import { Loader2, Save, X, User, BookOpen, Target, Trophy } from 'lucide-react';
 import showToast from "../../../utils/showToast";
-import dayjs from "dayjs";
+import moment from 'moment';
 
-const { Option } = Select;
+const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white";
+const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
 
-const LearnerProfileDetailModal = ({
-    open,
-    learnnerID,
-    mode = "view",
-    onClose,
-    onUpdated
-}) => {
-    const [form] = Form.useForm();
+const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) => {
+    // Form State (Editable)
+    const [formData, setFormData] = useState({
+        name: '',
+        dob: '',
+        gender: 'male',
+    });
+
+    // Read-only Data (Academic Info)
+    const [learnerData, setLearnerData] = useState(null);
+    
     const [loading, setLoading] = useState(false);
-    //const [saving, setSaving] = useState(false);
-    const isEdit = mode === "edit";
-    const { Title } = Typography;
-    // preview & file state
-    const [imageUrl, setImageUrl] = useState("");
-    const [imageFile, setImageFile] = useState(null);
-    //const [fileList, setFileList] = useState([]);
+    const [fetching, setFetching] = useState(false);
 
     useEffect(() => {
-        if (!open || !learnnerID) return;
-        (async () => {
-            setLoading(true);
-            try {
-                const res = await api.user.getLearnerById(learnnerID);
-                const data = res?.data?.data ?? [];
+        if (isOpen && learnerId) {
+            const fetchDetail = async () => {
+                setFetching(true);
+                try {
+                    const res = await api.user.getLearnerById(learnerId);
+                    const data = res.data.data;
+                    setLearnerData(data);
 
-                form.setFieldsValue({
-                    name: data?.name,
-                    dob: data?.dob ? dayjs(data.dob) : null,
-                    gender: data?.gender
-                });
+                    // Fill form data
+                    setFormData({
+                        name: data.name || '',
+                        dob: data.dob ? data.dob.split('T')[0] : '',
+                        gender: data.gender || 'male',
+                    });
+                } catch (err) {
+                    console.error("Lỗi tải thông tin học viên:", err);
+                    showToast.error("Không thể tải thông tin học viên");
+                } finally {
+                    setFetching(false);
+                }
+            };
+            fetchDetail();
+        }
+    }, [isOpen, learnerId]);
 
-                setImageUrl(data?.photo || "");
-                //setFileList([]);
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [open, learnnerID, form]);
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
 
-    const onFinish = async (values) => {
-        const toastId = showToast.loading("Đang cập nhật thông tin học viên...");
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        const toastId = showToast.loading("Đang cập nhật...");
+        
         try {
-            const lennerProfile = {
-                name: values.name,
-                dob: values.dob ? values.dob.toISOString() : "",
-                gender: values.gender,
-                phone: values.phone || "",
-                photo: imageFile
+            const updatePayload = {
+                name: formData.name,
+                dob: formData.dob,
+                gender: formData.gender
             };
 
-            await api.user.updateLearnerById(learnnerID, lennerProfile);
-            showToast.updateSuccess(toastId, "Cập nhật thông tin học viên thành công!");
-            onUpdated?.();
-            onClose?.();
+            await api.user.updateLearnerById(learnerId, updatePayload);
+            
+            showToast.updateSuccess(toastId, "Cập nhật thành công!");
+            onSuccess();
+            onClose();
         } catch (err) {
-            showToast.updateError(toastId, err?.response?.data?.message || "Cập nhật thông tin học viên thất bại!");
+            showToast.updateError(toastId, err.response?.data?.message || "Lỗi khi cập nhật");
         } finally {
-            //setSaving(false);
+            setLoading(false);
         }
     };
 
-    return (
-        <Modal
-            open={open}
-            title={
-                <Title level={3} style={{ margin: 0, textAlign: "center" }}>
-                    {isEdit ? "Chỉnh sửa thông tin học viên" : "Chi tiết thông tin học viên"}
-                </Title>
-            }
-            onCancel={onClose}
-            footer={
-                isEdit ? (
-                    // 👉 Chế độ chỉnh sửa → chỉ có nút Lưu & Hủy
-                    <div className="flex justify-end gap-3">
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-                        >
-                            Hủy
-                        </button>
-                        <button
-                            onClick={() => form.submit()}
-                            className="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700"
-                        >
-                            Lưu
-                        </button>
-                    </div>
-                ) : (
-                    // 👉 Chế độ xem → chỉ có nút Đóng
-                    <div className="flex justify-end">
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700"
-                        >
-                            Đóng
-                        </button>
-                    </div>
-                )
-            }
-            width={800}
-            destroyOnClose>
-            {loading ? (
-                <div className="py-6 text-center">
-                    <Spin />
-                </div>
-            ) : (
-                <Form form={form} layout="vertical"
-                    onFinish={onFinish}
-                    disabled={!isEdit}>
-                    <Row gutter={[16, 16]}>
-                        {/* Trái: Upload ảnh (giống Create) */}
-                        <Col xs={24} md={8}>
-                            <Form.Item label={<span style={{ fontWeight: 600 }}></span>}>
+    if (!isOpen) return null;
 
-                                {/* Khung Avatar Preview */}
-                                <div
-                                    onClick={() => {
-                                        if (isEdit) document.getElementById("avatarInput").click();
-                                    }}
-                                    style={{
-                                        width: "100%",
-                                        aspectRatio: "1/1",
-                                        borderRadius: 12,
-                                        overflow: "hidden",
-                                        border: "1px solid #e6e6e6",
-                                        background: "#f5f6fa",
-                                        cursor: isEdit ? "pointer" : "default",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center"
-                                    }}
-                                >
-                                    <img
-                                        src={imageUrl}
-                                        alt=""
-                                        style={{
-                                            width: "100%",
-                                            height: "100%",
-                                            objectFit: "cover"
-                                        }}
-                                    />
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-all duration-300">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+                
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-800">Hồ sơ Học viên</h2>
+                        <p className="text-sm text-gray-500 mt-0.5">Thông tin chi tiết và học vụ</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
+                    {fetching ? (
+                        <div className="h-64 flex items-center justify-center">
+                            <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            
+                            {/* LEFT: Editable Personal Info */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                                    <User className="w-5 h-5 text-purple-600" />
+                                    <h3 className="font-bold text-gray-700">Thông tin cá nhân</h3>
                                 </div>
 
-                                {/* Input Upload ẨN HOÀN TOÀN */}
-                                <Upload
-                                    id="avatarInput"
-                                    accept="image/*"
-                                    showUploadList={false}
-                                    beforeUpload={(file) => {
-                                        const okType = file.type.startsWith("image/");
-                                        const okSize = file.size / 1024 / 1024 <= 5;
-                                        if (!okType) {
-                                            showToast.error("Chỉ được tải lên file ảnh!");
-                                            return Upload.LIST_IGNORE;
-                                        }
-                                        if (!okSize) {
-                                            showToast.error("Ảnh phải nhỏ hơn 5MB!");
-                                            return Upload.LIST_IGNORE;
-                                        }
-                                        return false;
-                                    }}
-                                    onChange={(info) => {
-                                        const f = info.fileList[0]?.originFileObj;
-                                        if (f) {
-                                            setImageFile(f);
-                                            setImageUrl(URL.createObjectURL(f));
-                                        }
-                                    }}
-                                    style={{ display: "none" }}
-                                >
-                                    <div></div>
-                                </Upload>
-
-                            </Form.Item>
-                        </Col>
-
-                        {/* thông tin học viên */}
-                        <Col xs={24} md={16}>
-                            <Row gutter={[12, 12]}>
-                                <Col xs={24} md={24}>
-                                    <Form.Item
-                                        label="Họ và tên"
-                                        name="name"
-                                        rules={[
-                                            { required: true, message: "Vui lòng nhập họ và tên" },
-                                        ]}
-                                    >
-                                        <Input placeholder="Nhập họ và tên" />
-                                    </Form.Item>
-                                </Col>
-
-                                <Col xs={24} md={12}>
-                                    <Form.Item
-                                        label="Ngày sinh"
-                                        name="dob"
-                                        rules={[{ required: true, message: "Vui lòng chọn ngày sinh" }]}
-                                    >
-                                        <DatePicker
-                                            style={{ width: "100%" }}
-                                            placeholder="Nhập ngày sinh"
-                                            format="DD/MM/YYYY"
+                                <form id="learner-form" onSubmit={handleSubmit} className="space-y-4">
+                                    <div>
+                                        <label className={labelClass}>Họ và tên</label>
+                                        <input 
+                                            type="text" name="name" 
+                                            value={formData.name} onChange={handleChange} 
+                                            className={inputClass} required 
                                         />
-                                    </Form.Item>
-                                </Col>
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Ngày sinh</label>
+                                        <input 
+                                            type="date" name="dob" 
+                                            value={formData.dob} onChange={handleChange} 
+                                            className={inputClass} 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Giới tính</label>
+                                        <div className="flex gap-6 mt-2">
+                                            {['male', 'female'].map((g) => (
+                                                <label key={g} className="flex items-center cursor-pointer">
+                                                    <input 
+                                                        type="radio" name="gender" value={g} 
+                                                        checked={formData.gender === g} 
+                                                        onChange={handleChange}
+                                                        className="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+                                                    />
+                                                    <span className="ml-2 text-gray-700 capitalize">
+                                                        {g === 'male' ? 'Nam' : 'Nữ'}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
 
-                                <Col xs={24} md={12}>
-                                    <Form.Item
-                                        label="Giới tính"
-                                        name="gender"
-                                        rules={[{ required: true, message: "Vui lòng chọn giới tính" }]}
-                                    >
-                                        <Radio.Group>
-                                            <Radio value="male">Nam</Radio>
-                                            <Radio value="female">Nữ</Radio>
-                                        </Radio.Group>
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </Col>
-                    </Row>
-                    <style>
-                        {`
-                            .avatar-uploader .ant-upload {
-                                width: 100% !important;
-                            }
+                            {/* RIGHT: Read-only Academic Info */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                                    <BookOpen className="w-5 h-5 text-blue-600" />
+                                    <h3 className="font-bold text-gray-700">Thông tin học tập</h3>
+                                </div>
 
-                            .avatar-frame {
-                                width: 100%;
-                                aspect-ratio: 1 / 1; /* Khung luôn vuông */
-                                border-radius: 12px;
-                                overflow: hidden;
-                                border: 1px solid #e2e2e2;
-                                background: #fafafa;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                            }
+                                {learnerData ? (
+                                    <div className="bg-gray-50 rounded-xl p-4 space-y-4 border border-gray-200">
+                                        {/* Category & Score */}
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Môn học </p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {learnerData.category?.map(c => (
+                                                        <span key={c._id} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded">
+                                                            {c.name}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Trình độ hiện tại</p>
+                                                <div className="flex items-center justify-end text-purple-700 font-bold">
+                                                    <Trophy className="w-4 h-4 mr-1" />
+                                                    {learnerData.testScore || "Chưa test"}
+                                                </div>
+                                            </div>
+                                        </div>
 
-                            .avatar-img {
-                                width: 100%;
-                                height: 100%;
-                                object-fit: cover;  /* Ảnh luôn đẹp, không méo */
-                                display: block;
-                            }
+                                        {/* Learning Goal */}
+                                        {learnerData.learningGoal && (
+                                            <div className="pt-3 border-t border-gray-200">
+                                                <p className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center">
+                                                    <Target className="w-3 h-3 mr-1" /> Mục tiêu học tập
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                    <div className="bg-white p-2 rounded border">
+                                                        <span className="text-gray-500 block text-xs">Mục tiêu</span>
+                                                        <span className="font-medium text-gray-800">{learnerData.learningGoal.targetScore || "N/A"}</span>
+                                                    </div>
+                                                    <div className="bg-white p-2 rounded border">
+                                                        <span className="text-gray-500 block text-xs">Hạn chót</span>
+                                                        <span className="font-medium text-gray-800">
+                                                            {learnerData.learningGoal.deadline ? moment(learnerData.learningGoal.deadline).format("DD/MM/YYYY") : "N/A"}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
 
-                            .upload-placeholder {
-                                color: #888;
-                            }
-                            `}
-                    </style>
-                </Form>
-            )}
-        </Modal>
+                                        {/* Classes */}
+                                        <div className="pt-3 border-t border-gray-200">
+                                            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Lớp học hiện tại</p>
+                                            {learnerData.class?.length > 0 ? (
+                                                <span className="text-sm font-medium text-gray-800">
+                                                    Đã tham gia {learnerData.class.length} lớp học.
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm text-gray-400 italic">Chưa tham gia lớp nào.</span>
+                                            )}
+                                        </div>
+                                        
+                                        {/* Status */}
+                                        <div className="pt-3 border-t border-gray-200">
+                                             <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Trạng thái nhập học</p>
+                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${learnerData.enrolled ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
+                                                {learnerData.enrolled ? 'Đã nhập học' : 'Chưa nhập học'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500 italic text-sm">Không có dữ liệu học tập.</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3">
+                    <button 
+                        onClick={onClose} 
+                        className="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-white hover:shadow-sm transition-all"
+                    >
+                        Hủy bỏ
+                    </button>
+                    <button 
+                        onClick={() => document.getElementById('learner-form').requestSubmit()} 
+                        disabled={loading || fetching}
+                        className="px-6 py-2.5 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    >
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
     );
-
 };
 
 export default LearnerProfileDetailModal;

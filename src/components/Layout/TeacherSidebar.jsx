@@ -14,6 +14,11 @@ import {
   BookOpen,
   CheckSquare,
   History,
+  Briefcase,
+  UserCircle,
+  GitPullRequestArrow,
+  KeyRound,
+
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -49,7 +54,7 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
           <Link
             key={index}
             to={item.path}
-            className="hidden group-hover:block ml-2 px-2 py-1 text-sm text-gray-600 hover:text-sky-600"
+            className="hidden group-hover:block ml-2 px-2 py-1 text-sm text-gray-600 hover:text-purple-600"
           >
             {item.icon && <item.icon className="w-4 h-4" />}
           </Link>
@@ -62,30 +67,26 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
     <div className="mb-2">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 ${
-          isOpen ? "bg-gray-100" : ""
-        }`}
+        className={`w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 ${isOpen ? "bg-gray-100" : ""
+          }`}
       >
         <div className="flex items-center space-x-3">
           <div
-            className={`p-2 rounded-lg ${
-              isOpen ? "bg-sky-100" : "bg-gray-100"
-            }`}
+            className={`p-2 rounded-lg ${isOpen ? "bg-purple-100" : "bg-gray-100"
+              }`}
           >
             <Icon
-              className={`w-5 h-5 ${
-                isOpen ? "text-sky-600" : "text-gray-600"
-              }`}
+              className={`w-5 h-5 ${isOpen ? "text-purple-600" : "text-gray-600"
+                }`}
             />
           </div>
-          <span className={`font-medium ${isOpen ? "text-sky-600" : ""}`}>
+          <span className={`font-medium ${isOpen ? "text-purple-600" : ""}`}>
             {title}
           </span>
         </div>
         <ChevronRight
-          className={`w-4 h-4 transition-transform duration-200 ${
-            isOpen ? "rotate-90 text-sky-600" : "text-gray-400"
-          }`}
+          className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-90 text-purple-600" : "text-gray-400"
+            }`}
         />
       </button>
 
@@ -97,11 +98,10 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
               <Link
                 key={index}
                 to={item.path}
-                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${
-                  isActive
-                    ? "bg-sky-100 text-sky-600 font-medium"
-                    : "text-gray-600 hover:text-sky-600 hover:bg-sky-50"
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${isActive
+                    ? "bg-purple-100 text-purple-600 font-medium"
+                    : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                  }`}
               >
                 {item.icon && <item.icon className="w-4 h-4" />}
                 <span>{item.name}</span>
@@ -119,25 +119,47 @@ const TeacherSidebar = ({ isCollapsed, onToggle }) => {
   const currentPath = location.pathname;
 
   const menuItems = [
+
     {
-      icon: LayoutDashboard,
-      title: "Tổng quan",
+      icon: ClipboardList,
+      title: "Lớp học",
       items: [
+
         {
-          name: "Tổng quan giáo viên",
-          path: "/teacher/overview",
-          icon: LayoutDashboard,
+          name: "Thời khóa biểu ",
+          path: "/teacher/timetable",
+          icon: CalendarDays,
+        },
+        {
+          name: "Lớp học của tôi",
+          path: "/teacher/my-classes",
+          icon: BookOpen,
+        },
+        {
+          name: "Điểm danh hôm nay",
+          path: "/teacher/attendance",
+          icon: CheckSquare,
+        },
+        {
+          name: "Lịch sử điểm danh",
+          path: "/teacher/attendance-history",
+          icon: History,
+        },
+        {
+          name: "Báo cáo điểm",
+          path: "/teacher/grade-report",
+          icon: FileBarChart2,
         },
       ],
     },
     {
-      icon: User,
-      title: "Cá nhân",
+      icon: Briefcase,
+      title: "Công việc",
       items: [
         {
-          name: "Thông tin cá nhân",
-          path: "/teacher/profile",
-          icon: User,
+          name: "Yêu cầu dạy thay",
+          path: "/teacher/substitute-request",
+          icon: GitPullRequestArrow,
         },
         {
           name: "Đăng ký lịch làm việc",
@@ -147,43 +169,27 @@ const TeacherSidebar = ({ isCollapsed, onToggle }) => {
       ],
     },
     {
-      icon: ClipboardList,
-      title: "Dạy học",
+      icon: UserCircle,
+      title: "Cá nhân",
       items: [
         {
-          name: "Điểm danh hôm nay",
-          path: "/teacher/attendance", 
-          icon: CheckSquare,
+          name: "Thông tin cá nhân",
+          path: "/teacher/profile",
+          icon: UserCircle,
         },
         {
-          name: "Lịch sử điểm danh",
-          path: "/teacher/attendance-history", 
-          icon: History,
-        },
-        {
-          name: "Thời khóa biểu chung",
-          path: "/teacher/timetable",
-          icon: CalendarDays,
-        },
-        {
-          name: "Lớp học của tôi", 
-          path: "/teacher/my-classes",
-          icon: BookOpen, 
-        },
-        {
-          name: "Báo cáo điểm",
-          path: "/teacher/grade-report",
-          icon: FileBarChart2,
+          name: "Đổi mật khẩu",
+          path: "/teacher/change-password",
+          icon: KeyRound,
         },
       ],
     },
   ];
 
   return (
-    <div 
-      className={`${
-        isCollapsed ? 'w-20' : 'w-72'
-      } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}
+    <div
+      className={`${isCollapsed ? 'w-20' : 'w-72'
+        } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}
     >
       {/* Toggle Button */}
       <button
@@ -197,16 +203,16 @@ const TeacherSidebar = ({ isCollapsed, onToggle }) => {
         )}
       </button>
 
-     
+
       {/* Header Section  */}
       <div className="p-4 border-b border-gray-200">
         {isCollapsed ? (
           <div className="flex justify-center">
-            <GraduationCap className="w-8 h-8 text-sky-600" />
+            <GraduationCap className="w-8 h-8 text-purple-600" />
           </div>
         ) : (
-          <div className="flex items-center space-x-3 bg-sky-50 p-3 rounded-lg">
-            <GraduationCap className="w-8 h-8 text-sky-600" />
+          <div className="flex items-center space-x-3 bg-purple-50 p-3 rounded-lg">
+            <GraduationCap className="w-8 h-8 text-purple-600" />
             <div>
               <h2 className="text-lg font-semibold text-gray-800">
                 Chào mừng, Giáo viên

@@ -7,7 +7,8 @@ import {
     Building2, DoorOpen, Building, Wrench,
     Wallet, Receipt, Coins, BanknoteArrowUp, PieChart,
     BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus,
-    ChevronLeft, ShieldUser, Clock1, CalendarCog,
+    ChevronLeft, ShieldUser, Clock1, CalendarCog,MessageSquarePlus, 
+    LayoutList
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -125,8 +126,8 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             title: "Quản lý lớp học",
             items: [
                 { name: "Danh sách lớp", path: "/admin/classes", icon: ListChecks },
-                { name: "Thời khóa biểu", path: "/admin/classes/schedule", icon: CalendarDays },
-                { name: "Điểm danh", path: "/admin/classes/attendance", icon: ClipboardList }
+                { name: "Thống kê nhu cầu", path: "/admin/requests/dashboard", icon: MessageSquarePlus },
+                { name: "Danh sách yêu cầu", path: "/admin/requests/list", icon: LayoutList }
             ]
         },
         {

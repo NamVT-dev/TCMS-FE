@@ -12,7 +12,7 @@ const LearnerLayout = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
-            <main className="pt-16">
+            <main className="">
                 <Routes>
                    
                     <Route path="roadmap" element={<LearnerRoadmapPage />} />

@@ -8,7 +8,6 @@ import AdminViewStudentList from '../../components/Admin/AdminManageUser/AdminMa
 import AdminViewTeacherList from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherList';
 import AdminViewClassList from '../../components/Admin/AdminManageClass/AdminViewClassList';
 import AdminClassDetail from '../../components/Admin/AdminManageClass/AdminClassDetail';
-import AdminClassForm from '../../components/Admin/AdminManageClass/AdminClassForm';
 import AdminViewRoomList from '../../components/Admin/AdminManageRoom/AdminViewRoomList';
 import AdminViewEnrollmentList from '../../components/Admin/AdminManageUser/AdminManageEnrollment/AdminViewEnrollList';
 import AdminViewTimeWorkingCenter from '../../components/Admin/AdminManageRoom/AdminViewTimeWorkingCenter';
@@ -17,12 +16,13 @@ import AdminScheduleDashboard from '../../components/Admin/AdminManageShedule/Ad
 import AdminScheduleJobDetail from '../../components/Admin/AdminManageShedule/AdminScheduleJobDetail';
 import AdminScheduleAnalytics from '../../components/Admin/AdminManageShedule/AdminScheduleAnalytics';
 import AdminViewTeacherDetail from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherDetail';
-import AdminTeacherForm from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminTeacherForm';
 import AdminViewStaffList from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffList';
-import AdminStaffCreate from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminStaffCreate';
 import AdminViewStaffDetail from '../../components/Admin/AdminManageUser/AdminManageStaff/AdminViewStaffDetail';
 import AdminClassScheduleForm from '../../components/Admin/AdminManageClass/AdminClassScheduleForm';
 import AdminRevenueReport from '../../components/Admin/AdminManageFinance/AdminRevenueReport';
+import AdminViewDetailSessionClass from '../../components/Admin/AdminManageClass/AdminViewDetailSessionClass';
+import AdminRequestDashboard from '../../components/Admin/AdminManageRequest/AdminRequestDashboard';
+import AdminRequestList from '../../components/Admin/AdminManageRequest/AdminRequestList';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -48,37 +48,31 @@ const AdminDashboard = () => {
             <Route path="/overview" element={<AdminOverview />} />
             <Route path="/users/students" element={<AdminViewStudentList />} />
 
+          
+            <Route path="/requests/dashboard" element={<AdminRequestDashboard />} />
+            <Route path="/requests/list" element={<AdminRequestList />} />
 
+          
             <Route path="/users/teachers" element={<AdminViewTeacherList />} />
-            <Route
-              path="/users/teachers/detail/:id"
-              element={<AdminViewTeacherDetail />}
-            />
-            <Route
-              path="/users/teachers/create"
-              element={<AdminTeacherForm />}
-            />
-            <Route
-              path="/users/teachers/edit/:id"
-              element={<AdminTeacherForm />}
-            />
-            {/* --- KẾT THÚC ROUTE GIÁO VIÊN --- */}
-
-            {/* --- NHÂN VIÊN --- */}
+            <Route path="/users/teachers/create" element={<AdminViewTeacherList />} />
+            <Route path="/users/teachers/edit/:id" element={<AdminViewTeacherList />} />
+            <Route path="/users/teachers/detail/:id" element={<AdminViewTeacherDetail />} />
+            
+          
             <Route path="/users/staff" element={<AdminViewStaffList />} />
-            <Route path="/users/staff/create" element={<AdminStaffCreate />} />
-            <Route path="/users/staff/edit/:id" element={<AdminStaffCreate />} />
+            <Route path="/users/staff/create" element={<AdminViewStaffList />} />
+            <Route path="/users/staff/edit/:id" element={<AdminViewStaffList />} />
             <Route path="/users/staff/detail/:id" element={<AdminViewStaffDetail />} />
-            {/* --- KẾT THÚC ROUTE NHÂN VIÊN --- */}
+          
 
             <Route path="/users/enrollments" element={<AdminViewEnrollmentList />} />
 
-           
             <Route path="/classes" element={<AdminViewClassList />} />
+            <Route path="/classes/create" element={<AdminViewClassList />} />
+            
             <Route path="/classes/detail/:id" element={<AdminClassDetail />} />
-            <Route path="/classes/create" element={<AdminClassForm />} />
-            <Route path="/classes/edit/:id" element={<AdminClassForm />} />
             <Route path="/classes/:id/schedule-setup" element={<AdminClassScheduleForm />} />
+            <Route path="/classes/:id/sessions" element= {<AdminViewDetailSessionClass/>}/>
           
 
             <Route path="/facility/rooms" element={<AdminViewRoomList />} />
