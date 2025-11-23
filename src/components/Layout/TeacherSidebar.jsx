@@ -145,11 +145,7 @@ const TeacherSidebar = ({ isCollapsed, onToggle }) => {
           path: "/teacher/attendance-history",
           icon: History,
         },
-        {
-          name: "Báo cáo điểm",
-          path: "/teacher/grade-report",
-          icon: FileBarChart2,
-        },
+        
       ],
     },
     {

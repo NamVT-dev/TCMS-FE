@@ -55,11 +55,11 @@ const api = {
         resetPassword: (data) => axiosInstance.post("auth/resetPassword", data),
     },
     notification: {
-        getAll: () => axiosInstance.get("/notifications"),
+        getAll: () => axiosInstance.get("/notification"),
 
-        markRead: (id) => axiosInstance.patch(`/notifications/${id}/read`),
+        
 
-        get: (id) => axiosInstance.get(`/notifications/${id}`),
+        get: (id) => axiosInstance.get(`/notification/${id}`),
 
     },
 
@@ -253,22 +253,22 @@ const api = {
     },
 
     substitute: {
-        // 1. Lấy chi tiết 1 yêu cầu (Teacher + Admin)
+        // 1. Lấy chi tiết 1 yêu cầu
         getOne: (id) => axiosInstance.get(`/substitute/requests/${id}`),
 
-        // 2. Hủy yêu cầu (Teacher)
+        // 2. Hủy yêu cầu (Teacher A)
         cancel: (id) => axiosInstance.delete(`/substitute/requests/${id}`),
 
-        // 3. Tạo yêu cầu mới (Teacher)
+        // 3. Tạo yêu cầu (Teacher A)
         create: (data) => axiosInstance.post("/substitute/requests", data),
 
-        // 4. Phản hồi yêu cầu - Chấp nhận/Từ chối (Teacher được mời)
+        // 4. Phản hồi yêu cầu (Teacher B - Accept/Decline)
         respond: (id, data) => axiosInstance.patch(`/substitute/requests/${id}/respond`, data),
 
-        // 5. Admin xử lý - Duyệt/Từ chối (Admin)
-        adminProcess: (id, data) => axiosInstance.patch(`/substitute/requests/${id}/process`, data),
+        // 5. Xử lý yêu cầu (Admin - Approve/Reject)
+        process: (id, data) => axiosInstance.patch(`/substitute/requests/${id}/process`, data),
 
-        // 6. Lấy gợi ý giáo viên rảnh (Teacher + Admin)
+        // 6. Gợi ý giáo viên (Teacher A, Admin)
         getSuggestions: (sessionId) => axiosInstance.get("/substitute/suggestions", { params: { sessionId } }),
     }
 };
