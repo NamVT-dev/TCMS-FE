@@ -52,7 +52,7 @@ const StaffViewUpdateProfile = () => {
 
   const handleSave = async () => {
     setIsEditing(false);
-    const toastId = showToast.loading("Đang cập nhật khóa học...");
+    const toastId = showToast.loading("Đang cập nhật thông tin cá nhân...");
     try {
       const formData = new FormData();
       formData.append("profile[fullname]", profile.name);
