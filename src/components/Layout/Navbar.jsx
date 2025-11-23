@@ -73,7 +73,9 @@ const Navbar = () => {
                 try {
                     const res = await api.notification.getAll();
                     const notis = res.data.data || [];
-                    const sortedNotis = notis.sort((a, b) => new Date(b.createAt) - new Date(a.createAt));
+                    const sortedNotis = [...notis].sort((a, b) => {
+                        return new Date(b.createAt).getTime() - new Date(a.createAt).getTime();
+                    });
                     setNotifications(sortedNotis);
                     setUnreadCount(sortedNotis.filter(n => !n.isRead).length);
                 } catch (err) {

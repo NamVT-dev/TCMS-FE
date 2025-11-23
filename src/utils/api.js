@@ -270,6 +270,8 @@ const api = {
 
         // 6. Gợi ý giáo viên (Teacher A, Admin)
         getSuggestions: (sessionId) => axiosInstance.get("/substitute/suggestions", { params: { sessionId } }),
+
+        getAll: (params) => axiosInstance.get("/substitute/requests", { params }),
     }
 };
 

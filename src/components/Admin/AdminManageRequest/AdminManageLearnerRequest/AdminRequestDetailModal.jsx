@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import api from "../../../utils/api";
+import api from "../../../../utils/api";
 import { X, Save, Loader2, User, BookOpen, Calendar, Edit, Ban } from "lucide-react";
 import moment from "moment";
 

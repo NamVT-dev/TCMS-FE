@@ -21,8 +21,10 @@ import AdminViewStaffDetail from '../../components/Admin/AdminManageUser/AdminMa
 import AdminClassScheduleForm from '../../components/Admin/AdminManageClass/AdminClassScheduleForm';
 import AdminRevenueReport from '../../components/Admin/AdminManageFinance/AdminRevenueReport';
 import AdminViewDetailSessionClass from '../../components/Admin/AdminManageClass/AdminViewDetailSessionClass';
-import AdminRequestDashboard from '../../components/Admin/AdminManageRequest/AdminRequestDashboard';
-import AdminRequestList from '../../components/Admin/AdminManageRequest/AdminRequestList';
+import AdminRequestDashboard from '../../components/Admin/AdminManageRequest/AdminManageLearnerRequest/AdminRequestDashboard';
+import AdminRequestList from '../../components/Admin/AdminManageRequest/AdminManageLearnerRequest/AdminRequestList';
+import AdminSubstituteManager from '../../components/Admin/AdminManageRequest/AdminManageTeacherRequest/AdminSubstituteManager';
+
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -69,6 +71,7 @@ const AdminDashboard = () => {
 
             <Route path="/classes" element={<AdminViewClassList />} />
             <Route path="/classes/create" element={<AdminViewClassList />} />
+            <Route path="/requests/substitute" element={<AdminSubstituteManager />} />
             
             <Route path="/classes/detail/:id" element={<AdminClassDetail />} />
             <Route path="/classes/:id/schedule-setup" element={<AdminClassScheduleForm />} />
