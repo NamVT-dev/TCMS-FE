@@ -6,10 +6,7 @@ import HeroSection from './HeroSection';
 import CourseSection from './CourseSection';
 import InstructorSection from './InstructorSection';
 import Footer from './Footer';
-// Thêm import hook useAuth thực tế của bạn
 import { useAuth } from '../../hooks/useAuth'; 
-
-// XÓA BỎ HOẶC COMMENT PHẦN GIẢ LẬP useAuth Ở ĐÂY
 
 const HomePage = ({ onOpenModal }) => {
     // 💡 SỬ DỤNG HOOK THỰC TẾ

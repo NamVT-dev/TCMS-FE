@@ -236,6 +236,8 @@ const api = {
         getMySchedule: (studentId, params) =>
             axiosInstance.get(`${studentId}/schedule`, { params }),
 
+        getTeacherHighlights: () => axiosInstance.get("/highlight-teacher"),
+
 
     },
 
