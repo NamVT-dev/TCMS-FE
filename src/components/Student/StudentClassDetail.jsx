@@ -187,7 +187,7 @@ const StudentClassDetail = () => {
                                         >
                                             
                                            
-                                            <div className={`flex-shrink-0 w-full sm:w-20 h-20 rounded-2xl flex flex-col items-center justify-center border transition-all z-10 bg-white
+                                            <div className={`flex-shrink-0 w-full sm:w-20 h-20 rounded-2xl flex flex-col items-center justify-center border transition-all z-10 
                                                 ${isHappening 
                                                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105 border-indigo-600' 
                                                     : isNext 
