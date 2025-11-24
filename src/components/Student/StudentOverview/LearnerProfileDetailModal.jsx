@@ -110,9 +110,7 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
     if (!isOpen) return null;
 
 
-    /** ---------------------
-     *        UI
-     ----------------------*/
+    
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">

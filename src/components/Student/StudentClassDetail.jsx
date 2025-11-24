@@ -301,9 +301,7 @@ const StudentClassDetail = () => {
                         <div className="text-center">
                             <h3 className="text-lg font-bold text-gray-800">Giáo viên: {teacherName}</h3>
                             <p className="text-sm text-gray-500 mb-4">{teacherEmail}</p>
-                            <button className="w-full py-2 rounded-lg border border-indigo-100 text-indigo-600 text-sm font-medium hover:bg-indigo-50 transition-colors">
-                                Xem hồ sơ
-                            </button>
+                            
                         </div>
                     </div>
                 </div>
