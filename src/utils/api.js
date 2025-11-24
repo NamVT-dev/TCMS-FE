@@ -136,6 +136,9 @@ const api = {
                 axiosInstance.patch(`admin/session/${id}`, data),
             cancelClass: (id) =>
                 axiosInstance.patch(`admin/classes/${id}/cancel`),
+
+            addStudentToClass: (classId, data) =>
+                axiosInstance.patch(`staff/class/${classId}/add-student`, data),
         },
 
         enrollment: {
