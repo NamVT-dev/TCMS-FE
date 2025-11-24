@@ -245,13 +245,7 @@ const LearnerProfileView = () => {
                 </div>
             )}
 
-            {/* Pagination */}
-            {!loading && totalResults > 0 && (
-                <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col items-center">
-                    <span className="text-sm text-gray-500 mb-2">Hiển thị {learners.length} trên tổng số {totalResults} học viên</span>
-                    <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-                </div>
-            )}
+            
 
             {/* Modal */}
             <LearnerProfileDetailModal 
