@@ -28,7 +28,8 @@ export const UserProvider = ({ children }) => {
   "/verify-otp",
   "/courses/:id",
   "/forgot-password",
-  "/reset-password"
+  "/reset-password",
+  "/return"
 ];
 
 

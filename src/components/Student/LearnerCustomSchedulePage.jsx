@@ -1,4 +1,3 @@
-// src/components/Student/LearnerCustomSchedulePage.jsx
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
@@ -30,7 +29,7 @@ const SHIFTS = [
   { name: "S5", time: "18:00 - 19:50" },
   { name: "S6", time: "20:00 - 21:50" },
 ];
-// ⬆️ KẾT THÚC THÊM MỚI
+
 
 const LearnerCustomSchedulePage = () => {
   const query = useQuery();

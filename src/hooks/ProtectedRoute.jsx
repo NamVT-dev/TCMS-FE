@@ -7,15 +7,15 @@ import Loading from "../components/UI/Loading";
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
 
-  // 🟡 Đang tải user -> tạm dừng render
+  //  Đang tải user -> tạm dừng render
   if (loading) return <Loading fullscreen message="Đang tải thông tin người dùng..." />;
 
-  // 🟥 Nếu load xong mà chưa có user => chưa đăng nhập
+  //  Nếu load xong mà chưa có user => chưa đăng nhập
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // 🟧 Nếu có user nhưng không đúng role
+  //  Nếu có user nhưng không đúng role
   if (!allowedRoles.includes(user.role)) {
     const roleRoutes = {
       admin: '/admin/overview',

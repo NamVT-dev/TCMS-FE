@@ -57,7 +57,7 @@ const api = {
     notification: {
         getAll: () => axiosInstance.get("/notification"),
 
-        
+
 
         get: (id) => axiosInstance.get(`/notification/${id}`),
 
@@ -224,7 +224,6 @@ const api = {
             }),
 
         createSeatHold: (data) => axiosInstance.post("enrollment", data),
-
         createCustomSchedule: (data) =>
             axiosInstance.post("custom-schedule", data),
 
@@ -272,7 +271,12 @@ const api = {
         getSuggestions: (sessionId) => axiosInstance.get("/substitute/suggestions", { params: { sessionId } }),
 
         getAll: (params) => axiosInstance.get("/substitute/requests", { params }),
-    }
+    },
+    payment: {
+
+        confirmPayment: (params) => axiosInstance.get("/payment/confirm-payment", { params }),
+    },
+
 };
 
 export default api;
