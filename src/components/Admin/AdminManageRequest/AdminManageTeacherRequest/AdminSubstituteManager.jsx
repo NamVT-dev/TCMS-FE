@@ -101,7 +101,7 @@ const AdminSubstituteManager = () => {
                                 <tr>
                                     <th className="px-6 py-4">Người gửi</th>
                                     <th className="px-6 py-4">Thông tin lớp</th>
-                                    <th className="px-6 py-4">Yêu cầu</th>
+                                    <th className="px-6 py-4">Người dạy thay</th>
                                     <th className="px-6 py-4">Lý do</th>
                                     <th className="px-6 py-4">Trạng thái</th>
                                     <th className="px-6 py-4 text-right">Hành động</th>
