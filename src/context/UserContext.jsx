@@ -33,7 +33,7 @@ export const UserProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem("token");
         const savedUser = localStorage.getItem("user");
-        const currentPath = location.pathname; // ⬇️ DÙNG location.pathname thay vì window.location.pathname
+        const currentPath = location.pathname; 
 
         async function fetchUserAndSetup() {
             if (!token) {

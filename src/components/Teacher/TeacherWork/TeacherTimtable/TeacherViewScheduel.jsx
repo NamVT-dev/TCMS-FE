@@ -251,12 +251,12 @@ function TeacherViewSchedule() {
               {SHIFTS.map((shift, shiftIdx) => (
                 <tr key={shiftIdx} className="group hover:bg-gray-50/50">
                   {/* Cột CA HỌC */}
-                  <td className="p-3 border-r border-b border-gray-200 bg-gray-50 group-hover:bg-gray-100 transition-colors">
+                  <td className="w-28 p-3 border-r border-b border-gray-200 bg-gray-50 group-hover:bg-gray-100 transition-colors">
                     <div className="text-right pr-2">
                       <div className="text-base font-bold text-purple-700">
                         {shift.name}
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5 font-medium bg-white px-1 rounded inline-block border border-gray-200">
+                      <div className="text-xs text-gray-500 mt-0.5 font-medium ">
                         {shift.start} - {shift.end}
                       </div>
                     </div>
