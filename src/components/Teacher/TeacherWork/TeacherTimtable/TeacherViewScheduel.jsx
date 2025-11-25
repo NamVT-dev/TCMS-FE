@@ -214,13 +214,13 @@ function TeacherViewSchedule() {
         )}
 
         {/* Calendar Grid */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse min-w-[900px]">
+         <div className="overflow-x-auto">
+          <table className="w-full border-collapse min-w-[900px] table-fixed">
             {/* Header */}
             <thead>
               <tr className="bg-gray-50">
-                <th className="w-24 p-3 text-left border-b border-r border-gray-200 bg-gray-100">
-                  <span className="text-sm font-semibold text-gray-600">Ca học</span>
+                <th className="w-28 p-3 text-left border-b border-r border-gray-200 bg-gray-100">
+                  <span className="text-sm font-semibold text-gray-600 whitespace-nowrap">Ca học</span>
                 </th>
                 {weekDays.map((day, idx) => (
                   <th
@@ -228,14 +228,15 @@ function TeacherViewSchedule() {
                     className={`p-3 border-b border-gray-200 ${
                       isToday(day) ? 'bg-purple-50' : ''
                     }`}
+                    style={{ width: `calc((100% - 7rem) / 7)` }}
                   >
                     <div className="text-center">
-                      <div className={`text-sm font-semibold ${
+                      <div className={`text-sm font-semibold whitespace-nowrap ${
                         isToday(day) ? 'text-purple-700' : 'text-gray-700'
                       }`}>
                         {getDayName(day)}
                       </div>
-                      <div className={`text-xs mt-0.5 ${
+                      <div className={`text-xs mt-0.5 whitespace-nowrap ${
                         isToday(day) ? 'text-purple-600' : 'text-gray-500'
                       }`}>
                         {formatDate(day)}
