@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, MessageSquare, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Plus, MessageSquare, Clock } from 'lucide-react'; 
 import StudentComplainModal from './StudentComplainModal'; 
-import api from '../../../utils/api';
+import api from '../../../utils/api'; 
 
 const StudentViewComplain = () => {
   const [complains, setComplains] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -18,14 +17,19 @@ const StudentViewComplain = () => {
       minute: '2-digit'
     });
   };
-
   
   const getStatusStyle = (status) => {
     switch (status) {
       case 'Pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Received':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'In_Progress':
+        return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       case 'Resolved':
         return 'bg-green-100 text-green-800 border-green-200';
+      case 'Closed':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
       case 'Rejected':
         return 'bg-red-100 text-red-800 border-red-200';
       default:
@@ -33,14 +37,18 @@ const StudentViewComplain = () => {
     }
   };
 
-
   const fetchComplains = async () => {
     setLoading(true);
     try {
       const res = await api.user.getMyComplains();
      
       if (res.data && res.data.complains) {
-        setComplains(res.data.complains);
+        
+        const sortedList = res.data.complains.sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        
+        setComplains(sortedList);
       }
     } catch (error) {
       console.error("Lỗi tải danh sách khiếu nại:", error);
@@ -54,7 +62,7 @@ const StudentViewComplain = () => {
   }, []);
 
   return (
-    <div className="max-w-8xl mx-auto p-6">
+    <div className="max-w-8xl mx-auto p-6"> 
     
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
@@ -71,7 +79,6 @@ const StudentViewComplain = () => {
         </button>
       </div>
 
-     
       {loading ? (
         <div className="flex justify-center py-10">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -107,9 +114,10 @@ const StudentViewComplain = () => {
               <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-100">
                  <div className="flex items-center gap-2 text-sm text-gray-500">
                     <img 
-                        src={item.user?.profile?.photo || "https://via.placeholder.com/30"} 
+                        // Đã thay placeholder bị lỗi bằng ui-avatars
+                        src={item.user?.profile?.photo || `https://ui-avatars.com/api/?name=${item.user?.profile?.fullname || 'U'}`} 
                         alt="User" 
-                        className="w-6 h-6 rounded-full"
+                        className="w-6 h-6 rounded-full object-cover"
                     />
                     <span>{item.user?.profile?.fullname}</span>
                  </div>
@@ -119,7 +127,6 @@ const StudentViewComplain = () => {
         </div>
       )}
 
-    
       <StudentComplainModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

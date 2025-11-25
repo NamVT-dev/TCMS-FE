@@ -164,6 +164,12 @@ const api = {
             getRevenueReport: (params) =>
                 axiosInstance.get("/admin/reports/revenue", { params }),
         },
+        complain: {
+            getAllComplains: (params) => axiosInstance.get("/complain", { params }),
+            getOneComplain: (id) => axiosInstance.get(`/complain/${id}`),
+            updateComplainStatus: (id, data) => axiosInstance.patch(`/complain/${id}`, data),
+            deleteComplain: (id) => axiosInstance.delete(`/complain/${id}`),
+        },
 
         getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),
         createRoom: (data) => axiosInstance.post("/admin/rooms", data),

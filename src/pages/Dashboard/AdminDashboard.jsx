@@ -24,6 +24,7 @@ import AdminViewDetailSessionClass from '../../components/Admin/AdminManageClass
 import AdminRequestDashboard from '../../components/Admin/AdminManageRequest/AdminManageLearnerRequest/AdminRequestDashboard';
 import AdminRequestList from '../../components/Admin/AdminManageRequest/AdminManageLearnerRequest/AdminRequestList';
 import AdminSubstituteManager from '../../components/Admin/AdminManageRequest/AdminManageTeacherRequest/AdminSubstituteManager';
+import AdminViewListComplain from '../../components/Admin/AdminManageRequest/AdminManageUserComplain/AdminViewListComplain';
 
 
 const AdminDashboard = () => {
@@ -80,6 +81,7 @@ const AdminDashboard = () => {
 
             <Route path="/facility/rooms" element={<AdminViewRoomList />} />
             <Route path="/facility/working-hours" element={<AdminViewTimeWorkingCenter />} />
+            <Route path="/facility/complain" element={<AdminViewListComplain />} />
 
             <Route path="/courses" element={<AdminViewCourseList />} />
             <Route path="/scheduler/dashboard" element={<AdminScheduleDashboard />} />
