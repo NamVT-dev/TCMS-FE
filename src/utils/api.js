@@ -81,6 +81,10 @@ const api = {
         getLearnerProfile: () => axiosInstance.get("learner"),
         getLearnerById: (id) => axiosInstance.get(`learner/${id}`),
         updateLearnerById: (id, data) => axiosInstance.patch(`/learner/${id}`, data),
+
+        sendComplain: (data) => axiosInstance.post("/complain", data),
+        getMyComplains: () => axiosInstance.get("/complain/my-complain"),
+
     },
 
     // --- Admin ---

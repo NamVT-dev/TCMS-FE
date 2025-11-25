@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-    LayoutDashboard,
+    
     UserPen,
     KeyRound,
-    
+    Users,
     ChevronRight,
     ChevronLeft,
     UserCircle,
     Info,
-    ShoppingCart
+    ShoppingCart,
+    SquarePen,
 } from "lucide-react";
-import { element } from "prop-types";
+import { element } from "prop-types";   
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -99,10 +100,10 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
 
     const menuItems = [
         {
-            icon: LayoutDashboard,
-            title: "Tổng quan",
+            icon: Users,
+            title: "Học Viên",
             items: [
-                { name: "Tổng quan học viên", path: "/student/overview", icon: LayoutDashboard },
+                
                 { name: "Hồ sơ học viên", path: "/student/learner-profile", icon: Info}
             ]
         },
@@ -112,7 +113,8 @@ const StudentSidebar = ({ isCollapsed, onToggle }) => {
             items: [
                 { name: "Thông tin cá nhân", path: "/student/profile", icon: UserCircle },
                 { name: "Thay đổi mật khẩu", path: "/student/change-password", icon: KeyRound },
-                { name: "Lịch sử thanh toán", path: "/student/payment-history", icon: ShoppingCart }
+                { name: "Lịch sử thanh toán", path: "/student/payment-history", icon: ShoppingCart },
+                { name: "Góp ý cải thiện", path: "/student/complain", icon: SquarePen },
             ]
         }
         
