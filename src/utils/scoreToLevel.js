@@ -40,3 +40,23 @@ export const getLevelFromScore = (categoryName, score) => {
   
   return found ? found.level : "Unknown";
 };
+
+export const getDisplayRange = (categoryName, levelName) => {
+  if (!categoryName || !levelName) return "";
+  
+  const type = categoryName.toUpperCase().includes("IELTS") ? "IELTS" 
+             : categoryName.toUpperCase().includes("TOEIC") ? "TOEIC" 
+             : null;
+
+  if (!type) return levelName; 
+
+  const range = LEVEL_RANGES[type].find(r => r.level === levelName);
+  
+  if (!range) return levelName;
+
+  
+  if (type === "IELTS") return `Band ${range.min} - ${range.max}`;
+  if (type === "TOEIC") return `${range.min} - ${range.max}+`;
+  
+  return levelName;
+};
