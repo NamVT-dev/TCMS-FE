@@ -320,7 +320,7 @@ const AdminViewClassList = () => {
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Khóa học</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Giáo viên</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Ngày bắt đầu</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Sĩ số</th>
+                
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Thao tác</th>
               </tr>
@@ -350,9 +350,7 @@ const AdminViewClassList = () => {
                   <td className="px-6 py-4 text-gray-700 text-sm">
                     {cls.startAt ? new Date(cls.startAt).toLocaleDateString('vi-VN') : "N/A"}
                   </td>
-                  <td className="px-6 py-4 text-gray-700 text-sm">
-                    <span className="font-medium">{cls.attendance?.length || 0}</span> / {cls.maxStudent || "N/A"}
-                  </td>
+                  
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(cls.status)}`}>
                       {getStatusText(cls.status)}
