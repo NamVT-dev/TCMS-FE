@@ -2,24 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
 import Loading from '../../UI/Loading';
-import { Clock, BookOpen, ArrowRight, CalendarCheck, Home } from 'lucide-react'; // Thêm Home
+import { Clock, BookOpen, ArrowRight, CalendarCheck, Home } from 'lucide-react';
 import { format } from 'date-fns';
 
-// Component Card cho mỗi buổi học (Đã cập nhật)
+// Component Card cho mỗi buổi học
 const SessionCard = ({ session, onStart }) => {
   const startTime = format(new Date(session.startAt), 'HH:mm');
   const endTime = format(new Date(session.endAt), 'HH:mm');
 
-  // Giả định API 'getTodaySession' đã populate 'class' và 'room'
   const className = session.class?.name || "Lớp (không có tên)";
+  const courseName = session.course?.name || "Khóa học (không có tên)";
   const roomName = session.room?.name || "N/A";
 
   return (
-    <div className="bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden">
+    <div className="bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
       <div className="p-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-3">
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">
           {className}
         </h3>
+        
+        <div className="flex items-center text-purple-600 mb-4">
+          <BookOpen className="w-4 h-4 mr-2 flex-shrink-0" />
+          <span className="text-sm font-medium">{courseName}</span>
+        </div>
         
         <div className="space-y-3 mb-6">
           <div className="flex items-center text-gray-700">
@@ -44,8 +49,7 @@ const SessionCard = ({ session, onStart }) => {
   );
 };
 
-
-// Trang chính (Đã cập nhật)
+// Trang chính
 const TodayAttendancePage = () => {
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,7 +63,6 @@ const TodayAttendancePage = () => {
       setError(null);
       try {
         const res = await api.teacher.attendance.getTodaySession();
-        // Giả định BE trả về session đã populate class và room
         setSessions(res.data.data); 
       } catch (err) {
         console.error("Lỗi khi tải phiên học:", err);
@@ -71,20 +74,14 @@ const TodayAttendancePage = () => {
     fetchTodaySessions();
   }, []);
 
-  // Xử lý khi bấm nút "Bắt đầu điểm danh"
   const handleStartSession = async (sessionId) => {
     setIsStarting(true);
     setError(null);
     try {
-      // API Bước 2: /start-session/:sessionId
       const res = await api.teacher.attendance.startSession(sessionId);
-      
-      // API trả về phiếu điểm danh (Attendance)
-      // Chúng ta GIẢ ĐỊNH BE đã populate 'attendance.student' và 'session'
       const attendanceData = res.data.data;
       const attendanceId = attendanceData._id;
       
-      // Chuyển hướng sang trang chi tiết (Bước 3) VÀ gửi data qua state
       navigate(`/teacher/attendance/${attendanceId}`, { 
         state: { attendanceData } 
       });
@@ -101,7 +98,13 @@ const TodayAttendancePage = () => {
   }
 
   if (error) {
-    return <div className="text-red-600 bg-red-50 p-4 rounded-lg">{error}</div>;
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-red-600 bg-red-50 p-4 rounded-lg border border-red-200">
+          {error}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -116,9 +119,12 @@ const TodayAttendancePage = () => {
       )}
 
       {sessions.length === 0 ? (
-        <p className="text-gray-600 p-6 bg-white rounded-lg shadow-md">
-          Bạn không có buổi học nào được lên lịch vào hôm nay.
-        </p>
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <CalendarCheck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">
+            Bạn không có buổi học nào được lên lịch vào hôm nay.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sessions.map(session => (

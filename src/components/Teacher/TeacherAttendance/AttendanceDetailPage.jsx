@@ -12,7 +12,6 @@ const AttendanceDetailPage = () => {
     const initialData = location.state?.attendanceData;
 
     const [attendanceList, setAttendanceList] = useState([]);
-    const [sessionInfo, setSessionInfo] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(null);
@@ -23,7 +22,7 @@ const AttendanceDetailPage = () => {
             return;
         }
 
-        console.log("Initial Data nhận được:", initialData);
+        
 
         const processData = () => {
             try {
@@ -46,7 +45,6 @@ const AttendanceDetailPage = () => {
                 });
 
                 setAttendanceList(processedList);
-                setSessionInfo(initialData.session);
                 setIsLoading(false);
 
             } catch (e) {
@@ -59,7 +57,6 @@ const AttendanceDetailPage = () => {
         processData();
     }, [initialData, navigate]);
 
-    // ⭐ Hàm thay đổi trạng thái bằng radio button
     const handleChangeStatus = (studentId, value) => {
         setAttendanceList(prev =>
             prev.map(item =>
@@ -89,7 +86,7 @@ const AttendanceDetailPage = () => {
                 note: item.note || ''
             }));
 
-            console.log("Gửi payload lên server:", payload);
+            
 
             await api.teacher.attendance.takeAttendance(attendanceId, payload);
 
@@ -149,19 +146,11 @@ const AttendanceDetailPage = () => {
             </button>
 
             <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                {/* Header đơn giản */}
                 <div className="p-5 border-b bg-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-800">
-                            {sessionInfo?.class?.name || "Chi tiết Điểm danh"}
-                        </h1>
-                        <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                            <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-mono">
-                                ID: {sessionInfo?._id?.slice(-6).toUpperCase()}
-                            </span>
-                            <span>•</span>
-                            <span>Phòng: {sessionInfo?.room?.name || "N/A"}</span>
-                        </p>
-                    </div>
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Điểm danh học viên
+                    </h1>
 
                     <div className="flex space-x-3 text-sm font-medium">
                         <div className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg flex items-center shadow-sm">
@@ -175,11 +164,12 @@ const AttendanceDetailPage = () => {
 
                 {error && (
                     <div className="m-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
-                        <AlertCircle className="w-5 h-5 mr-2" />
+                        <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
                         {error}
                     </div>
                 )}
 
+                {/* Danh sách học viên */}
                 <div className="divide-y divide-gray-100">
                     {attendanceList.map((item, index) => (
                         <div
@@ -189,13 +179,13 @@ const AttendanceDetailPage = () => {
                             }`}
                         >
                             <div className="flex items-center min-w-[250px]">
-                                <span className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded-full font-bold text-xs mr-3">
+                                <span className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-600 rounded-full font-bold text-sm mr-3">
                                     {index + 1}
                                 </span>
                                 <div>
                                     <p className="font-semibold text-gray-800 text-base">{item.student.name}</p>
                                     {item.student.studentCode && (
-                                        <p className="text-xs text-gray-500 font-mono">{item.student.studentCode}</p>
+                                        <p className="text-xs text-gray-500 font-mono mt-0.5">{item.student.studentCode}</p>
                                     )}
                                 </div>
                             </div>
@@ -206,11 +196,10 @@ const AttendanceDetailPage = () => {
                                     placeholder="Ghi chú..."
                                     value={item.note}
                                     onChange={(e) => handleNoteChange(item.student._id, e.target.value)}
-                                    className="flex-1 md:max-w-xs px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                    className="flex-1 md:max-w-xs px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                                 />
 
-                                {/* ⭐ RADIO BUTTONS */}
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 bg-gray-50 px-3 py-2 rounded-lg">
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="radio"
@@ -220,7 +209,7 @@ const AttendanceDetailPage = () => {
                                             onChange={() => handleChangeStatus(item.student._id, "present")}
                                             className="h-4 w-4 text-green-600 focus:ring-green-500"
                                         />
-                                        <span className="text-sm text-gray-700">Có mặt</span>
+                                        <span className="text-sm font-medium text-gray-700">Có mặt</span>
                                     </label>
 
                                     <label className="flex items-center gap-2 cursor-pointer">
@@ -232,7 +221,7 @@ const AttendanceDetailPage = () => {
                                             onChange={() => handleChangeStatus(item.student._id, "absent")}
                                             className="h-4 w-4 text-red-600 focus:ring-red-500"
                                         />
-                                        <span className="text-sm text-gray-700">Vắng mặt</span>
+                                        <span className="text-sm font-medium text-gray-700">Vắng</span>
                                     </label>
                                 </div>
                             </div>
@@ -240,14 +229,15 @@ const AttendanceDetailPage = () => {
                     ))}
                 </div>
 
+                {/* Footer với nút lưu */}
                 <div className="p-4 bg-gray-50 border-t border-gray-200 sticky bottom-0 z-10 flex justify-end shadow-inner">
                     <button
                         onClick={handleSaveAttendance}
                         disabled={isSaving}
-                        className="inline-flex items-center px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 disabled:opacity-70"
+                        className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
                     >
                         <Save className="w-5 h-5 mr-2" />
-                        {isSaving ? "Đang lưu..." : "Lưu kết quả"}
+                        {isSaving ? "Đang lưu..." : "Lưu kết quả điểm danh"}
                     </button>
                 </div>
             </div>
