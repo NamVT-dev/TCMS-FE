@@ -260,21 +260,14 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                                                 <p className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center">
                                                     <Target className="w-3 h-3 mr-1" /> Mục tiêu học tập
                                                 </p>
-                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                <div className="grid grid-cols-1 gap-3 text-sm">
                                                     <div className="bg-white p-2 rounded border">
                                                         <span className="text-gray-500 block text-xs">Mục tiêu</span>
                                                         <span className="font-medium text-gray-800">
                                                             {learnerData.learningGoal.targetScore || "N/A"}
                                                         </span>
                                                     </div>
-                                                    <div className="bg-white p-2 rounded border">
-                                                        <span className="text-gray-500 block text-xs">Hạn chót</span>
-                                                        <span className="font-medium text-gray-800">
-                                                            {learnerData.learningGoal.deadline
-                                                                ? moment(learnerData.learningGoal.deadline).format("DD/MM/YYYY")
-                                                                : "N/A"}
-                                                        </span>
-                                                    </div>
+                                                    
                                                 </div>
                                             </div>
                                         )}
