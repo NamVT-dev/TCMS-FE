@@ -204,6 +204,10 @@ const api = {
         getMySchedule: (params) =>
             axiosInstance.get("teacher/my-schedule", { params }),
 
+        uploadMaterial: (classId, materialData) =>
+            axiosInstance.patch(`/teacher/${classId}/learning-material`, materialData),
+
+
         attendance: {
             getTodaySession: () =>
                 axiosInstance.get("attendance/today-session"),
