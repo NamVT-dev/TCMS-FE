@@ -133,7 +133,7 @@ const AdminViewDetailSessionClass = () => {
                 </div>
 
                 {/* CLASS INFO SUMMARY CARD */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="flex items-start space-x-3">
                         <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
                             <Calendar className="w-5 h-5" />
@@ -143,17 +143,7 @@ const AdminViewDetailSessionClass = () => {
                             <p className="font-semibold text-gray-800">{classData?.course?.name || "N/A"}</p>
                         </div>
                     </div>
-                    <div className="flex items-start space-x-3">
-                        <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-                            <User className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Giáo viên chủ nhiệm</p>
-                            <p className="font-semibold text-gray-800">
-                                {classData?.preferredTeacher?.profile?.fullname || classData?.preferredTeacher?.username || "Chưa gán"}
-                            </p>
-                        </div>
-                    </div>
+                    
                     <div className="flex items-start space-x-3">
                         <div className="p-2 bg-green-100 rounded-lg text-green-600">
                             <Clock className="w-5 h-5" />

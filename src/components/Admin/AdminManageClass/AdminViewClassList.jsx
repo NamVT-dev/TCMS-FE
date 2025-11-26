@@ -4,6 +4,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../../../utils/api';
 import { useDebounce } from '../../../hooks/useDebounce';
 import AdminCreateClassModal from './AdminCreateClassModal';
+import { ToastContainer } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css'; 
 
 const Pagination = ({ page, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
@@ -206,16 +208,12 @@ const AdminViewClassList = () => {
     const teacherNameFromSchedule =
       firstSchedule?.teacher?.profile?.fullname;
 
-
-
     return  preferredTeacherName || teacherNameFromSchedule || "Chưa có giáo viên";
   };
 
-
-
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen font-inter">
+      <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="mb-6 flex justify-between items-center">
         <div>
