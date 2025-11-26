@@ -3,6 +3,7 @@ import api from '../../../utils/api';
 import { Loader2, Save, X, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../../components/UI/Loading';
+import { toast } from 'react-toastify'; // Import Toast
 
 const inputClass = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm";
 const readOnlyClass = "mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-100 text-gray-700 font-medium rounded-md shadow-sm sm:text-sm cursor-not-allowed";
@@ -86,13 +87,13 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
 
                 } catch (error) {
                     console.error("Lỗi load data:", error);
+                    toast.error("Không thể tải dữ liệu khởi tạo.");
                 } finally {
                     setLoading(false);
                 }
             };
             fetchData();
         } else {
-
             setFormData({
                 nameSuffix: '', course: '', minStudent: 8, maxStudent: 15, preferredTeacher: '',
                 startAt: getTodayString()
@@ -160,6 +161,13 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // VALIDATION: Kiểm tra giáo viên
+        if (!formData.preferredTeacher) {
+            toast.error("Vui lòng chọn Giáo viên chủ nhiệm!");
+            return;
+        }
+
         setSaving(true);
         try {
             let finalName = generatedPrefixName;
@@ -170,7 +178,7 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
             const payload = {
                 ...formData,
                 name: finalName,
-                preferredTeacher: formData.preferredTeacher || undefined,
+                preferredTeacher: formData.preferredTeacher, // Đã validate ở trên nên chắc chắn có
                 weeklySchedules: [],
             };
             delete payload.nameSuffix;
@@ -178,12 +186,15 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
             const res = await api.admin.class.createClass(payload);
             const newClassId = res.data.data.data._id;
 
-            alert(`Tạo lớp "${finalName}" thành công!`);
+            // Thay alert bằng toast
+            toast.success(`Tạo lớp "${finalName}" thành công!`);
+            
             onSuccess();
             onClose();
             navigate(`/admin/classes/detail/${newClassId}`);
         } catch (err) {
-            alert(err.response?.data?.message || "Lỗi khi tạo lớp.");
+            // Thay alert bằng toast
+            toast.error(err.response?.data?.message || "Lỗi khi tạo lớp.");
         } finally {
             setSaving(false);
         }
@@ -299,9 +310,16 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700">GV Chủ nhiệm (Dự kiến)</label>
-                                <select name="preferredTeacher" value={formData.preferredTeacher} onChange={handleChange} className={inputClass}>
-                                    <option value="">-- Không ưu tiên  --</option>
+                                {/* Thêm dấu sao đỏ bắt buộc */}
+                                <label className="block text-sm font-medium text-gray-700">GV Chủ nhiệm <span className="text-red-500">*</span></label>
+                                <select 
+                                    name="preferredTeacher" 
+                                    value={formData.preferredTeacher} 
+                                    onChange={handleChange} 
+                                    className={inputClass}
+                                    required // Thêm thuộc tính required
+                                >
+                                    <option value="">-- Chọn giáo viên --</option>
                                     {teachers.map(t => (
                                         <option key={t._id} value={t._id}>
                                             {t.profile?.fullname || t.username} - {t.email}

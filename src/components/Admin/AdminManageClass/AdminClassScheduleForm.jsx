@@ -218,6 +218,20 @@ const AdminClassScheduleForm = () => {
 
         setSaving(true);
         try {
+            // --- TÍNH TOÁN NGÀY KẾT THÚC ---
+            let classEndDate = null;
+            // Lấy session cuối cùng trong danh sách đã tính toán
+            const lastSession = calculatedSessions[calculatedSessions.length - 1];
+            
+            if (lastSession) {
+                // Tính thời điểm kết thúc cụ thể của buổi học cuối cùng
+                // Logic: Ngày của session + số phút kết thúc ca học (endMinute)
+                classEndDate = lastSession.date.clone()
+                    .add(lastSession.slot.endMinute, 'minutes')
+                    .toDate();
+            }
+            // --------------------------------
+
             const classPayload = {
                 weeklySchedules: weeklySchedules.map(s => ({
                     dayOfWeek: Number(s.dayOfWeek),
@@ -225,7 +239,8 @@ const AdminClassScheduleForm = () => {
                     endMinute: s.endMinute,
                     room: s.room,
                     teacher: s.teacher
-                }))
+                })),
+                endAt: classEndDate // Gửi ngày kết thúc lên API
             };
 
             

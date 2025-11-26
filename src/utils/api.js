@@ -3,7 +3,7 @@ import axios from "axios";
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 10000,
-    withCredentials: true, 
+    withCredentials: true,
 });
 
 axiosInstance.interceptors.request.use(
@@ -12,7 +12,7 @@ axiosInstance.interceptors.request.use(
             typeof FormData !== "undefined" && config.data instanceof FormData;
 
         if (isFD) {
-            if (config.headers) delete config.headers["Content-Type"]; 
+            if (config.headers) delete config.headers["Content-Type"];
         } else {
             if (config.headers) config.headers["Content-Type"] = "application/json";
         }
@@ -24,21 +24,21 @@ axiosInstance.interceptors.request.use(
 
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const url = error.config?.url || "";
-   
-    if (
-      error.response?.status === 401 &&
-      !url.includes("auth/login") &&
-      !url.includes("auth/updatePassword")
-    ) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+    (response) => response,
+    (error) => {
+        const url = error.config?.url || "";
+
+        if (
+            error.response?.status === 401 &&
+            !url.includes("auth/login") &&
+            !url.includes("auth/updatePassword")
+        ) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
 );
 
 
@@ -55,12 +55,12 @@ const api = {
         resetPassword: (data) => axiosInstance.post("auth/resetPassword", data),
     },
     notification: {
-        getAll: () => axiosInstance.get("/notifications"),
-        
-        markRead: (id) => axiosInstance.patch(`/notifications/${id}/read`),
+        getAll: () => axiosInstance.get("/notification"),
 
-        get: (id) => axiosInstance.get(`/notifications/${id}`),
-        
+
+
+        get: (id) => axiosInstance.get(`/notification/${id}`),
+
     },
 
     // --- User ---
@@ -81,6 +81,10 @@ const api = {
         getLearnerProfile: () => axiosInstance.get("learner"),
         getLearnerById: (id) => axiosInstance.get(`learner/${id}`),
         updateLearnerById: (id, data) => axiosInstance.patch(`/learner/${id}`, data),
+
+        sendComplain: (data) => axiosInstance.post("/complain", data),
+        getMyComplains: () => axiosInstance.get("/complain/my-complain"),
+
     },
 
     // --- Admin ---
@@ -136,6 +140,9 @@ const api = {
                 axiosInstance.patch(`admin/session/${id}`, data),
             cancelClass: (id) =>
                 axiosInstance.patch(`admin/classes/${id}/cancel`),
+
+            addStudentToClass: (classId, data) =>
+                axiosInstance.patch(`staff/class/${classId}/add-student`, data),
         },
 
         enrollment: {
@@ -156,6 +163,12 @@ const api = {
         finance: {
             getRevenueReport: (params) =>
                 axiosInstance.get("/admin/reports/revenue", { params }),
+        },
+        complain: {
+            getAllComplains: (params) => axiosInstance.get("/complain", { params }),
+            getOneComplain: (id) => axiosInstance.get(`/complain/${id}`),
+            updateComplainStatus: (id, data) => axiosInstance.patch(`/complain/${id}`, data),
+            deleteComplain: (id) => axiosInstance.delete(`/complain/${id}`),
         },
 
         getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),
@@ -191,6 +204,10 @@ const api = {
         getMySchedule: (params) =>
             axiosInstance.get("teacher/my-schedule", { params }),
 
+        uploadMaterial: (classId, materialData) =>
+            axiosInstance.patch(`/teacher/${classId}/learning-material`, materialData),
+
+
         attendance: {
             getTodaySession: () =>
                 axiosInstance.get("attendance/today-session"),
@@ -224,7 +241,6 @@ const api = {
             }),
 
         createSeatHold: (data) => axiosInstance.post("enrollment", data),
-
         createCustomSchedule: (data) =>
             axiosInstance.post("custom-schedule", data),
 
@@ -236,6 +252,8 @@ const api = {
 
         getMySchedule: (studentId, params) =>
             axiosInstance.get(`${studentId}/schedule`, { params }),
+
+        getTeacherHighlights: () => axiosInstance.get("/highlight-teacher"),
 
 
     },
@@ -251,6 +269,33 @@ const api = {
         getStudentDetail: (id) =>
             axiosInstance.get(`/staff/account/${id}`),
     },
+
+    substitute: {
+        // 1. Lấy chi tiết 1 yêu cầu
+        getOne: (id) => axiosInstance.get(`/substitute/requests/${id}`),
+
+        // 2. Hủy yêu cầu (Teacher A)
+        cancel: (id) => axiosInstance.delete(`/substitute/requests/${id}`),
+
+        // 3. Tạo yêu cầu (Teacher A)
+        create: (data) => axiosInstance.post("/substitute/requests", data),
+
+        // 4. Phản hồi yêu cầu (Teacher B - Accept/Decline)
+        respond: (id, data) => axiosInstance.patch(`/substitute/requests/${id}/respond`, data),
+
+        // 5. Xử lý yêu cầu (Admin - Approve/Reject)
+        process: (id, data) => axiosInstance.patch(`/substitute/requests/${id}/process`, data),
+
+        // 6. Gợi ý giáo viên (Teacher A, Admin)
+        getSuggestions: (sessionId) => axiosInstance.get("/substitute/suggestions", { params: { sessionId } }),
+
+        getAll: (params) => axiosInstance.get("/substitute/requests", { params }),
+    },
+    payment: {
+
+        confirmPayment: (params) => axiosInstance.get("/payment/confirm-payment", { params }),
+    },
+
 };
 
 export default api;

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Calendar, BookOpen, Home, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, BookOpen, Home, Clock, RefreshCw } from "lucide-react";
 import api from "../../../../utils/api"; 
 import Loading from '../../../UI/Loading';
+import SubstituteRequestModal from "./SubstituteRequestModal";
 
-// --- ĐỊNH NGHĨA CA HỌC (Lấy từ code mẫu của bạn) ---
+// --- ĐỊNH NGHĨA CA HỌC ---
 const SHIFTS = [
   { name: "S1", start: "08:00", end: "09:50" },
   { name: "S2", start: "10:00", end: "11:50" },
@@ -13,7 +14,7 @@ const SHIFTS = [
   { name: "S6", start: "20:00", end: "21:50" },
 ];
 
-// --- HÀM TIỆN ÍCH (Lấy từ code mẫu của bạn) ---
+// --- HÀM TIỆN ÍCH ---
 const getWeekDays = (date) => {
   const curr = new Date(date);
   const first = curr.getDate() - curr.getDay() + 1; // Thứ 2
@@ -53,30 +54,33 @@ const isToday = (date) => {
   return isSameDay(date, new Date());
 };
 
-// Hàm helper để lấy ngày đầu và cuối tuần theo format yyyy-MM-dd
 const getWeekSpanForAPI = (date) => {
   const curr = new Date(date);
-  const first = curr.getDate() - curr.getDay() + 1; // Thứ 2
-  const last = first + 6; // Chủ nhật
+  const first = curr.getDate() - curr.getDay() + 1; 
+  const last = first + 6; 
 
   const startDate = new Date(curr.setDate(first));
   const endDate = new Date(curr.setDate(last));
 
-  const f = (d) => d.toISOString().split('T')[0]; // format yyyy-MM-dd
+  const f = (d) => d.toISOString().split('T')[0]; 
   return { startDate: f(startDate), endDate: f(endDate) };
 };
 
 
-// --- COMPONENT CHÍNH (Trang Lịch Dạy) ---
+
 function TeacherViewSchedule() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
+
   const weekDays = useMemo(() => getWeekDays(currentWeek), [currentWeek]);
 
-  // --- LOGIC FETCH DATA ---
+  
   const fetchSchedule = useCallback(async (week) => {
     setIsLoading(true);
     setError(null);
@@ -93,18 +97,15 @@ function TeacherViewSchedule() {
     }
   }, []);
 
-  // Fetch data khi component mount hoặc tuần thay đổi
   useEffect(() => {
     fetchSchedule(currentWeek);
   }, [currentWeek, fetchSchedule]);
 
-  // --- LOGIC TỪ CODE MẪU ---
-  // Nhóm sessions theo ngày
+  // --- HELPERS ---
   const sessionsByDay = useMemo(() => {
     const grouped = {};
     sessions.forEach(session => {
       const sessionDate = new Date(session.startAt);
-      // Dùng key đơn giản hơn
       const dayKey = sessionDate.toISOString().split('T')[0];
       if (!grouped[dayKey]) {
         grouped[dayKey] = [];
@@ -114,13 +115,11 @@ function TeacherViewSchedule() {
     return grouped;
   }, [sessions]);
 
-  // Lấy sessions của 1 ngày cụ thể
   const getSessionsForDay = (date) => {
     const dayKey = date.toISOString().split('T')[0];
     return sessionsByDay[dayKey] || [];
   };
 
-  // Lấy sessions của 1 ca cụ thể trong 1 ngày
   const getSessionForShift = (date, shift) => {
     const daySessions = getSessionsForDay(date);
     return daySessions.find(session => {
@@ -146,17 +145,25 @@ function TeacherViewSchedule() {
     setCurrentWeek(new Date());
   };
   
-  // Đếm tổng số session trong tuần
   const totalSessionsInWeek = Object.values(sessionsByDay).flat().length;
 
+  // --- HANDLERS CHO MODAL ---
+  const handleOpenRequestModal = (session) => {
+      setSelectedSession(session);
+      setIsRequestModalOpen(true);
+  };
+
+  const handleRequestSuccess = () => {
+      // Reload lại lịch để cập nhật trạng thái (nếu có hiển thị icon pending)
+      fetchSchedule(currentWeek);
+  };
+
   return (
-    <div className="container mx-auto relative"> 
-      {/* --- PHẦN GIAO DIỆN (Lấy từ code mẫu) --- */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="container mx-auto relative p-4"> 
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
         
-        {/* Lớp phủ loading */}
         {isLoading && (
-          <div className="absolute inset-0 bg-white/70 flex justify-center items-center z-10 rounded-lg">
+          <div className="absolute inset-0 bg-white/70 flex justify-center items-center z-20 rounded-lg">
             <Loading />
           </div>
         )}
@@ -165,8 +172,7 @@ function TeacherViewSchedule() {
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-4">
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              {/* Thay thế bằng title cố định */}
+              <Calendar className="w-6 h-6" />
               <h2 className="text-lg font-bold">Thời khóa biểu của tôi</h2>
             </div>
             <div className="flex items-center gap-3">
@@ -177,10 +183,10 @@ function TeacherViewSchedule() {
               >
                 Hôm nay
               </button>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 bg-white/10 rounded-md p-0.5">
                 <button
                   onClick={goToPrevWeek}
-                  className="p-1.5 hover:bg-white/20 rounded-md transition-colors"
+                  className="p-1.5 hover:bg-white/20 rounded transition-colors"
                   disabled={isLoading}
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -190,7 +196,7 @@ function TeacherViewSchedule() {
                 </span>
                 <button
                   onClick={goToNextWeek}
-                  className="p-1.5 hover:bg-white/20 rounded-md transition-colors"
+                  className="p-1.5 hover:bg-white/20 rounded transition-colors"
                   disabled={isLoading}
                 >
                   <ChevronRight className="w-5 h-5" />
@@ -200,22 +206,21 @@ function TeacherViewSchedule() {
           </div>
         </div>
         
-        {/* Báo lỗi */}
         {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 m-4" role="alert">
             <p className="font-bold">Lỗi</p>
             <p>{error}</p>
           </div>
         )}
 
         {/* Calendar Grid */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse min-w-[900px]">
-            {/* Header - Tên các ngày */}
+         <div className="overflow-x-auto">
+          <table className="w-full border-collapse min-w-[900px] table-fixed">
+            {/* Header */}
             <thead>
               <tr className="bg-gray-50">
-                <th className="w-24 p-3 text-left border-b border-r border-gray-200 bg-gray-100">
-                  <span className="text-sm font-semibold text-gray-600">Ca học</span>
+                <th className="w-28 p-3 text-left border-b border-r border-gray-200 bg-gray-100">
+                  <span className="text-sm font-semibold text-gray-600 whitespace-nowrap">Ca học</span>
                 </th>
                 {weekDays.map((day, idx) => (
                   <th
@@ -223,14 +228,15 @@ function TeacherViewSchedule() {
                     className={`p-3 border-b border-gray-200 ${
                       isToday(day) ? 'bg-purple-50' : ''
                     }`}
+                    style={{ width: `calc((100% - 7rem) / 7)` }}
                   >
                     <div className="text-center">
-                      <div className={`text-sm font-semibold ${
+                      <div className={`text-sm font-semibold whitespace-nowrap ${
                         isToday(day) ? 'text-purple-700' : 'text-gray-700'
                       }`}>
                         {getDayName(day)}
                       </div>
-                      <div className={`text-xs mt-0.5 ${
+                      <div className={`text-xs mt-0.5 whitespace-nowrap ${
                         isToday(day) ? 'text-purple-600' : 'text-gray-500'
                       }`}>
                         {formatDate(day)}
@@ -241,63 +247,79 @@ function TeacherViewSchedule() {
               </tr>
             </thead>
 
-            {/* Body - Các ca học */}
+            {/* Body */}
             <tbody>
               {SHIFTS.map((shift, shiftIdx) => (
-                <tr key={shiftIdx} className="hover:bg-gray-50/50">
+                <tr key={shiftIdx} className="group hover:bg-gray-50/50">
                   {/* Cột CA HỌC */}
-                  <td className="p-3 border-r border-b border-gray-200 bg-gray-50">
+                  <td className="w-28 p-3 border-r border-b border-gray-200 bg-gray-50 group-hover:bg-gray-100 transition-colors">
                     <div className="text-right pr-2">
                       <div className="text-base font-bold text-purple-700">
                         {shift.name}
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        {shift.start}
+                      <div className="text-xs text-gray-500 mt-0.5 font-medium ">
+                        {shift.start} - {shift.end}
                       </div>
                     </div>
                   </td>
 
-                  {/* Các ô BUỔI HỌC theo ngày */}
+                  
                   {weekDays.map((day, dayIdx) => {
                     const session = getSessionForShift(day, shift);
                     const isTodayCell = isToday(day);
+                    
+                    
+                    const isFutureSession = session && new Date(session.startAt) > new Date();
 
                     return (
                       <td
                         key={dayIdx}
-                        className={`p-2 border-b border-gray-200 ${
-                          isTodayCell ? 'bg-purple-50/30' : ''
+                        className={`p-2 border-b border-r border-gray-200 relative h-24 align-top ${
+                          isTodayCell ? 'bg-purple-50/20' : ''
                         }`}
                       >
                         {session ? (
-                          // Đây là phần hiển thị 1 session (Đã chỉnh sửa)
-                          <div className="bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-lg p-2 shadow-md hover:shadow-lg transition-shadow max-w-[140px] mx-auto">
+                          <div className="bg-white border-l-4 border-purple-500 rounded shadow-sm p-2 h-full hover:shadow-md transition-all cursor-pointer group/card relative overflow-hidden">
                             <div className="flex items-center gap-1.5 mb-1">
-                              <Clock className="w-3 h-3 flex-shrink-0" />
-                              <span className="text-[11px] font-semibold">
+                              <Clock className="w-3 h-3 flex-shrink-0 text-purple-600" />
+                              <span className="text-[11px] font-semibold text-gray-600">
                                 {shift.start} - {shift.end}
                               </span>
                             </div>
                             
-                            {/* Thay vì Tên GV, hiển thị Tên Lớp */}
                             <div className="flex items-center gap-1.5 mb-1">
-                              <BookOpen className="w-3 h-3 flex-shrink-0" />
-                              <span className="text-[11px] truncate" title={session.class?.name}>
+                              <BookOpen className="w-3 h-3 flex-shrink-0 text-purple-600" />
+                              <span className="text-[11px] truncate font-bold text-gray-800" title={session.class?.name}>
                                 {session.class?.name || 'N/A'}
                               </span>
                             </div>
 
                             <div className="flex items-center gap-1.5">
-                              <Home className="w-3 h-3 flex-shrink-0" />
-                              <span className="text-[11px] truncate" title={session.room?.name}>
+                              <Home className="w-3 h-3 flex-shrink-0 text-purple-600" />
+                              <span className="text-[11px] truncate text-gray-600" title={session.room?.name}>
                                 {session.room?.name || 'N/A'}
                               </span>
                             </div>
+
+                           
+                            {isFutureSession && (
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity z-10 rounded">
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleOpenRequestModal(session);
+                                        }}
+                                        className="bg-white text-purple-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg hover:scale-105 active:scale-95 transition-transform flex items-center gap-1"
+                                    >
+                                        <RefreshCw className="w-3 h-3" />
+                                        Yêu cầu dạy thay
+                                    </button>
+                                </div>
+                            )}
                           </div>
                         ) : (
                           // Ô trống
-                          <div className="h-16 flex items-center justify-center text-gray-300">
-                            <span className="text-xs">-</span>
+                          <div className="w-full h-full flex items-center justify-center">
                           </div>
                         )}
                       </td>
@@ -309,25 +331,33 @@ function TeacherViewSchedule() {
           </table>
         </div>
 
-        {/* Footer - Thống kê */}
+        {/* Footer */}
         <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
           <div className="flex items-center justify-between text-sm text-gray-600">
             <div>
-              Tổng số buổi học (tuần này): <span className="font-semibold text-gray-900">{totalSessionsInWeek}</span>
+              Tổng số buổi học (tuần này): <span className="font-bold text-purple-700 text-lg ml-1">{totalSessionsInWeek}</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-purple-600 rounded"></div>
+                <div className="w-3 h-3 bg-white border-l-4 border-purple-500 rounded shadow-sm"></div>
                 <span>Có lịch</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gray-200 rounded"></div>
-                <span>Trống</span>
+                <div className="w-3 h-3 bg-purple-50/50 border border-gray-200"></div>
+                <span>Hôm nay</span>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* === MODAL XIN DẠY THAY === */}
+      <SubstituteRequestModal 
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+        session={selectedSession}
+        onSuccess={handleRequestSuccess}
+      />
     </div>
   );
 }

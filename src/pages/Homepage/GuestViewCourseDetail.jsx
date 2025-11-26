@@ -101,8 +101,11 @@ const GuestViewCourseDetail = () => {
   return (
     <>
       <Navbar />
+
       <div className="min-h-screen bg-gray-50 py-20 px-4 md:px-10">
+
         <div className="container mx-auto max-w-6xl bg-white shadow-xl rounded-2xl overflow-hidden p-10">
+
           {/* Header Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
             {/* Left: Info */}
@@ -202,7 +205,16 @@ const GuestViewCourseDetail = () => {
               </div>
             </div>
           </div>
+          <div className="mt-10 text-center">
+            <button
+              onClick={() => navigate('/')}
+              className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl shadow transition"
+            >
+              ← Quay lại Trang chủ
+            </button>
+          </div>
         </div>
+
       </div>
     </>
   );

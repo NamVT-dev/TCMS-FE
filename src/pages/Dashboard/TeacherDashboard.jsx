@@ -12,6 +12,7 @@ import TodayAttendancePage from '../../components/Teacher/TeacherAttendance/Toda
 import AttendanceDetailPage from '../../components/Teacher/TeacherAttendance/AttendanceDetailPage';
 import AttendanceHistoryPage from '../../components/Teacher/TeacherAttendance/AttendanceHistoryPage';
 import TeacherChangePassword from '../../components/Teacher/TeacherInformation/TeacherChangePassword';
+import TeacherNotificationRequestList from '../../components/Teacher/TeacherWork/TeacherNotificationRequestList';
 
 const TeacherDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -50,6 +51,7 @@ const TeacherDashboard = () => {
             <Route path="/attendance/:attendanceId" element={<AttendanceDetailPage />} />
             <Route path="/attendance-history" element={<AttendanceHistoryPage />} />
             <Route path="/change-password" element={<TeacherChangePassword />} />
+            <Route path="/substitute-request" element={<TeacherNotificationRequestList />} />
           </Routes>
         </div>
       </div>

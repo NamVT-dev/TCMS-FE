@@ -10,12 +10,13 @@ import StaffDashboard from "./pages/Dashboard/StaffDashboard";
 import HomePage from "./pages/Homepage/HomePage";
 import { UserProvider } from "./context/UserContext";
 import ProtectedRoute from "./hooks/ProtectedRoute";
-import VerifyOtp from "./pages/Auth/VerifyOtp ";
+import VerifyOtp from "./pages/Auth/VerifyOtp";
 import GuestViewCourseDetail from "./pages/Homepage/GuestViewCourseDetail";
 import StudentRegisterTest from "./components/Student/StudentOverview/StudentRegisterTest";
 import ForgotPasswordForm from "./pages/Auth/ForgotPasswordForm";
 import ResetPasswordForm from "./pages/Auth/ResetPasswordForm";
 import LearnerLayout from "./pages/Dashboard/LearnerLayout";
+import LearnerPaymentStatusPage from "./components/Student/LearnerPaymentStatusPage";
 
 
 // Component wrapper để xử lý modal
@@ -43,6 +44,7 @@ function AppContent() {
         <Route path="/courses/:id" element={<GuestViewCourseDetail />} />
         <Route path="/forgot-password" element={<ForgotPasswordForm />} />
         <Route path="/reset-password" element={<ResetPasswordForm />} />
+        <Route path="/return" element={<LearnerPaymentStatusPage />} />
 
         {/* Protected Routes */}
         <Route

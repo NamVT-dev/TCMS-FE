@@ -169,14 +169,8 @@ const AdminViewTeacherDetail = () => {
                             <div className="sm:ml-6 mt-4 sm:mt-0 flex-1">
                                 <h1 className="text-3xl font-bold text-gray-900">{profile.fullname || teacher.username}</h1>
                                 <div className="flex flex-wrap items-center gap-4 mt-2 text-gray-600">
-                                    <span className="flex items-center text-sm font-medium bg-gray-100 px-3 py-1 rounded-full">
-                                        <UserIcon className="w-4 h-4 mr-1.5 text-gray-500" />
-                                        {level || "Chưa cập nhật cấp bậc"}
-                                    </span>
-                                    <span className="flex items-center text-sm">
-                                        <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                                        {profile.address || "Hà Nội, Việt Nam"}
-                                    </span>
+                                    
+                                    
                                 </div>
                             </div>
                         </div>

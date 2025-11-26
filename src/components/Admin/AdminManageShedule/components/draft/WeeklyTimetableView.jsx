@@ -22,7 +22,7 @@ const ScheduleCard = ({ assignment }) => {
         bg-white border-l-4
         ${violatesAvailability 
           ? 'border-red-500 hover:shadow-red-100' 
-          : 'border-purple-500 hover:shadow-purple-100'
+          : 'border-green-500 hover:shadow-green-100'
         }
       `}
       title={violatesAvailability ? "Cảnh báo: Lịch này bị ép (GV không rảnh)" : ""}

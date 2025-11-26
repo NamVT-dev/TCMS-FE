@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import api from "../../../utils/api"; // Đảm bảo đường dẫn đúng
+import { useParams, Link, useNavigate } from "react-router-dom"; 
+import api from "../../../utils/api"; 
 import { 
     Loader2, ArrowLeft, BookOpen, User, Home, 
-    Calendar, Clock, Users, CalendarPlus, Ban, Eye 
+    Calendar, Clock, Users, CalendarPlus, Ban, Eye, Pencil 
 } from "lucide-react";
 import ClassScheduleCalendar from "./ClassScheduleCalendar";
 import ChangeTeacherModal from "./ChangeTeacherModal";
 
-// Component InfoCard giữ nguyên
+// --- 1. Component InfoCard ---
 const InfoCard = ({ icon: Icon, title, children }) => (
     <div className="bg-white shadow rounded-lg p-5">
         <div className="flex items-center mb-3">
@@ -19,7 +19,7 @@ const InfoCard = ({ icon: Icon, title, children }) => (
     </div>
 );
 
-// Component WeeklyScheduleCard giữ nguyên
+// --- 2. Component WeeklyScheduleCard ---
 const WeeklyScheduleCard = ({ schedules }) => {
     const formatMinutes = (minutes) => {
         if (minutes === undefined || minutes === null) return '';
@@ -56,8 +56,81 @@ const WeeklyScheduleCard = ({ schedules }) => {
     );
 };
 
+// --- 3. Component StudentListCard 
+const StudentListCard = ({ students, onEditStudent }) => {
+    return (
+        <div className="bg-white shadow rounded-lg p-5 flex flex-col h-full max-h-[500px]"> 
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4 shrink-0">
+                <div className="flex items-center">
+                    <Users className="w-6 h-6 text-purple-600 mr-3" />
+                    <h3 className="text-lg font-semibold text-gray-800">Danh Sách Học Viên</h3>
+                </div>
+                <span className="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-1 rounded-full">
+                    {students?.length || 0}/20
+                </span>
+            </div>
+
+            {/* List có scroll */}
+            <div className="flex-1 overflow-y-auto pr-1 -mr-2 space-y-2 custom-scrollbar">
+                {students?.map((student) => (
+                    <div 
+                        key={student._id} 
+                        className="group flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-all cursor-pointer"
+                    >
+                        <div className="flex items-center gap-3 overflow-hidden">
+                            {/* Avatar màu sắc theo giới tính */}
+                            <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm
+                                ${student.gender === 'male' ? 'bg-blue-500' : 'bg-pink-400'}`}>
+                                {student.name.charAt(0).toUpperCase()}
+                            </div>
+                            
+                            {/* Info */}
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-gray-800 truncate group-hover:text-purple-700 transition-colors">
+                                    {student.name}
+                                </p>
+                                <div className="flex items-center text-xs text-gray-500 mt-0.5">
+                                    <Calendar className="w-3 h-3 mr-1" />
+                                    <span>{new Date(student.dob).toLocaleDateString('vi-VN')}</span>
+                                    {/* Hiển thị giới tính tinh tế hơn */}
+                                    <span className="mx-1.5">•</span>
+                                    <span className={student.gender === 'male' ? 'text-blue-600' : 'text-pink-600'}>
+                                        {student.gender === 'male' ? 'Nam' : 'Nữ'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Nút Edit chỉ hiện khi Hover */}
+                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pl-2">
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEditStudent && onEditStudent(student); // Hàm xử lý khi bấm Edit
+                                }}
+                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-white rounded-full transition-colors shadow-sm"
+                                title="Chỉnh sửa thông tin"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+
+                {(!students || students.length === 0) && (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <p className="text-gray-500 text-sm">Chưa có học viên nào.</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// --- 4. Component Chính: AdminClassDetail ---
 const AdminClassDetail = () => {
-    const { id } = useParams();
+    const { id } = useParams(); // <-- Hàm này cần được import ở dòng 2
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -96,11 +169,16 @@ const AdminClassDetail = () => {
         );
     };
 
-    // --- Xử lý Hủy Lớp ---
+    // Hàm giả lập xử lý khi bấm nút Edit học viên
+    const handleEditStudent = (student) => {
+        console.log("Edit student:", student);
+        alert(`Bạn muốn sửa học viên: ${student.name}`);
+        // Logic mở modal sửa học viên sẽ viết ở đây
+    };
+
     const handleCancelClass = async () => {
         if (!classData) return;
         
-        // Kiểm tra điều kiện phía Client cho chắc chắn (dù server có check rồi)
         const hasStudents = classData.student && classData.student.length > 0;
         const hasReserved = classData.reservedCount > 0;
 
@@ -117,7 +195,6 @@ const AdminClassDetail = () => {
             setLoading(true);
             await api.admin.class.cancelClass(id);
             alert("Hủy lớp thành công!");
-            // Sau khi hủy, load lại data để cập nhật status
             fetchClassDetail();
         } catch (err) {
             alert(err.response?.data?.message || "Lỗi khi hủy lớp.");
@@ -125,12 +202,10 @@ const AdminClassDetail = () => {
         }
     };
 
-    // --- Xử lý nút Lịch Học ---
     const handleScheduleAction = () => {
         if (sessions && sessions.length > 0) {
-            navigate(`/admin/classes/${id}/sessions`); // Route này trỏ tới AdminViewDetailSessionClass
-        }else {
-            // Nếu chưa có session -> Sang trang setup lịch
+            navigate(`/admin/classes/${id}/sessions`);
+        } else {
             navigate(`/admin/classes/${id}/schedule-setup`);
         }
     };
@@ -151,9 +226,7 @@ const AdminClassDetail = () => {
         return <div className="p-6 text-center text-gray-500">Không tìm thấy dữ liệu lớp.</div>;
     }
 
-    // Kiểm tra xem đã có lịch chi tiết chưa
     const hasSessions = sessions && sessions.length > 0;
-    // Kiểm tra xem lớp đã bị hủy chưa để disable các nút thao tác
     const isCanceled = classData.status === "canceled";
 
     return (
@@ -167,16 +240,12 @@ const AdminClassDetail = () => {
                     Quay lại Danh sách lớp
                 </Link>
                 
-                {/* Button Group */}
                 <div className="flex space-x-3">
-                    {/* 1. Nút Lịch Học (Logic thay đổi theo yêu cầu) */}
                     <button
                         onClick={handleScheduleAction}
                         disabled={isCanceled}
                         className={`inline-flex items-center px-4 py-2 text-white rounded-lg shadow-sm transition
-                            ${isCanceled 
-                                ? 'bg-gray-400 cursor-not-allowed' 
-                                : 'bg-purple-600 hover:bg-purple-700'}`}
+                            ${isCanceled ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'}`}
                     >
                         {hasSessions ? (
                             <>
@@ -191,21 +260,16 @@ const AdminClassDetail = () => {
                         )}
                     </button>
 
-                    {/* 2. Nút Đổi Giáo Viên */}
                     <button
                         onClick={() => setIsModalOpen(true)}
                         disabled={isCanceled}
                         className={`inline-flex items-center px-4 py-2 text-white rounded-lg shadow-sm transition
-                            ${isCanceled 
-                                ? 'bg-gray-400 cursor-not-allowed' 
-                                : 'bg-blue-600 hover:bg-blue-700'}`}
+                            ${isCanceled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                     >
                         <Users className="w-5 h-5 mr-2" />
                         Đổi Giáo viên
                     </button>
 
-                    {/* 3. Nút Hủy Lớp (Thay cho nút Sửa Lớp) */}
-                    {/* Chỉ hiển thị nút Hủy nếu lớp chưa bị hủy */}
                     {!isCanceled && (
                         <button
                             onClick={handleCancelClass}
@@ -240,9 +304,14 @@ const AdminClassDetail = () => {
                         <p><strong>Sĩ số:</strong> {classData.student?.length || 0} / {classData.maxStudent} HS</p>
                     </InfoCard>
                     <WeeklyScheduleCard schedules={classData.weeklySchedules} />
+                    
+                    {/* Sử dụng Component Mới */}
+                    <StudentListCard 
+                        students={classData.student} 
+                        onEditStudent={handleEditStudent} // Truyền hàm edit vào
+                    />
                 </div>
                 <div className="lg:col-span-2">
-                    {/* Calendar hiển thị tổng quan */}
                     <ClassScheduleCalendar
                         sessions={sessions}
                         classInfo={classData}

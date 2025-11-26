@@ -2,13 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
     LayoutDashboard, Users, UserCircle, GraduationCap, Users2, UserCog,
-    School, ListChecks, CalendarDays, ClipboardList,
-    BookOpen, BookOpenCheck, BookCopy, FileText,
-    Building2, DoorOpen, Building, Wrench,
-    Wallet, Receipt, Coins, BanknoteArrowUp, PieChart,
-    BarChart3, BarChart2, TrendingUp, ChevronRight, CopyPlus,
+    School, ListChecks, BookOpen, BookOpenCheck, Building2, DoorOpen,
+    Wallet,  BanknoteArrowUp, PieChart,ChevronRight, 
     ChevronLeft, ShieldUser, Clock1, CalendarCog,MessageSquarePlus, 
-    LayoutList
+    LayoutList, ArrowRightLeft, MessageSquareShare,
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -126,6 +123,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             title: "Quản lý lớp học",
             items: [
                 { name: "Danh sách lớp", path: "/admin/classes", icon: ListChecks },
+                { name: "Yêu cầu dạy thay", path: "/admin/requests/substitute", icon: ArrowRightLeft }, 
                 { name: "Thống kê nhu cầu", path: "/admin/requests/dashboard", icon: MessageSquarePlus },
                 { name: "Danh sách yêu cầu", path: "/admin/requests/list", icon: LayoutList }
             ]
@@ -151,6 +149,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             items: [
                 { name: "Phòng học", path: "/admin/facility/rooms", icon: DoorOpen },
                 { name: "Thời gian hoạt động", path: "/admin/facility/working-hours", icon: Clock1 },
+                { name: "Góp ý phản ánh", path: "/admin/facility/complain", icon: MessageSquareShare },
             ]
         },
         {

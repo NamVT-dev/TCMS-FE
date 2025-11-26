@@ -4,10 +4,11 @@ import { Routes, Route } from 'react-router-dom';
 import Navbar from '../../components/Layout/Navbar';
 import StudentSidebar from '../../components/Layout/StudentSidebar';
 import StudentProfile from '../../components/Student/StudentInformation/StudentProfile';
-import StudentOverview from '../../components/Student/StudentOverview/StudentOverview';
 import LearnerProfileView from '../../components/Student/StudentOverview/LearnerProfileView';
 import StudentChangePassword from '../../components/Student/StudentInformation/StudentChangePassword';
 import StudentPaymentHistoryView from '../../components/Student/StudentInformation/StudentPaymentHistoryView';
+import StudentComplainModal from '../../components/Student/StudentInformation/StudentComplainModal';
+import StudentViewComplain from '../../components/Student/StudentInformation/StudentViewComplain';
 
 const StudentDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -38,10 +39,12 @@ const StudentDashboard = () => {
           isSidebarCollapsed ? 'ml-20' : 'ml-72'
         } p-6`}>
           <Routes>
-            <Route path="/overview" element={<StudentOverview />} />
+           
             <Route path="/learner-profile" element={<LearnerProfileView />} />
             <Route path="/profile" element={<StudentProfile />} />
             <Route path="/change-password" element={<StudentChangePassword />} />
+            
+            <Route path="/complain" element={<StudentViewComplain />} />
        
            
             

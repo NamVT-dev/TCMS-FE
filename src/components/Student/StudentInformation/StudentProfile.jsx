@@ -107,7 +107,7 @@ const StudentProfile = () => {
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 py-10">
-      <div className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-6xl mx-auto">
+      <div className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-8xl mx-auto">
         {/* Avatar */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative">

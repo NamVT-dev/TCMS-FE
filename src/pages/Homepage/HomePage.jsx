@@ -6,24 +6,21 @@ import HeroSection from './HeroSection';
 import CourseSection from './CourseSection';
 import InstructorSection from './InstructorSection';
 import Footer from './Footer';
-// Thêm import hook useAuth thực tế của bạn
 import { useAuth } from '../../hooks/useAuth'; 
-
-// XÓA BỎ HOẶC COMMENT PHẦN GIẢ LẬP useAuth Ở ĐÂY
+import ChatWidget from './ChatWidget';
 
 const HomePage = ({ onOpenModal }) => {
-    // 💡 SỬ DỤNG HOOK THỰC TẾ
     const { user } = useAuth();
-    const isLoggedIn = !!user; // Kiểm tra user có tồn tại không
+    const isLoggedIn = !!user; 
     
     const navigate = useNavigate();
     
     const [showScrollTop, setShowScrollTop] = useState(false);
     const [showLoginMessage, setShowLoginMessage] = useState(false); 
 
-    // Theo dõi vị trí scroll để hiện/ẩn nút (giữ nguyên)
     useEffect(() => {
         const handleScroll = () => {
+            
             if (window.scrollY > 300) {
                 setShowScrollTop(true);
             } else {
@@ -42,20 +39,17 @@ const HomePage = ({ onOpenModal }) => {
         });
     };
 
-    // HÀM XỬ LÝ CHÍNH KHI BẤM NÚT ĐĂNG KÝ TEST
     const handleCheckAndOpenModal = () => {
         if (isLoggedIn) {
-            // 1. Đã đăng nhập: Mở modal đăng ký
             onOpenModal(); 
             setShowLoginMessage(false);
         } else {
-            // 2. Chưa đăng nhập: Chỉ hiển thị thông báo.
             setShowLoginMessage(true); 
         }
     };
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white relative"> 
             <Navbar />
             <HeroSection 
                 onOpenModal={handleCheckAndOpenModal} 
@@ -65,11 +59,15 @@ const HomePage = ({ onOpenModal }) => {
             <InstructorSection />
             <Footer />
 
-            {/* Nút Scroll To Top */}
+           
+            <ChatWidget />
+
+           
             {showScrollTop && (
                 <button
                     onClick={scrollToTop}
-                    className="fixed bottom-8 right-8 z-50 p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 group"
+                    
+                    className="fixed bottom-8 left-8 z-50 p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 group"
                     aria-label="Scroll to top"
                 >
                     <ChevronUp className="w-6 h-6 group-hover:animate-bounce" />

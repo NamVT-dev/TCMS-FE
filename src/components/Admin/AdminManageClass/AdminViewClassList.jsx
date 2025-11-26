@@ -4,6 +4,8 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../../../utils/api';
 import { useDebounce } from '../../../hooks/useDebounce';
 import AdminCreateClassModal from './AdminCreateClassModal';
+import { ToastContainer } from 'react-toastify'; 
+import 'react-toastify/dist/ReactToastify.css'; 
 
 const Pagination = ({ page, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
@@ -43,7 +45,7 @@ const AdminViewClassList = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-  
+
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
 
   const [page, setPage] = useState(1);
@@ -65,7 +67,7 @@ const AdminViewClassList = () => {
       try {
         const [courseRes, catRes] = await Promise.all([
           api.admin.getCourse({ page: 1, limit: 1000 }),
-          api.admin.getCategories({ limit: 100 }) 
+          api.admin.getCategories({ limit: 100 })
         ]);
 
         setCourses(courseRes.data.data.courses || []);
@@ -102,13 +104,13 @@ const AdminViewClassList = () => {
 
     if (selectedMonth) {
       result = result.filter(cls => {
-        if (!cls.startAt) return false; 
-        
+        if (!cls.startAt) return false;
+
         const classDate = new Date(cls.startAt);
-        const [filterYear, filterMonth] = selectedMonth.split('-'); 
-        
-        return classDate.getFullYear() === parseInt(filterYear) && 
-               (classDate.getMonth() + 1) === parseInt(filterMonth);
+        const [filterYear, filterMonth] = selectedMonth.split('-');
+
+        return classDate.getFullYear() === parseInt(filterYear) &&
+          (classDate.getMonth() + 1) === parseInt(filterMonth);
       });
     }
 
@@ -183,7 +185,7 @@ const AdminViewClassList = () => {
     setSelectedCategories([]);
     setSelectedCourse("");
     setSelectedStatus("");
-    setSelectedMonth(""); 
+    setSelectedMonth("");
     setPage(1);
   };
 
@@ -198,16 +200,20 @@ const AdminViewClassList = () => {
 
   const getStatusText = (status) => statusOptions.find(opt => opt.value === status)?.label || status;
 
-  const getTeacherNames = (weeklySchedules) => {
-    if (!weeklySchedules || weeklySchedules.length === 0) return "N/A";
-    const names = weeklySchedules.map(s => s.teacher?.profile?.fullname).filter(Boolean);
-    return [...new Set(names)].join(', ') || "Chưa gán";
+  const getTeacherNames = (cls) => {
+    const firstSchedule = cls?.weeklySchedules?.[0];
+    const preferredTeacherName =
+      cls?.preferredTeacher?.profile?.fullname;
+
+    const teacherNameFromSchedule =
+      firstSchedule?.teacher?.profile?.fullname;
+
+    return  preferredTeacherName || teacherNameFromSchedule || "Chưa có giáo viên";
   };
-  
-  
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen font-inter">
+      <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="mb-6 flex justify-between items-center">
         <div>
@@ -312,7 +318,7 @@ const AdminViewClassList = () => {
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Khóa học</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Giáo viên</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Ngày bắt đầu</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Sĩ số</th>
+                
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Thao tác</th>
               </tr>
@@ -320,7 +326,7 @@ const AdminViewClassList = () => {
             <tbody className="divide-y divide-gray-200">
               {loading && (<tr><td colSpan="7" className="p-8 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-purple-600" /></td></tr>)}
               {!loading && error && (<tr><td colSpan="7" className="p-8 text-center text-red-600 bg-red-50">{error}</td></tr>)}
-              
+
               {!loading && !error && filteredClasses.length === 0 && (
                 <tr>
                   <td colSpan="7" className="text-center p-12 flex flex-col items-center justify-center text-gray-500">
@@ -330,7 +336,7 @@ const AdminViewClassList = () => {
                   </td>
                 </tr>
               )}
-              
+
               {!loading && !error && filteredClasses.map((cls) => (
                 <tr key={cls._id} className="hover:bg-purple-50 transition-colors duration-150 group">
                   <td className="px-6 py-4">
@@ -338,13 +344,11 @@ const AdminViewClassList = () => {
                     <div className="text-xs text-gray-500 mt-1 font-mono">{cls.classCode || "---"}</div>
                   </td>
                   <td className="px-6 py-4 text-gray-700 text-sm">{cls.course?.name || "N/A"}</td>
-                  <td className="px-6 py-4 text-gray-700 text-sm">{getTeacherNames(cls.weeklySchedules)}</td>
+                  <td className="px-6 py-4 text-gray-700 text-sm">{getTeacherNames(cls)}</td>
                   <td className="px-6 py-4 text-gray-700 text-sm">
                     {cls.startAt ? new Date(cls.startAt).toLocaleDateString('vi-VN') : "N/A"}
                   </td>
-                  <td className="px-6 py-4 text-gray-700 text-sm">
-                    <span className="font-medium">{cls.attendance?.length || 0}</span> / {cls.maxStudent || "N/A"}
-                  </td>
+                  
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(cls.status)}`}>
                       {getStatusText(cls.status)}
