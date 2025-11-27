@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast";
 
 import api from "../../../utils/api";
 import Loading from "../../UI/Loading";
-import PaymentHistoryDetailModal from "../../Student/StudentInformation/PaymentHistoryDetailModal";
+import AdminPaymentDetailModal from "./AdminPaymentDetailModal";
 
 const StaffPaymentManagement = () => {
   // --- State ---
@@ -314,7 +314,7 @@ const StaffPaymentManagement = () => {
       </div>
 
       
-      <PaymentHistoryDetailModal
+      <AdminPaymentDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         paymentId={selectedPaymentId}

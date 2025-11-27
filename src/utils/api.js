@@ -174,6 +174,7 @@ const api = {
         payment: {
             getAllSystemPayments: (params) => axiosInstance.get("staff/transaction", { params }), 
             refundPayment: (id) => axiosInstance.get(`/payment/refund-payment/${id}`), 
+            getPaymentDetail: (id) => axiosInstance.get(`/staff/transaction/${id}`),
         },
 
         getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),
