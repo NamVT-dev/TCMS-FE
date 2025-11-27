@@ -3,16 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeftIcon, 
   CalendarDaysIcon, 
-  MapPinIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  UserGroupIcon,
-  SparklesIcon,
-  ChevronDownIcon,
-  ChevronUpIcon
+  MapPinIcon, 
+  ClockIcon, 
+  CheckCircleIcon, 
+  SparklesIcon, 
+  ChevronDownIcon, 
+  ChevronUpIcon,
+  DocumentTextIcon, 
+  LinkIcon,      
+  XCircleIcon,    
+  QuestionMarkCircleIcon 
 } from '@heroicons/react/24/outline';
-import api from '../../utils/api';
-import Loading from '../UI/Loading';
+import api from '../../utils/api'; 
+import Loading from '../UI/Loading'; 
 import { format, isPast, isToday } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
@@ -20,12 +23,12 @@ const StudentClassDetail = () => {
   const { studentId, classId } = useParams();
   const navigate = useNavigate();
   
-  // --- Data State ---
+  
   const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- UI State ---
+  
   const [isExpanded, setIsExpanded] = useState(false); 
   const scrollContainerRef = useRef(null); 
   const nextSessionRef = useRef(null); 
@@ -53,7 +56,6 @@ const StudentClassDetail = () => {
     fetchClassDetail();
   }, [studentId, classId, navigate]);
 
-  // --- Auto Scroll Logic ---
   useEffect(() => {
     if (!isLoading && classData && !isExpanded && nextSessionRef.current && scrollContainerRef.current) {
       nextSessionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -75,7 +77,7 @@ const StudentClassDetail = () => {
 
   if (!classData) return <p className="p-8 text-center text-gray-600">Không tìm thấy dữ liệu lớp học.</p>;
 
-  const { classInfo, sessions, enrollments } = classData;
+  const { classInfo, sessions } = classData;
   const sortedSessions = sessions?.sort((a, b) => new Date(a.startAt) - new Date(b.startAt)) || [];
   
   const nextSessionIndex = sortedSessions.findIndex(s => !isPast(new Date(s.endAt)));
@@ -84,12 +86,41 @@ const StudentClassDetail = () => {
   const teacherName = teacherInfo?.profile?.fullname || teacherInfo?.username || 'Chưa phân công';
   const teacherEmail = teacherInfo?.email || '---';
   const teacherPhoto = teacherInfo?.profile?.photo;
+  const learningMaterials = classInfo.learningMaterial || [];
 
   const getStatusLabel = (status) => {
       if (status === 'approved') return 'Đang hoạt động';
       if (status === 'finished') return 'Kết thúc'; 
       if (status === 'canceled') return 'Đã hủy';
       return status;
+  };
+
+  const renderAttendanceStatus = (attendance) => {
+    if (!attendance || !attendance.status) {
+        return (
+            <span className="flex items-center text-gray-400 text-sm bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+                <QuestionMarkCircleIcon className="w-4 h-4 mr-1.5" />
+                Chưa điểm danh
+            </span>
+        );
+    }
+    if (attendance.status === 'present') {
+        return (
+            <span className="flex items-center text-green-700 text-sm bg-green-50 px-2 py-1 rounded-md border border-green-100 font-medium">
+                <CheckCircleIcon className="w-4 h-4 mr-1.5" />
+                Có mặt
+            </span>
+        );
+    }
+    if (attendance.status === 'absent') {
+        return (
+            <span className="flex items-center text-red-700 text-sm bg-red-50 px-2 py-1 rounded-md border border-red-100 font-medium">
+                <XCircleIcon className="w-4 h-4 mr-1.5" />
+                Vắng mặt
+            </span>
+        );
+    }
+    return <span className="text-gray-500 text-sm">{attendance.status}</span>;
   };
 
   return (
@@ -134,10 +165,6 @@ const StudentClassDetail = () => {
                 
                 <div className="flex gap-3">
                       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[100px] text-center shadow-lg">
-                        <p className="text-[10px] text-indigo-100 uppercase font-bold tracking-wider mb-1">Sĩ số</p>
-                        <p className="text-2xl font-extrabold">{enrollments.length}<span className="text-sm text-indigo-200 font-medium"></span></p>
-                      </div>
-                      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[100px] text-center shadow-lg">
                         <p className="text-[10px] text-indigo-100 uppercase font-bold tracking-wider mb-1">Số buổi</p>
                         <p className="text-2xl font-extrabold">{sessions.length}</p>
                       </div>
@@ -161,11 +188,10 @@ const StudentClassDetail = () => {
                         </span>
                     </div>
                     
-                    
                     <div 
                         ref={scrollContainerRef}
                         className={`p-6 relative transition-all duration-500 ease-in-out
-                            ${isExpanded ? 'max-h-none overflow-visible' : 'max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'}
+                            ${isExpanded ? 'max-h-none overflow-visible' : 'max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'}
                         `}
                     >
                         <div className={`absolute left-9 top-6 bottom-6 w-0.5 bg-gray-100 hidden sm:block ${isExpanded ? '' : 'min-h-[1000px]'}`}></div>
@@ -177,16 +203,14 @@ const StudentClassDetail = () => {
                                     const isFinished = isPast(sessionDate) && !isToday(sessionDate);
                                     const isHappening = isToday(sessionDate);
                                     const isNext = index === nextSessionIndex; 
+                                    const attendance = session.attendance || {};
                                     
                                     return (
                                         <div 
                                             key={session._id} 
-                                            
                                             ref={isNext ? nextSessionRef : null}
                                             className="relative flex flex-col sm:flex-row gap-5 group"
                                         >
-                                            
-                                           
                                             <div className={`flex-shrink-0 w-full sm:w-20 h-20 rounded-2xl flex flex-col items-center justify-center border transition-all z-10 
                                                 ${isHappening 
                                                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105 border-indigo-600' 
@@ -205,7 +229,6 @@ const StudentClassDetail = () => {
                                                 </span>
                                             </div>
 
-                                          
                                             <div className={`flex-1 p-4 rounded-xl border transition-all relative
                                                 ${isHappening 
                                                     ? 'bg-indigo-50/50 border-indigo-100 shadow-sm' 
@@ -216,7 +239,7 @@ const StudentClassDetail = () => {
                                             `}>
                                                 {isNext && <div className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">NEXT</div>}
                                                 
-                                                <div className="flex justify-between items-start mb-2">
+                                                <div className="flex justify-between items-start mb-3">
                                                     <div className="flex items-center gap-2">
                                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
                                                             ${isFinished ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-700 border border-blue-100'}
@@ -233,7 +256,7 @@ const StudentClassDetail = () => {
                                                     {isFinished && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
                                                 </div>
                                                 
-                                                <div className="flex flex-col sm:flex-row sm:items-center gap-y-2 gap-x-6 text-sm text-gray-600">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4 text-sm text-gray-600">
                                                     <div className="flex items-center">
                                                         <ClockIcon className="w-4 h-4 mr-2 text-gray-400" />
                                                         <span className="font-medium text-gray-700">
@@ -243,6 +266,21 @@ const StudentClassDetail = () => {
                                                     <div className="flex items-center">
                                                         <MapPinIcon className="w-4 h-4 mr-2 text-gray-400" />
                                                         <span>Phòng: <span className="font-semibold text-gray-900 bg-gray-100 px-1.5 py-0.5 rounded">{session.room?.name || '---'}</span></span>
+                                                    </div>
+
+                                                    {/* Attendance Status Section */}
+                                                    <div className="col-span-1 md:col-span-2 mt-2 pt-2 border-t border-gray-100">
+                                                        <div className="flex items-start gap-2">
+                                                            <div className="flex-shrink-0 mt-0.5">
+                                                                {renderAttendanceStatus(attendance)}
+                                                            </div>
+                                                            {/* Note từ giáo viên */}
+                                                            {attendance.note && (
+                                                                <div className="flex-1 text-xs text-gray-500 italic bg-gray-50 p-2 rounded border border-gray-100">
+                                                                    Note: "{attendance.note}"
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -258,7 +296,6 @@ const StudentClassDetail = () => {
                         )}
                     </div>
 
-                 
                     {sortedSessions.length > 3 && (
                         <div className="p-3 border-t border-gray-100 bg-gray-50 text-center sticky bottom-0 z-20">
                             <button 
@@ -266,13 +303,9 @@ const StudentClassDetail = () => {
                                 className="inline-flex items-center text-xs font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider px-4 py-2 hover:bg-indigo-50 rounded-lg transition-colors"
                             >
                                 {isExpanded ? (
-                                    <>
-                                        Thu gọn <ChevronUpIcon className="w-4 h-4 ml-1" />
-                                    </>
+                                    <>Thu gọn <ChevronUpIcon className="w-4 h-4 ml-1" /></>
                                 ) : (
-                                    <>
-                                        Xem toàn bộ lịch trình ({sessions.length} buổi) <ChevronDownIcon className="w-4 h-4 ml-1" />
-                                    </>
+                                    <>Xem toàn bộ lịch trình ({sessions.length} buổi) <ChevronDownIcon className="w-4 h-4 ml-1" /></>
                                 )}
                             </button>
                         </div>
@@ -280,10 +313,7 @@ const StudentClassDetail = () => {
                 </div>
             </div>
 
-          
             <div className="space-y-6">
-                
-               
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative group">
                     <div className="h-20 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
                     <div className="px-5 pb-5">
@@ -301,44 +331,66 @@ const StudentClassDetail = () => {
                         <div className="text-center">
                             <h3 className="text-lg font-bold text-gray-800">Giáo viên: {teacherName}</h3>
                             <p className="text-sm text-gray-500 mb-4">{teacherEmail}</p>
-                            
                         </div>
                     </div>
                 </div>
 
-           
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                         <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide flex items-center">
-                            <UserGroupIcon className="w-4 h-4 mr-2 text-gray-400" />
-                            Thành viên ({enrollments.length})
+                            <DocumentTextIcon className="w-4 h-4 mr-2 text-indigo-500" />
+                            Tài liệu học tập ({learningMaterials.length})
                         </h3>
                     </div>
                     
-                    {enrollments.length > 0 ? (
+                    {learningMaterials.length > 0 ? (
                         <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
-                            {enrollments.map((enroll) => (
-                                <div key={enroll._id} className="flex items-center p-2.5 hover:bg-gray-50 rounded-xl transition-colors cursor-default">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs mr-3 border border-blue-100 shadow-sm">
-                                        {enroll.student?.name?.[0]?.toUpperCase() || 'U'}
+                            {learningMaterials.map((material) => {
+                                // Kiểm tra xem content có phải là link không
+                                const isLink = material.content && (material.content.startsWith('http://') || material.content.startsWith('https://'));
+                                
+                                return (
+                                    <div key={material._id} className="p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-indigo-200 hover:shadow-sm transition-all group">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-sm font-semibold text-gray-800 mb-1 truncate" title={material.title}>
+                                                    {material.title}
+                                                </h4>
+                                                <div className="text-xs text-gray-500 flex items-center">
+                                                    {isLink ? (
+                                                        <a 
+                                                            href={material.content} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 hover:underline flex items-center gap-1"
+                                                        >
+                                                            <LinkIcon className="w-3 h-3" />
+                                                            Mở liên kết
+                                                        </a>
+                                                    ) : (
+                                                        <span className="truncate" title={material.content}>
+                                                            {material.content}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-100 flex-shrink-0 ml-2">
+                                                {format(new Date(material.createAt), 'dd/MM')}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-gray-800 truncate">
-                                            {enroll.student?.name || 'Ẩn danh'}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                            <UserGroupIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                            <p className="text-xs text-gray-500">Chưa có thành viên khác</p>
+                            <DocumentTextIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                            <p className="text-xs text-gray-500">Chưa có tài liệu nào được tải lên</p>
                         </div>
                     )}
                 </div>
 
-               
+                {/* Note Box */}
                 <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">
                     <h3 className="text-amber-800 font-bold mb-3 flex items-center text-sm">
                         <SparklesIcon className="w-4 h-4 mr-2 text-amber-600" /> 
@@ -350,7 +402,6 @@ const StudentClassDetail = () => {
                         <li>Liên hệ giáo viên nếu bạn cần nghỉ phép.</li>
                     </ul>
                 </div>
-
             </div>
         </div>
       </div>
