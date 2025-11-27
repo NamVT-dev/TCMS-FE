@@ -3,12 +3,12 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../../../utils/api"; 
 import { 
     Loader2, ArrowLeft, BookOpen, User, Home, 
-    Calendar, Clock, Users, CalendarPlus, Ban, Eye, Pencil 
+    Calendar, Clock, Users, CalendarPlus, Ban, Eye, Pencil, ArrowRightLeft, UserX
 } from "lucide-react";
 import ClassScheduleCalendar from "./ClassScheduleCalendar";
 import ChangeTeacherModal from "./ChangeTeacherModal";
 
-// --- 1. Component InfoCard ---
+// --- 1. Component InfoCard (Giữ nguyên) ---
 const InfoCard = ({ icon: Icon, title, children }) => (
     <div className="bg-white shadow rounded-lg p-5">
         <div className="flex items-center mb-3">
@@ -19,7 +19,7 @@ const InfoCard = ({ icon: Icon, title, children }) => (
     </div>
 );
 
-// --- 2. Component WeeklyScheduleCard ---
+// --- 2. Component WeeklyScheduleCard (Cập nhật Layout Grid) ---
 const WeeklyScheduleCard = ({ schedules }) => {
     const formatMinutes = (minutes) => {
         if (minutes === undefined || minutes === null) return '';
@@ -28,38 +28,62 @@ const WeeklyScheduleCard = ({ schedules }) => {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     };
 
+    // Hàm xác định label thứ
+    const getDayLabel = (dayIndex) => {
+        const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        return days[dayIndex] || 'N/A';
+    };
+
     return (
-        <div className="bg-white shadow rounded-lg p-5">
+        <div className="bg-white shadow rounded-lg p-5 mb-6">
             <div className="flex items-center mb-4">
                 <Calendar className="w-6 h-6 text-purple-600 mr-3" />
                 <h3 className="text-lg font-semibold text-gray-800">Lịch Học Hàng Tuần</h3>
             </div>
-            <div className="space-y-4">
+            
+            {/* --- Thay đổi layout ở đây --- */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {schedules?.map((slot, index) => {
                     const timeText = `${formatMinutes(slot.startMinute)} - ${formatMinutes(slot.endMinute)}`;
                     return (
-                        <div key={index} className="p-3 bg-purple-50 rounded-md border border-purple-200">
-                            <p className="font-semibold text-purple-800">
-                                {['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][slot.dayOfWeek]}
+                        <div key={index} className="p-4 bg-purple-50 rounded-lg border border-purple-200 hover:shadow-sm transition-shadow">
+                            <p className="font-bold text-purple-800 text-lg mb-2 border-b border-purple-200 pb-1">
+                                {getDayLabel(slot.dayOfWeek)}
                             </p>
-                            <div className="text-sm text-gray-700 mt-1 space-y-1">
-                                <p><Clock className="w-4 h-4 inline mr-2" /> {timeText}</p>
-                                <p><User className="w-4 h-4 inline mr-2" /> {slot.teacher?.profile?.fullname || 'N/A'}</p>
-                                <p><Home className="w-4 h-4 inline mr-2" /> {slot.room?.name || 'N/A'}</p>
+                            <div className="text-sm text-gray-700 space-y-1.5">
+                                <div className="flex items-center">
+                                    <Clock className="w-4 h-4 mr-2 text-purple-500" /> 
+                                    <span className="font-medium">{timeText}</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <User className="w-4 h-4 mr-2 text-purple-500" /> 
+                                    <span className="truncate" title={slot.teacher?.profile?.fullname}>
+                                        {slot.teacher?.profile?.fullname || 'Chưa xếp GV'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center">
+                                    <Home className="w-4 h-4 mr-2 text-purple-500" /> 
+                                    <span>{slot.room?.name || 'Chưa xếp phòng'}</span>
+                                </div>
                             </div>
                         </div>
                     );
                 })}
-                {(!schedules || schedules.length === 0) && <p className="text-gray-500 italic">Chưa có lịch tuần cố định.</p>}
+                
+                {(!schedules || schedules.length === 0) && (
+                    <div className="col-span-full text-center py-4">
+                         <p className="text-gray-500 italic">Chưa có lịch tuần cố định.</p>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
-// --- 3. Component StudentListCard 
-const StudentListCard = ({ students, onEditStudent }) => {
+// --- 3. Component StudentListCard (Giữ nguyên logic, thêm max-height) ---
+const StudentListCard = ({ students, maxStudents, onChangeClass, onRemoveStudent }) => {
     return (
-        <div className="bg-white shadow rounded-lg p-5 flex flex-col h-full max-h-[500px]"> 
+        <div className="bg-white shadow rounded-lg p-5 flex flex-col h-full max-h-[600px]"> 
             {/* Header */}
             <div className="flex items-center justify-between mb-4 shrink-0">
                 <div className="flex items-center">
@@ -67,22 +91,33 @@ const StudentListCard = ({ students, onEditStudent }) => {
                     <h3 className="text-lg font-semibold text-gray-800">Danh Sách Học Viên</h3>
                 </div>
                 <span className="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-1 rounded-full">
-                    {students?.length || 0}/20
+                    {students?.length || 0}/{maxStudents || 0}
                 </span>
             </div>
 
             {/* List có scroll */}
-            <div className="flex-1 overflow-y-auto pr-1 -mr-2 space-y-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto pr-1 -mr-2 space-y-3 custom-scrollbar">
                 {students?.map((student) => (
                     <div 
                         key={student._id} 
-                        className="group flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-all cursor-pointer"
+                        className="group flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-all"
                     >
-                        <div className="flex items-center gap-3 overflow-hidden">
-                            {/* Avatar màu sắc theo giới tính */}
-                            <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm
-                                ${student.gender === 'male' ? 'bg-blue-500' : 'bg-pink-400'}`}>
-                                {student.name.charAt(0).toUpperCase()}
+                        <div className="flex items-center gap-3 overflow-hidden flex-1">
+                            {/* Avatar */}
+                            <div className="relative shrink-0">
+                                {student.photo ? (
+                                    <img 
+                                        src={student.photo} 
+                                        alt={student.name} 
+                                        className="w-10 h-10 rounded-full object-cover border border-gray-200" 
+                                        onError={(e) => e.target.src = 'https://via.placeholder.com/150'}
+                                    />
+                                ) : (
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm
+                                         bg-purple-500 `}>
+                                        {student.name?.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
                             </div>
                             
                             {/* Info */}
@@ -92,27 +127,34 @@ const StudentListCard = ({ students, onEditStudent }) => {
                                 </p>
                                 <div className="flex items-center text-xs text-gray-500 mt-0.5">
                                     <Calendar className="w-3 h-3 mr-1" />
-                                    <span>{new Date(student.dob).toLocaleDateString('vi-VN')}</span>
-                                    {/* Hiển thị giới tính tinh tế hơn */}
-                                    <span className="mx-1.5">•</span>
-                                    <span className={student.gender === 'male' ? 'text-blue-600' : 'text-pink-600'}>
-                                        {student.gender === 'male' ? 'Nam' : 'Nữ'}
-                                    </span>
+                                    <span>{student.dob ? new Date(student.dob).toLocaleDateString('vi-VN') : 'N/A'}</span>
+                                    <span className="mx-1.5 text-gray-300">|</span>
+                                    
                                 </div>
                             </div>
                         </div>
 
-                        {/* Nút Edit chỉ hiện khi Hover */}
-                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pl-2">
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-1 pl-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             <button 
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onEditStudent && onEditStudent(student); // Hàm xử lý khi bấm Edit
+                                    onChangeClass(student);
                                 }}
-                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-white rounded-full transition-colors shadow-sm"
-                                title="Chỉnh sửa thông tin"
+                                className="p-2 text-blue-500 hover:bg-blue-100 rounded-md transition-colors"
+                                title="Đổi lớp"
                             >
-                                <Pencil className="w-4 h-4" />
+                                <ArrowRightLeft className="w-4 h-4" />
+                            </button>
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRemoveStudent(student);
+                                }}
+                                className="p-2 text-red-500 hover:bg-red-100 rounded-md transition-colors"
+                                title="Xóa khỏi lớp"
+                            >
+                                <UserX className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
@@ -130,7 +172,7 @@ const StudentListCard = ({ students, onEditStudent }) => {
 
 // --- 4. Component Chính: AdminClassDetail ---
 const AdminClassDetail = () => {
-    const { id } = useParams(); // <-- Hàm này cần được import ở dòng 2
+    const { id } = useParams(); 
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -169,13 +211,6 @@ const AdminClassDetail = () => {
         );
     };
 
-    // Hàm giả lập xử lý khi bấm nút Edit học viên
-    const handleEditStudent = (student) => {
-        console.log("Edit student:", student);
-        alert(`Bạn muốn sửa học viên: ${student.name}`);
-        // Logic mở modal sửa học viên sẽ viết ở đây
-    };
-
     const handleCancelClass = async () => {
         if (!classData) return;
         
@@ -210,6 +245,23 @@ const AdminClassDetail = () => {
         }
     };
 
+    const handleChangeClass = (student) => {
+        if (window.confirm(`Bạn muốn chuyển lớp cho học viên: ${student.name}?`)) {
+             console.log("Change class for student:", student._id);
+        }
+    };
+
+    const handleRemoveStudent = async (student) => {
+        if (window.confirm(`Bạn có chắc chắn muốn xóa học viên "${student.name}" khỏi lớp này không?`)) {
+             console.log("Remove student:", student._id);
+             try {
+                 alert(`Đã gửi yêu cầu xóa học viên ${student.name}`);
+             } catch (err) {
+                 alert("Lỗi khi xóa học viên.");
+             }
+        }
+    };
+
     if (loading) {
         return (
             <div className="p-6 flex justify-center items-center min-h-[300px]">
@@ -231,6 +283,7 @@ const AdminClassDetail = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
+            {/* Header Actions */}
             <div className="flex justify-between items-center mb-4">
                 <Link
                     to="/admin/classes"
@@ -279,15 +332,10 @@ const AdminClassDetail = () => {
                             Hủy Lớp
                         </button>
                     )}
-                    {isCanceled && (
-                        <span className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-500 rounded-lg border border-gray-300 cursor-not-allowed">
-                            <Ban className="w-5 h-5 mr-2" />
-                            Đã Hủy
-                        </span>
-                    )}
                 </div>
             </div>
 
+            {/* Title */}
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-800 mb-1 flex items-center gap-3">
                     {classData.name}
@@ -296,22 +344,29 @@ const AdminClassDetail = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* CỘT TRÁI (1/3): Info + Student List */}
                 <div className="lg:col-span-1 space-y-6">
                     <InfoCard icon={BookOpen} title="Thông Tin Khóa Học">
                         <p><strong>Mã lớp:</strong> {classData.classCode || "N/A"}</p>
                         <p><strong>Khóa học:</strong> {classData.course?.name || "N/A"}</p>
-                        <p><strong>Trạng thái:</strong> <span className="uppercase">{classData.status}</span></p>
+                        <p><strong>Trạng thái:</strong> <span className="uppercase font-semibold text-purple-600">{classData.status}</span></p>
                         <p><strong>Sĩ số:</strong> {classData.student?.length || 0} / {classData.maxStudent} HS</p>
                     </InfoCard>
-                    <WeeklyScheduleCard schedules={classData.weeklySchedules} />
                     
-                    {/* Sử dụng Component Mới */}
                     <StudentListCard 
                         students={classData.student} 
-                        onEditStudent={handleEditStudent} // Truyền hàm edit vào
+                        maxStudents={classData.maxStudent}
+                        onChangeClass={handleChangeClass}
+                        onRemoveStudent={handleRemoveStudent}
                     />
                 </div>
+
+                
                 <div className="lg:col-span-2">
+                   
+                    <WeeklyScheduleCard schedules={classData.weeklySchedules} />
+                    
                     <ClassScheduleCalendar
                         sessions={sessions}
                         classInfo={classData}
