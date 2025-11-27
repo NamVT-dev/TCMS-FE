@@ -38,7 +38,7 @@ const ClassCard = ({ classItem }) => {
           </h3>
         </Link>
         
-        <p className="text-sm font-medium text-gray-500 mb-5">{classCode}</p>
+        
         
         <div className="space-y-3">
           <div className="flex items-center text-gray-700">
