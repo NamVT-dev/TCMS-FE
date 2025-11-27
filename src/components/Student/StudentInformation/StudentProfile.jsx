@@ -16,7 +16,7 @@ const StudentProfile = () => {
         setProfile({
           name: user.profile.fullname,
           email: user.email,
-          title: user.role === "member" ? "Học viên" : user.role,
+          // title: user.role === "member" ? "Học viên" : user.role,
           gender: user.profile.gender === "male" ? "Nam" : "Nữ",
           dob: user.profile.dob.split("T")[0],
           phone: user.profile.phoneNumber,
@@ -38,8 +38,13 @@ const StudentProfile = () => {
   };
 
   const handleUpdate = () => {
-    setIsEditing(true);
-    setMessage({ text: "", type: "" });
+    if (isEditing) {
+      setIsEditing(false);
+      setMessage({ text: "", type: "" });
+    } else {
+      setIsEditing(true);
+      setMessage({ text: "", type: "" });
+    }
   };
 
   const handleSave = async () => {
@@ -153,11 +158,10 @@ const StudentProfile = () => {
               value={profile.name}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${
-                isEditing
+              className={`w-full border rounded-lg p-2 focus:outline-none ${isEditing
                   ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
                   : "bg-gray-100 border-gray-300 text-gray-700"
-              }`}
+                }`}
             />
           </div>
 
@@ -171,7 +175,7 @@ const StudentProfile = () => {
               className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 text-gray-700"
             />
           </div>
-
+          {/* 
           <div>
             <label className="block text-gray-700 mb-2">Chức danh</label>
             <input
@@ -181,7 +185,7 @@ const StudentProfile = () => {
               disabled
               className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 text-gray-700"
             />
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-gray-700 mb-2">Giới tính</label>
@@ -190,11 +194,10 @@ const StudentProfile = () => {
               value={profile.gender}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${
-                isEditing
+              className={`w-full border rounded-lg p-2 focus:outline-none ${isEditing
                   ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
                   : "bg-gray-100 border-gray-300 text-gray-700"
-              }`}
+                }`}
             >
               <option>Nam</option>
               <option>Nữ</option>
@@ -209,11 +212,10 @@ const StudentProfile = () => {
               value={profile.dob}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${
-                isEditing
+              className={`w-full border rounded-lg p-2 focus:outline-none ${isEditing
                   ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
                   : "bg-gray-100 border-gray-300 text-gray-700"
-              }`}
+                }`}
             />
           </div>
 
@@ -225,11 +227,10 @@ const StudentProfile = () => {
               value={profile.phone}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${
-                isEditing
+              className={`w-full border rounded-lg p-2 focus:outline-none ${isEditing
                   ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
                   : "bg-gray-100 border-gray-300 text-gray-700"
-              }`}
+                }`}
             />
           </div>
         </div>
@@ -239,15 +240,14 @@ const StudentProfile = () => {
           <div className="flex gap-4">
             <button
               onClick={handleUpdate}
-              disabled={isEditing}
-              className={`px-6 py-2 rounded-lg transition font-medium ${
-                isEditing
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gray-600 text-white hover:bg-gray-700"
-              }`}
+              className={`px-6 py-2 rounded-lg transition font-medium ${isEditing
+                  ? "bg-gray-600 text-white hover:bg-gray-500"
+                  : "bg-purple-600 text-white hover:bg-purple-500"
+                }`}
             >
-              Cập nhật
+              {isEditing ? 'Hủy' : 'Cập nhật'}
             </button>
+
             {isEditing && (
               <button
                 onClick={handleSave}
@@ -260,9 +260,8 @@ const StudentProfile = () => {
 
           {message.text && (
             <p
-              className={`mt-2 px-4 py-2 rounded-lg text-white text-sm w-fit ${
-                message.type === "success" ? "bg-green-600" : "bg-red-500"
-              }`}
+              className={`mt-2 px-4 py-2 rounded-lg text-white text-sm w-fit ${message.type === "success" ? "bg-blue-600" : "bg-red-500"
+                }`}
             >
               {message.text}
             </p>

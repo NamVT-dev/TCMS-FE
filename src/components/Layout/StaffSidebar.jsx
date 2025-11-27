@@ -119,10 +119,11 @@ const StaffSidebar = ({ isCollapsed, onToggle }) => {
             title: "Tổng quan",
             items: [
                 {
-                    name: "Tổng quan nhân viên",
-                    path: "/teacher/overview",
+                    name: "Tổng quan",
+                    path: "/staff/overview",
                     icon: LayoutDashboard,
                 },
+                { name: "Giao dịch", path: "/staff/transactions", icon: FileBarChart2 }
             ],
         },
         {

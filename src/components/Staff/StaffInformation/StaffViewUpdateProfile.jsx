@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
+import api from "../../../utils/api";
+import showToast from "../../../utils/showToast";
 
 const StaffViewUpdateProfile = () => {
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -20,7 +23,6 @@ const StaffViewUpdateProfile = () => {
         dob: p.dob ? p.dob.slice(0, 10) : "",
         avatar: p.photo || "https://ui-avatars.com/api/?name=" + (p.fullname || "User"),
         address: p.address || "",
-        title: "Nhân viên trung tâm",
       });
     }
   }, []);
@@ -39,33 +41,65 @@ const StaffViewUpdateProfile = () => {
     }
   };
 
-  const handleUpdate = () => setIsEditing(true);
+  const handleUpdate = () => {
+    if (isEditing) {
+      setIsEditing(false);
+    } else {
+      setIsEditing(true);
+    }
+  };
 
-  const handleSave = () => {
+
+  const handleSave = async () => {
     setIsEditing(false);
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        ...JSON.parse(localStorage.getItem("user")),
-        profile: {
-          ...JSON.parse(localStorage.getItem("user")).profile,
-          fullname: profile.name,
-          phoneNumber: profile.phone,
-          gender: profile.gender === "Nam" ? "male" : "female",
-          dob: profile.dob,
-          address: profile.address,
-          photo: profile.avatar,
-        },
-      })
-    );
+    const toastId = showToast.loading("Đang cập nhật thông tin cá nhân...");
+    try {
+      const formData = new FormData();
+      formData.append("profile[fullname]", profile.name);
+      formData.append("profile[phoneNumber]", profile.phone);
+      formData.append("profile[dob]", profile.dob);
+      formData.append(
+        "profile[gender]",
+        profile.gender === "Nam" ? "male" : "female"
+      );
 
-    alert("Lưu thành công!");
+      // ✅ Nếu có file mới thì gửi file
+      // ✅ Nếu không có file mới thì gửi lại avatar cũ để giữ nguyên ảnh
+      if (selectedFile) {
+        formData.append("profile[photo]", selectedFile);
+      } else if (profile.avatar) {
+        formData.append("profile[photo]", profile.avatar);
+      }
+
+      const res = await api.user.updateProfile(formData);
+
+      if (res.data.status === "success") {
+        const updated = res.data.data.user.profile;
+        setProfile({
+          ...profile,
+          name: updated.fullname,
+          phone: updated.phoneNumber,
+          dob: updated.dob.split("T")[0],
+          gender: updated.gender === "male" ? "Nam" : "Nữ",
+          avatar: updated.photo,
+        });
+        showToast.updateSuccess(toastId, "Cập nhật hồ sơ thành công!");
+      } else {
+        showToast.updateError(toastId, res.data.message || "Cập nhật hồ sơ thất bại!");
+      }
+    } catch (err) {
+      showToast.updateError(toastId, err.response?.data?.message || "Đã xảy ra lỗi!");
+    } finally {
+      setIsEditing(false);
+      setSelectedFile(null);
+      setTimeout(() => 4000);
+    }
   };
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 py-10">
       <div className="bg-white shadow-lg rounded-2xl p-10 w-full max-w-4xl">
-        
+
         {/* Avatar */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
@@ -88,12 +122,16 @@ const StaffViewUpdateProfile = () => {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) =>
-                    setProfile({
-                      ...profile,
-                      avatar: URL.createObjectURL(e.target.files[0]),
-                    })
-                  }
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setSelectedFile(file);
+                      setProfile({
+                        ...profile,
+                        avatar: URL.createObjectURL(file),
+                      });
+                    }
+                  }}
                 />
               </>
             )}
@@ -178,16 +216,18 @@ const StaffViewUpdateProfile = () => {
         <div className="flex justify-end mt-10 gap-4">
           <button
             onClick={handleUpdate}
-            disabled={isEditing}
-            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            className={`px-6 py-2 rounded-lg transition font-medium ${isEditing
+              ? "bg-gray-600 text-white hover:bg-gray-500"
+              : "bg-purple-600 text-white hover:bg-purple-500"
+              }`}
           >
-            Cập nhật
+            {isEditing ? 'Hủy' : 'Cập nhật'}
           </button>
 
           {isEditing && (
             <button
               onClick={handleSave}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
             >
               Lưu
             </button>
