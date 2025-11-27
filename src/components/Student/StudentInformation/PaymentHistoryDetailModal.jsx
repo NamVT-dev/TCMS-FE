@@ -1,189 +1,284 @@
-import React, { useState } from "react";
-import { Modal, Row, Col, Typography, Table, Tag, Button, Checkbox } from "antd";
+import React, { useEffect, useState } from 'react';
+import { 
+  XMarkIcon, 
+  CheckCircleIcon, 
+  ClockIcon, 
+  ExclamationCircleIcon, 
+  CreditCardIcon,
+  BanknotesIcon,
+  UserIcon,
+  CalendarDaysIcon,
+  DocumentTextIcon,
+  TagIcon,
+  QrCodeIcon
+} from '@heroicons/react/24/outline';
+import api from '../../../utils/api'; 
+import Loading from '../../UI/Loading'; 
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
-const { Title, Text } = Typography;
+const PaymentHistoryDetailModal = ({ isOpen, onClose, paymentId }) => {
+  const [payment, setPayment] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-const PaymentHistoryDetailModal = ({ open, onClose }) => {
-  const student = {
-    name: "Nguyễn Thành Trung",
-    email: "trungnthe171142@fpt.edu.vn",
-    phone: "0329428493",
-    coursePath: "IELTS từ mất gốc - 3.5 đến IELTS 6.5",
-  };
+  // --- Fetch Data ---
+  useEffect(() => {
+    const fetchPaymentDetail = async () => {
+      if (!isOpen || !paymentId) return;
 
-  const [courses, setCourses] = useState([
-    { id: 1, name: "English Foundation", price: 5500000, status: "Đã thanh toán" },
-    { id: 2, name: "Khóa học IELTS 4.5", price: 5500000, status: "Đã thanh toán" },
-    { id: 3, name: "Khóa học IELTS 5.5", price: 5500000, status: "Chưa thanh toán", selected: false },
-    { id: 4, name: "Khóa học IELTS 6.5", price: 5500000, status: "Chưa thanh toán", selected: false },
-  ]);
-
-  const handleSelect = (id, checked) => {
-    setCourses((prev) =>
-      prev.map((course) =>
-        course.id === id ? { ...course, selected: checked } : course
-      )
-    );
-  };
-
-  const handleSelectAll = (checked) => {
-    setCourses((prev) =>
-      prev.map((c) =>
-        c.status === "Chưa thanh toán" ? { ...c, selected: checked } : c
-      )
-    );
-  };
-
-  const selectedCourses = courses.filter((c) => c.selected);
-  const totalPrice = selectedCourses.reduce((sum, c) => sum + c.price, 0);
-
-  const columns = [
-    {
-      title: "Tên sản phẩm",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "Giá tiền",
-      dataIndex: "price",
-      key: "price",
-      render: (value) => `${value.toLocaleString()} VNĐ`,
-    },
-    {
-      title: "",
-      key: "select",
-      render: (_, record) =>
-        record.status === "Chưa thanh toán" ? (
-          <Checkbox
-            checked={record.selected}
-            onChange={(e) => handleSelect(record.id, e.target.checked)}
-          />
-        ) : null,
-      align: "center",
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => (
-        <Tag
-          color={status === "Đã thanh toán" ? "#00B1FF" : "#D79F45"}
-          style={{ fontWeight: 500 }}
-        >
-          {status}
-        </Tag>
-      ),
-      align: "center",
-    },
-  ];
-
-  return (
-    <Modal
-      open={open}
-      onCancel={onClose}
-      footer={null}
-      width={950}
-      title={
-        <Title level={3} style={{ textAlign: "center", marginBottom: 0 }}>
-          Thanh toán
-        </Title>
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Gọi API getOneByMember: GET /payment/:id
+        const res = await api.payment.getPaymentDetail(paymentId);
+        // BE trả về: { status: "success", data: payment }
+        setPayment(res.data.data); 
+      } catch (err) {
+        console.error("Error fetching payment detail:", err);
+        setError("Không thể tải thông tin giao dịch. Vui lòng thử lại.");
+      } finally {
+        setIsLoading(false);
       }
-    >
-      <div style={{ background: "#f5f5f5", padding: 24, borderRadius: 8 }}>
-        <Row gutter={32}>
-          {/* Bên trái */}
-          <Col span={12}>
-            <Title level={4}>Thông tin học viên</Title>
-            <div style={{ marginTop: 12 }}>
-              <p>
-                <Text strong>Tên:</Text> {student.name}
-              </p>
-              <p>
-                <Text strong>Email:</Text> {student.email}
-              </p>
-              <p>
-                <Text strong>SDT:</Text> {student.phone}
-              </p>
-              <p>
-                <Text strong>Lộ trình khóa học:</Text> {student.coursePath}
-              </p>
-            </div>
-          </Col>
+    };
 
-          {/* Bên phải */}
-          <Col span={12}>
-            <Title level={4}>Thông tin của bạn</Title>
-            <div style={{ marginTop: 12 }}>
-              <p>
-                <Text strong>Tên:</Text> {student.name}
-              </p>
-              <p>
-                <Text strong>Email:</Text> {student.email}
-              </p>
-              <p>
-                <Text strong>SDT:</Text> {student.phone}
-              </p>
-            </div>
-          </Col>
-        </Row>
+    fetchPaymentDetail();
+  }, [isOpen, paymentId]);
 
-        {/* Bảng thanh toán */}
-        <Table
-          dataSource={courses}
-          columns={columns}
-          pagination={false}
-          rowKey="id"
-          style={{ marginTop: 24, background: "white" }}
-        />
+  // --- Reset state khi đóng modal ---
+  useEffect(() => {
+    if (!isOpen) {
+      setPayment(null);
+    }
+  }, [isOpen]);
 
-        {/* Tổng tiền + chọn tất cả */}
-        <div
-          style={{
-            marginTop: 16,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <Checkbox
-              onChange={(e) => handleSelectAll(e.target.checked)}
-              style={{ fontWeight: 500 }}
-            >
-              Chọn tất cả
-            </Checkbox>
-            <div style={{ marginTop: 8 }}>
-              <Text strong style={{ fontSize: 16 }}>
-                Tổng giá:
-              </Text>{" "}
-              <Text strong style={{ fontSize: 16 }}>
-                {totalPrice.toLocaleString()} VNĐ
-              </Text>
-            </div>
-          </div>
+  if (!isOpen) return null;
 
-          <Button
-            type="primary"
-            size="large"
-            disabled={selectedCourses.length === 0}
+  // --- Helpers Format ---
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '---';
+    return format(new Date(dateString), "HH:mm - dd/MM/yyyy", { locale: vi });
+  };
+
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case 'succeeded':
+        return { 
+          label: 'Thành công', 
+          color: 'text-green-600 bg-green-50 border-green-200', 
+          icon: <CheckCircleIcon className="w-12 h-12 text-green-500" /> 
+        };
+      case 'pending':
+        return { 
+          label: 'Đang xử lý', 
+          color: 'text-yellow-600 bg-yellow-50 border-yellow-200', 
+          icon: <ClockIcon className="w-12 h-12 text-yellow-500" /> 
+        };
+      case 'failed':
+        return { 
+          label: 'Thất bại', 
+          color: 'text-red-600 bg-red-50 border-red-200', 
+          icon: <ExclamationCircleIcon className="w-12 h-12 text-red-500" /> 
+        };
+      case 'refunded':
+        return { 
+          label: 'Đã hoàn tiền', 
+          color: 'text-purple-600 bg-purple-50 border-purple-200', 
+          icon: <ExclamationCircleIcon className="w-12 h-12 text-purple-500" /> 
+        };
+      default:
+        return { 
+          label: status, 
+          color: 'text-gray-600 bg-gray-50 border-gray-200', 
+          icon: <ExclamationCircleIcon className="w-12 h-12 text-gray-500" /> 
+        };
+    }
+  };
+
+  const getMethodLabel = (method) => {
+    const map = {
+      'bank_transfer': 'Chuyển khoản ngân hàng',
+      'card': 'Thẻ tín dụng/Ghi nợ',
+      'paypal': 'PayPal',
+      'apple_pay': 'Apple Pay',
+      'stripe': 'Stripe',
+      'other': 'Khác'
+    };
+    return map[method] || method;
+  };
+
+  // --- Render Content ---
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center px-4 font-sans">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+        onClick={onClose}
+      ></div>
+
+      {/* Modal Panel */}
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-fadeInUp">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+          <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <DocumentTextIcon className="w-5 h-5 text-purple-600" />
+            Chi tiết giao dịch
+          </h3>
+          <button 
+            onClick={onClose}
+            className="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition-colors"
           >
-            Thanh toán
-          </Button>
+            <XMarkIcon className="w-5 h-5" />
+          </button>
         </div>
 
-        <Text
-          type="secondary"
-          style={{
-            fontSize: 13,
-            display: "block",
-            marginTop: 12,
-            textAlign: "left",
-          }}
-        >
-          Lưu ý: Cần phải thanh toán ít nhất 1 sản phẩm trước
-        </Text>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-300">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <Loading /> 
+              <p className="text-gray-500 text-sm font-medium animate-pulse">Đang tải dữ liệu từ hệ thống...</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+                <ExclamationCircleIcon className="w-12 h-12 text-red-400 mb-3" />
+                <p className="text-red-600 font-medium">{error}</p>
+            </div>
+          ) : payment ? (
+            <div className="space-y-8">
+              
+              {/* 1. Status & Amount Banner */}
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="mb-4 p-3 bg-gray-50 rounded-full shadow-sm border border-gray-100">
+                  {getStatusConfig(payment.status).icon}
+                </div>
+                <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                  {formatCurrency(payment.amount)}
+                </h2>
+                <div className={`mt-3 px-4 py-1.5 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusConfig(payment.status).color}`}>
+                  {getStatusConfig(payment.status).label}
+                </div>
+                {payment.description && (
+                    <p className="text-gray-500 text-sm mt-3 px-4 line-clamp-2 italic">
+                        "{payment.description}"
+                    </p>
+                )}
+              </div>
+
+              {/* 2. Transaction Details Card */}
+              <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
+                    <TagIcon className="w-4 h-4 text-gray-500" />
+                    <span className="text-xs font-bold text-gray-500 uppercase">Thông tin thanh toán</span>
+                </div>
+                <div className="p-4 space-y-4 text-sm">
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-500">Mã giao dịch (System)</span>
+                    <span className="font-mono font-medium text-gray-800 text-right break-all pl-4 select-all">
+                      {payment._id}
+                    </span>
+                  </div>
+                  
+                  {payment.providerPaymentId && (
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-500">Mã tham chiếu (VNPAY)</span>
+                        <span className="font-mono font-medium text-gray-800 text-right pl-4 select-all">
+                          {payment.providerPaymentId}
+                        </span>
+                      </div>
+                  )}
+
+                  {payment.invoiceId && (
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-500">Mã hóa đơn (Invoice)</span>
+                        <span className="font-mono font-medium text-gray-800 text-right pl-4 select-all">
+                          {payment.invoiceId}
+                        </span>
+                      </div>
+                  )}
+
+                  <div className="border-t border-dashed border-gray-200 my-2"></div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Thời gian</span>
+                    <span className="font-medium text-gray-800">
+                      {formatDate(payment.createdAt)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Phương thức</span>
+                    <span className="font-medium text-purple-600 flex items-center gap-1.5">
+                      {payment.method === 'bank_transfer' ? <BanknotesIcon className="w-4 h-4" /> : <CreditCardIcon className="w-4 h-4" />}
+                      {getMethodLabel(payment.method)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. User Info Card */}
+              {payment.user && (
+                <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center gap-2">
+                        <UserIcon className="w-4 h-4 text-gray-500" />
+                        <span className="text-xs font-bold text-gray-500 uppercase">Người thanh toán</span>
+                    </div>
+                    <div className="p-4 flex items-center gap-4">
+                        <div className="relative">
+                            <img 
+                                src={payment.user.profile?.photo || "https://via.placeholder.com/150"} 
+                                alt="Avatar" 
+                                className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm"
+                                onError={(e) => { e.target.src = "https://via.placeholder.com/150" }}
+                            />
+                            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="font-bold text-gray-900 truncate">
+                                {payment.user.profile?.fullname || "Không có tên"}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">{payment.user.email}</p>
+                            <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                                <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] font-mono">
+                                    {payment.user.profile?.phoneNumber || "N/A"}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+              )}
+
+            </div>
+          ) : null}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors focus:ring-2 focus:ring-offset-1 focus:ring-gray-200 outline-none"
+          >
+            Đóng
+          </button>
+          {payment && payment.status === 'succeeded' && (
+             <button
+               className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700 transition-all shadow-sm hover:shadow focus:ring-2 focus:ring-offset-1 focus:ring-purple-500 outline-none"
+               onClick={() => alert("Tính năng in hóa đơn đang được phát triển!")}
+             >
+               <QrCodeIcon className="w-4 h-4" />
+               In hóa đơn
+             </button>
+          )}
+        </div>
       </div>
-    </Modal>
+    </div>
   );
 };
 

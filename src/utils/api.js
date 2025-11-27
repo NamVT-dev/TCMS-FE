@@ -1,5 +1,6 @@
 import axios from "axios";
 
+
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     timeout: 10000,
@@ -294,6 +295,10 @@ const api = {
     payment: {
 
         confirmPayment: (params) => axiosInstance.get("/payment/confirm-payment", { params }),
+
+        getAllPayments: (params) => axiosInstance.get("/payment/my-payments", { params }),
+
+        getPaymentDetail: (id) => axiosInstance.get(`/payment/${id}`),
     },
 
 };
