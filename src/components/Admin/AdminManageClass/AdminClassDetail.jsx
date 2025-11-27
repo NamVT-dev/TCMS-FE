@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import ClassScheduleCalendar from "./ClassScheduleCalendar";
 import ChangeTeacherModal from "./ChangeTeacherModal";
+import ChangeClassModal from "./ChangeClassModal"; 
 
 // --- 1. Component InfoCard (Giữ nguyên) ---
 const InfoCard = ({ icon: Icon, title, children }) => (
@@ -19,7 +20,7 @@ const InfoCard = ({ icon: Icon, title, children }) => (
     </div>
 );
 
-// --- 2. Component WeeklyScheduleCard (Cập nhật Layout Grid) ---
+// --- 2. Component WeeklyScheduleCard (Giữ nguyên Layout Grid từ bước trước) ---
 const WeeklyScheduleCard = ({ schedules }) => {
     const formatMinutes = (minutes) => {
         if (minutes === undefined || minutes === null) return '';
@@ -28,7 +29,6 @@ const WeeklyScheduleCard = ({ schedules }) => {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     };
 
-    // Hàm xác định label thứ
     const getDayLabel = (dayIndex) => {
         const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
         return days[dayIndex] || 'N/A';
@@ -40,8 +40,6 @@ const WeeklyScheduleCard = ({ schedules }) => {
                 <Calendar className="w-6 h-6 text-purple-600 mr-3" />
                 <h3 className="text-lg font-semibold text-gray-800">Lịch Học Hàng Tuần</h3>
             </div>
-            
-            {/* --- Thay đổi layout ở đây --- */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {schedules?.map((slot, index) => {
                     const timeText = `${formatMinutes(slot.startMinute)} - ${formatMinutes(slot.endMinute)}`;
@@ -69,7 +67,6 @@ const WeeklyScheduleCard = ({ schedules }) => {
                         </div>
                     );
                 })}
-                
                 {(!schedules || schedules.length === 0) && (
                     <div className="col-span-full text-center py-4">
                          <p className="text-gray-500 italic">Chưa có lịch tuần cố định.</p>
@@ -80,11 +77,10 @@ const WeeklyScheduleCard = ({ schedules }) => {
     );
 };
 
-// --- 3. Component StudentListCard (Giữ nguyên logic, thêm max-height) ---
+// --- 3. Component StudentListCard (Cập nhật nút bấm) ---
 const StudentListCard = ({ students, maxStudents, onChangeClass, onRemoveStudent }) => {
     return (
         <div className="bg-white shadow rounded-lg p-5 flex flex-col h-full max-h-[600px]"> 
-            {/* Header */}
             <div className="flex items-center justify-between mb-4 shrink-0">
                 <div className="flex items-center">
                     <Users className="w-6 h-6 text-purple-600 mr-3" />
@@ -95,7 +91,6 @@ const StudentListCard = ({ students, maxStudents, onChangeClass, onRemoveStudent
                 </span>
             </div>
 
-            {/* List có scroll */}
             <div className="flex-1 overflow-y-auto pr-1 -mr-2 space-y-3 custom-scrollbar">
                 {students?.map((student) => (
                     <div 
@@ -103,7 +98,6 @@ const StudentListCard = ({ students, maxStudents, onChangeClass, onRemoveStudent
                         className="group flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-all"
                     >
                         <div className="flex items-center gap-3 overflow-hidden flex-1">
-                            {/* Avatar */}
                             <div className="relative shrink-0">
                                 {student.photo ? (
                                     <img 
@@ -114,7 +108,7 @@ const StudentListCard = ({ students, maxStudents, onChangeClass, onRemoveStudent
                                     />
                                 ) : (
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm
-                                         bg-purple-500 `}>
+                                        bg-purple-400`}>
                                         {student.name?.charAt(0).toUpperCase()}
                                     </div>
                                 )}
@@ -170,7 +164,7 @@ const StudentListCard = ({ students, maxStudents, onChangeClass, onRemoveStudent
     );
 };
 
-// --- 4. Component Chính: AdminClassDetail ---
+
 const AdminClassDetail = () => {
     const { id } = useParams(); 
     const navigate = useNavigate();
@@ -178,7 +172,10 @@ const AdminClassDetail = () => {
     const [error, setError] = useState(null);
     const [classData, setClassData] = useState(null);
     const [sessions, setSessions] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
+    const [isChangeClassModalOpen, setIsChangeClassModalOpen] = useState(false);
+    const [studentToChangeClass, setStudentToChangeClass] = useState(null);
 
     const fetchClassDetail = useCallback(async () => {
         setLoading(true);
@@ -202,6 +199,11 @@ const AdminClassDetail = () => {
     const handleTeacherChanged = () => {
         fetchClassDetail();
     };
+    
+    const handleClassChanged = () => {
+        
+        fetchClassDetail();
+    };
 
     const handleSessionUpdated = (updatedSession) => {
         setSessions(prevSessions =>
@@ -209,6 +211,27 @@ const AdminClassDetail = () => {
                 session._id === updatedSession._id ? updatedSession : session
             )
         );
+    };
+
+    
+    const handleRemoveStudent = async (student) => {
+        if (window.confirm(`Bạn có chắc chắn muốn XÓA học viên "${student.name}" khỏi lớp này không?`)) {
+             try {
+                 
+                 await api.admin.class.removeStudentFromClass(id, { studentId: student._id });
+                 alert(`Đã xóa học viên ${student.name} khỏi lớp.`);
+                 fetchClassDetail(); 
+             } catch (err) {
+                 console.error(err);
+                 alert(err.response?.data?.message || "Lỗi khi xóa học viên.");
+             }
+        }
+    };
+
+    
+    const handleChangeClass = (student) => {
+        setStudentToChangeClass(student);
+        setIsChangeClassModalOpen(true);
     };
 
     const handleCancelClass = async () => {
@@ -245,23 +268,6 @@ const AdminClassDetail = () => {
         }
     };
 
-    const handleChangeClass = (student) => {
-        if (window.confirm(`Bạn muốn chuyển lớp cho học viên: ${student.name}?`)) {
-             console.log("Change class for student:", student._id);
-        }
-    };
-
-    const handleRemoveStudent = async (student) => {
-        if (window.confirm(`Bạn có chắc chắn muốn xóa học viên "${student.name}" khỏi lớp này không?`)) {
-             console.log("Remove student:", student._id);
-             try {
-                 alert(`Đã gửi yêu cầu xóa học viên ${student.name}`);
-             } catch (err) {
-                 alert("Lỗi khi xóa học viên.");
-             }
-        }
-    };
-
     if (loading) {
         return (
             <div className="p-6 flex justify-center items-center min-h-[300px]">
@@ -283,7 +289,7 @@ const AdminClassDetail = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            {/* Header Actions */}
+          
             <div className="flex justify-between items-center mb-4">
                 <Link
                     to="/admin/classes"
@@ -314,7 +320,7 @@ const AdminClassDetail = () => {
                     </button>
 
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => setIsTeacherModalOpen(true)}
                         disabled={isCanceled}
                         className={`inline-flex items-center px-4 py-2 text-white rounded-lg shadow-sm transition
                             ${isCanceled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
@@ -335,7 +341,7 @@ const AdminClassDetail = () => {
                 </div>
             </div>
 
-            {/* Title */}
+           
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-800 mb-1 flex items-center gap-3">
                     {classData.name}
@@ -345,7 +351,7 @@ const AdminClassDetail = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                {/* CỘT TRÁI (1/3): Info + Student List */}
+              
                 <div className="lg:col-span-1 space-y-6">
                     <InfoCard icon={BookOpen} title="Thông Tin Khóa Học">
                         <p><strong>Mã lớp:</strong> {classData.classCode || "N/A"}</p>
@@ -362,9 +368,9 @@ const AdminClassDetail = () => {
                     />
                 </div>
 
-                
+              
                 <div className="lg:col-span-2">
-                   
+                 
                     <WeeklyScheduleCard schedules={classData.weeklySchedules} />
                     
                     <ClassScheduleCalendar
@@ -375,12 +381,21 @@ const AdminClassDetail = () => {
                 </div>
             </div>
 
+           
             <ChangeTeacherModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                isOpen={isTeacherModalOpen}
+                onClose={() => setIsTeacherModalOpen(false)}
                 classData={classData}
                 sessions={sessions}
                 onTeacherChanged={handleTeacherChanged}
+            />
+
+            <ChangeClassModal 
+                isOpen={isChangeClassModalOpen}
+                onClose={() => setIsChangeClassModalOpen(false)}
+                student={studentToChangeClass}
+                currentClass={classData}
+                onSuccess={handleClassChanged}
             />
         </div>
     );

@@ -144,6 +144,9 @@ const api = {
 
             addStudentToClass: (classId, data) =>
                 axiosInstance.patch(`staff/class/${classId}/add-student`, data),
+
+            removeStudentFromClass: (classId, data) =>
+                axiosInstance.patch(`staff/class/${classId}/remove-student`, data),
         },
 
         enrollment: {
