@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Filter, Eye, Trash2, X, Save, 
-  CheckCircle, AlertCircle, Clock, Ban, Loader2, AlertTriangle 
+  CheckCircle, AlertCircle, Clock, Ban, Loader2, AlertTriangle, ShieldCheck 
 } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -98,6 +98,9 @@ const AdminViewListComplain = () => {
         item._id === updatedItem._id ? updatedItem : item
       ));
       
+      // Update selectedComplain để modal hiển thị thông tin mới nhất (bao gồm staffInCharge mới nếu BE trả về)
+      setSelectedComplain(updatedItem);
+      
       toast.success("Cập nhật trạng thái thành công!");
       closeModal();
     } catch (error) {
@@ -126,7 +129,7 @@ const AdminViewListComplain = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <ToastContainer />
 
-      <div className="max-w-8xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Quản lý Phản ánh & Khiếu nại</h1>
@@ -155,6 +158,7 @@ const AdminViewListComplain = () => {
                 <th className="p-4 border-b">Người gửi</th>
                 <th className="p-4 border-b">Nội dung tóm tắt</th>
                 <th className="p-4 border-b">Trạng thái</th>
+                <th className="p-4 border-b">Người phụ trách</th>
                 <th className="p-4 border-b">Ngày gửi</th>
                 <th className="p-4 border-b text-right">Hành động</th>
               </tr>
@@ -162,14 +166,14 @@ const AdminViewListComplain = () => {
             <tbody className="text-sm divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="p-8 text-center text-gray-500">
+                  <td colSpan="6" className="p-8 text-center text-gray-500">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
                     Đang tải dữ liệu...
                   </td>
                 </tr>
               ) : filteredComplains.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-8 text-center text-gray-500">
+                  <td colSpan="6" className="p-8 text-center text-gray-500">
                     Không tìm thấy phản ánh nào.
                   </td>
                 </tr>
@@ -179,7 +183,7 @@ const AdminViewListComplain = () => {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <img 
-                          src={item.user?.profile?.photo || item.user?.photo || `https://ui-avatars.com/api/?name=${item.user?.profile?.fullname || item.user?.fullname || 'U'}`} 
+                          src={item.user?.profile?.photo || item.user?.photo || `https://ui-avatars.com/api/?name=${item.user?.profile?.fullname || 'U'}`} 
                           alt="Avt" 
                           className="w-8 h-8 rounded-full object-cover"
                         />
@@ -189,12 +193,33 @@ const AdminViewListComplain = () => {
                         </div>
                       </div>
                     </td>
+
                     <td className="p-4 max-w-xs truncate text-gray-600" title={item.content}>
                       {item.content}
                     </td>
+
                     <td className="p-4">
                       {renderStatusBadge(item.status)}
                     </td>
+
+                    <td className="p-4">
+                      {item.staffInCharge ? (
+                        <div className="flex items-center gap-2">
+                            <img 
+                                src={item.staffInCharge.profile?.photo || `https://ui-avatars.com/api/?name=${item.staffInCharge.profile?.fullname || 'Admin'}`}
+                                alt="Staff"
+                                className="w-6 h-6 rounded-full object-cover border border-gray-200"
+                            />
+                            <div>
+                                <p className="text-sm font-medium text-gray-800">{item.staffInCharge.profile?.fullname || item.staffInCharge.username}</p>
+                                <p className="text-[10px] text-gray-500 uppercase font-semibold">{item.staffInCharge.role}</p>
+                            </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">-- Chưa có --</span>
+                      )}
+                    </td>
+
                     <td className="p-4 text-gray-500">
                       {new Date(item.createdAt).toLocaleDateString('vi-VN')}
                     </td>
@@ -284,29 +309,55 @@ const AdminViewListComplain = () => {
                 </div>
               </div>
 
-              <div className="mb-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Trạng thái xử lý:</label>
-                
-                {FINAL_STATUSES.includes(selectedComplain.status) ? (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-800 flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5" />
-                    <span>Phản ánh này đã <strong>{STATUS_CONFIG[selectedComplain.status]?.label}</strong>. Không thể chỉnh sửa thêm.</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Trạng thái xử lý:</label>
+                    
+                    {FINAL_STATUSES.includes(selectedComplain.status) ? (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-800 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5" />
+                        <span>Đã đóng (<strong>{STATUS_CONFIG[selectedComplain.status]?.label}</strong>).</span>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1">
+                        <select
+                          value={tempStatus}
+                          onChange={(e) => setTempStatus(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        >
+                          {Object.keys(STATUS_CONFIG).map((statusKey) => (
+                            <option key={statusKey} value={statusKey}>
+                              {STATUS_CONFIG[statusKey].label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <select
-                      value={tempStatus}
-                      onChange={(e) => setTempStatus(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                    >
-                      {Object.keys(STATUS_CONFIG).map((statusKey) => (
-                        <option key={statusKey} value={statusKey}>
-                          {STATUS_CONFIG[statusKey].label}
-                        </option>
-                      ))}
-                    </select>
+
+                  <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Người phụ trách:</label>
+                      {selectedComplain.staffInCharge ? (
+                          <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                              <img 
+                                  src={selectedComplain.staffInCharge.profile?.photo || `https://ui-avatars.com/api/?name=${selectedComplain.staffInCharge.profile?.fullname || 'Admin'}`} 
+                                  className="w-10 h-10 rounded-full object-cover"
+                                  alt=""
+                              />
+                              <div>
+                                  <p className="text-sm font-bold text-gray-800">{selectedComplain.staffInCharge.profile?.fullname || selectedComplain.staffInCharge.username}</p>
+                                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                                      <ShieldCheck className="w-3 h-3 text-purple-600" />
+                                      {selectedComplain.staffInCharge.role}
+                                  </p>
+                              </div>
+                          </div>
+                      ) : (
+                          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 text-sm italic">
+                              Chưa có người phụ trách
+                          </div>
+                      )}
                   </div>
-                )}
               </div>
             </div>
 
