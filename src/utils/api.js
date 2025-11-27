@@ -171,6 +171,10 @@ const api = {
             updateComplainStatus: (id, data) => axiosInstance.patch(`/complain/${id}`, data),
             deleteComplain: (id) => axiosInstance.delete(`/complain/${id}`),
         },
+        payment: {
+            getAllSystemPayments: (params) => axiosInstance.get("staff/transaction", { params }), 
+            refundPayment: (id) => axiosInstance.get(`/payment/refund-payment/${id}`), 
+        },
 
         getRooms: (params) => axiosInstance.get("/admin/rooms", { params }),
         createRoom: (data) => axiosInstance.post("/admin/rooms", data),
@@ -224,6 +228,7 @@ const api = {
             getAllAttendanceReport: () =>
                 axiosInstance.get("attendance"),
         },
+        
     },
 
     // --- Learner ---
@@ -272,22 +277,17 @@ const api = {
     },
 
     substitute: {
-        // 1. Lấy chi tiết 1 yêu cầu
+
         getOne: (id) => axiosInstance.get(`/substitute/requests/${id}`),
 
-        // 2. Hủy yêu cầu (Teacher A)
         cancel: (id) => axiosInstance.delete(`/substitute/requests/${id}`),
 
-        // 3. Tạo yêu cầu (Teacher A)
         create: (data) => axiosInstance.post("/substitute/requests", data),
 
-        // 4. Phản hồi yêu cầu (Teacher B - Accept/Decline)
         respond: (id, data) => axiosInstance.patch(`/substitute/requests/${id}/respond`, data),
 
-        // 5. Xử lý yêu cầu (Admin - Approve/Reject)
         process: (id, data) => axiosInstance.patch(`/substitute/requests/${id}/process`, data),
 
-        // 6. Gợi ý giáo viên (Teacher A, Admin)
         getSuggestions: (sessionId) => axiosInstance.get("/substitute/suggestions", { params: { sessionId } }),
 
         getAll: (params) => axiosInstance.get("/substitute/requests", { params }),

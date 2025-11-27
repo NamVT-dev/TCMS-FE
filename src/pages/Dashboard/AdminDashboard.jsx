@@ -25,7 +25,7 @@ import AdminRequestDashboard from '../../components/Admin/AdminManageRequest/Adm
 import AdminRequestList from '../../components/Admin/AdminManageRequest/AdminManageLearnerRequest/AdminRequestList';
 import AdminSubstituteManager from '../../components/Admin/AdminManageRequest/AdminManageTeacherRequest/AdminSubstituteManager';
 import AdminViewListComplain from '../../components/Admin/AdminManageRequest/AdminManageUserComplain/AdminViewListComplain';
-
+import PaymentManagement from '../../components/Admin/AdminManageFinance/PaymentManagement';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -88,6 +88,7 @@ const AdminDashboard = () => {
             <Route path="/scheduler/jobs/:jobId" element={<AdminScheduleJobDetail />} />
             <Route path="/scheduler/analytics" element={<AdminScheduleAnalytics />} />
 
+            <Route path="/finance/transactions" element={<PaymentManagement />} />
             <Route path="/finance/revenue" element={<AdminRevenueReport />} />
           </Routes>
         </div>
