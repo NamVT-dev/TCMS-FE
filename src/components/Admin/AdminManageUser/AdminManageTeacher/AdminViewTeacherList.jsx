@@ -177,7 +177,7 @@ const AdminViewTeacherList = () => {
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Giáo viên</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Thông tin liên hệ</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Trình độ</th>
+               
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Thao tác</th>
               </tr>
@@ -211,11 +211,7 @@ const AdminViewTeacherList = () => {
                         <div className="text-sm text-gray-700">{teacher.email}</div>
                         <div className="text-xs text-gray-400 mt-0.5">{teacher.profile?.phoneNumber || 'Chưa cập nhật SĐT'}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-medium border border-gray-200">
-                            {teacher.level || 'Chưa phân loại'}
-                        </span>
-                    </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
