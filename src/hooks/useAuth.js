@@ -21,15 +21,16 @@ export const useAuth = () => {
     setError(null);
 
     try {
-      const response = await login(email, password);
+      const result = await login(email, password); 
       setIsLoading(false);
 
-      if (!response.success) {
-        setError(response.message); 
+      if (!result.success) {
+        setError(result.message); 
         return false;
       }
-
-      return response.data;
+      
+    
+      return result; 
     } catch (err) {
       setIsLoading(false);
       setError("Có lỗi xảy ra, vui lòng thử lại");
@@ -72,7 +73,6 @@ export const useAuth = () => {
     }
   };
 
-  // Đã có sẵn trong code của bạn, chỉ cần kiểm tra lại
   const handleForgotPassword = async (email) => {
     try {
       setIsLoading(true);

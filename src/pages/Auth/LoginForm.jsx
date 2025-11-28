@@ -13,20 +13,29 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     const res = await login(email, password);
+
+    if (res && res.success) {
+      if (res.needVerify) {
+        localStorage.setItem("pendingEmail", res.user.email);
+        
+        navigate("/verify-otp");
+      }
+      
+      
+    }
+    
+    
   };
 
   return (
     <div className="min-h-screen w-full flex flex-col">
-      {/* Navbar at the top */}
       <Navbar />
 
-      {/* Main content area */}
       <div className="flex-1 flex bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900">
-        {/* Left side - Form */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl px-8 py-10 space-y-6">
-            {/* Logo Section */}
             <div className="flex flex-col items-center space-y-3">
               <div className="relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full flex items-center justify-center shadow-lg">
@@ -43,8 +52,6 @@ const LoginForm = () => {
                 ENGLISH LEARNING CENTER
               </p>
             </div>
-
-            {/* Welcome Text */}
             <div className="text-center space-y-1">
               <h2 className="text-xl md:text-2xl font-bold text-gray-800">
                 Chào mừng trở lại!
@@ -54,9 +61,7 @@ const LoginForm = () => {
               </p>
             </div>
 
-            {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email Input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 block">
                   Email
@@ -75,7 +80,6 @@ const LoginForm = () => {
                 </div>
               </div>
 
-              {/* Password Input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 block">
                   Mật khẩu
@@ -106,7 +110,6 @@ const LoginForm = () => {
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -127,7 +130,6 @@ const LoginForm = () => {
                 </button>
               </div>
 
-              {/* Login Button */}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -136,7 +138,6 @@ const LoginForm = () => {
                 {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
               </button>
 
-              {/* Error message */}
               {error && (
                 <div className="flex justify-center">
                   <p className="inline-block text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-600 hover:text-white transition-all duration-200">
@@ -146,7 +147,6 @@ const LoginForm = () => {
               )}
             </form>
 
-            {/* Sign Up Link */}
             <p className="text-center text-sm text-gray-600">
               Chưa có tài khoản?{" "}
               <button
@@ -162,7 +162,6 @@ const LoginForm = () => {
           </div>
         </div>
 
-        {/* Right side - Image */}
         <div className="hidden md:block md:w-1/2">
           <img
             src="/images/banner.png"

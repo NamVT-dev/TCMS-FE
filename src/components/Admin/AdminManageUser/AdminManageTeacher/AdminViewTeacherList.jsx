@@ -5,7 +5,6 @@ import api from '../../../../utils/api';
 import { useDebounce } from '../../../../hooks/useDebounce'; 
 import AdminTeacherModal from './AdminTeacherModal';
 
-// ... (Giữ nguyên Component Pagination) ...
 const Pagination = ({ page, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
   const getPages = () => {
@@ -35,10 +34,9 @@ const AdminViewTeacherList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Hooks routing
   const navigate = useNavigate();
   const location = useLocation();
-  const { id: paramId } = useParams(); // Lấy ID từ URL nếu có
+  const { id: paramId } = useParams(); 
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -49,11 +47,9 @@ const AdminViewTeacherList = () => {
   const [totalResults, setTotalResults] = useState(0);
   const limit = 8;
 
-  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTeacherId, setSelectedTeacherId] = useState(null);
 
-  // --- LOGIC TỰ ĐỘNG MỞ MODAL DỰA TRÊN URL ---
   useEffect(() => {
     if (location.pathname.includes('/teachers/create')) {
         setIsModalOpen(true);
@@ -67,7 +63,6 @@ const AdminViewTeacherList = () => {
     }
   }, [location.pathname, paramId]);
 
-  // Hàm đóng modal: Quay về trang danh sách gốc
   const handleCloseModal = () => {
     navigate('/admin/users/teachers');
   };
@@ -100,11 +95,11 @@ const AdminViewTeacherList = () => {
   }, [page, debouncedSearch, selectedStatus, fetchTeachers]);
 
   const handleOpenCreate = () => {
-    navigate('/admin/users/teachers/create'); // Navigate để URL thay đổi -> Modal tự mở
+    navigate('/admin/users/teachers/create'); 
   };
 
   const handleOpenEdit = (id) => {
-    navigate(`/admin/users/teachers/edit/${id}`); // Navigate để URL thay đổi -> Modal tự mở
+    navigate(`/admin/users/teachers/edit/${id}`); 
   };
 
   const handleSuccess = () => {
@@ -266,7 +261,6 @@ const AdminViewTeacherList = () => {
           </table>
         </div>
 
-        {/* Pagination Footer */}
         {!loading && totalResults > 0 && (
             <div className="px-6 py-4 bg-white border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-gray-500">
@@ -277,7 +271,6 @@ const AdminViewTeacherList = () => {
         )}
       </div>
 
-      {/* Modal */}
       <AdminTeacherModal 
         isOpen={isModalOpen}
         onClose={handleCloseModal}

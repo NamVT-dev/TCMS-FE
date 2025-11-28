@@ -3,7 +3,7 @@ import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import toast from "react-hot-toast";
-import Navbar from "../../components/Layout/Navbar";  // Import Navbar
+import Navbar from "../../components/Layout/Navbar";  
 
 const RegisterForm = () => {
   const navigate = useNavigate();

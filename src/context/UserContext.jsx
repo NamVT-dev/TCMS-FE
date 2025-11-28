@@ -92,18 +92,36 @@ export const UserProvider = ({ children }) => {
         }
         
         fetchUserAndSetup();
-    }, [navigate, location]); // ⬅️ THÊM location vào dependency array
+    }, [navigate, location]); 
 
     const login = async (email, password) => {
         try {
             const response = await api.auth.login({ email, password });
-
             if (response?.data?.data?.user) {
                 const userData = response.data.data.user;
+
+                if (userData.active === false) {
+                    
+                    if (userData.confirmPinExpires || userData.confirmPin) {
+                       
+                        return { 
+                            success: true, 
+                            needVerify: true, 
+                            user: userData 
+                        };
+                    } 
+                    
+                   
+                    return { 
+                        success: false, 
+                        message: "Tài khoản bị vô hiệu hóa. Vui lòng liên hệ với Admin để mở khóa" 
+                    };
+                }
+
+                
                 const token = response.data.token;
                 const { role } = userData;
 
-                localStorage.setItem('user', JSON.stringify(userData));
                 localStorage.setItem('token', token);
                 setUser(userData);
 
@@ -113,6 +131,7 @@ export const UserProvider = ({ children }) => {
                     staff: '/staff/overview',
                     member: '/',
                 };
+                
                 navigate(roleRoutes[role] || '/', { replace: true });
                 return { success: true, data: response };
             }
@@ -129,8 +148,7 @@ export const UserProvider = ({ children }) => {
         try {
             const res = await api.auth.signup(signupData);
             if (res.data.status === "success") {
-                // ⚠️ KHÔNG set user và KHÔNG lưu token vào localStorage
-                // Vì user chưa verify email
+               
                 console.log("✅ Signup successful, user needs to verify email");
                 return true;
             }
