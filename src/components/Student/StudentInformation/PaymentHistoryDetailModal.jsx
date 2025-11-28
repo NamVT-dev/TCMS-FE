@@ -267,15 +267,7 @@ const PaymentHistoryDetailModal = ({ isOpen, onClose, paymentId }) => {
           >
             Đóng
           </button>
-          {payment && payment.status === 'succeeded' && (
-             <button
-               className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700 transition-all shadow-sm hover:shadow focus:ring-2 focus:ring-offset-1 focus:ring-purple-500 outline-none"
-               onClick={() => alert("Tính năng in hóa đơn đang được phát triển!")}
-             >
-               <QrCodeIcon className="w-4 h-4" />
-               In hóa đơn
-             </button>
-          )}
+          
         </div>
       </div>
     </div>
