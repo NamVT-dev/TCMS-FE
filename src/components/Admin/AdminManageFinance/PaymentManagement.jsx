@@ -6,6 +6,8 @@ import {
   ChevronRightIcon,
   EyeIcon,
   ArrowUturnLeftIcon,
+  ExclamationTriangleIcon, // Import thêm icon cảnh báo
+  XMarkIcon
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast"; 
@@ -13,6 +15,65 @@ import { toast } from "react-hot-toast";
 import api from "../../../utils/api";
 import Loading from "../../UI/Loading";
 import AdminPaymentDetailModal from "./AdminPaymentDetailModal";
+
+// --- INTERNAL COMPONENT: Modal Xác Nhận Hoàn Tiền ---
+const RefundConfirmModal = ({ isOpen, onClose, onConfirm, isProcessing }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 font-sans animate-fadeIn">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={!isProcessing ? onClose : undefined}></div>
+
+      {/* Modal Content */}
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+        <div className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+              <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900">Xác nhận hoàn tiền?</h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  Bạn có chắc chắn muốn hoàn tiền cho giao dịch này không? 
+                </p>
+                <ul className="mt-3 text-sm text-red-600 bg-red-50 p-3 rounded-lg list-disc list-inside border border-red-100">
+                  <li>Hành động này <span className="font-bold">không thể hoàn tác</span>.</li>
+                  <li>Học viên sẽ bị <span className="font-bold">hủy đăng ký</span> khỏi lớp học ngay lập tức.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
+          <button
+            type="button"
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            onClick={onClose}
+            disabled={isProcessing}
+          >
+            Hủy bỏ
+          </button>
+          <button
+            type="button"
+            className="inline-flex justify-center items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-bold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed min-w-[100px]"
+            onClick={onConfirm}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+               <ArrowPathIcon className="w-5 h-5 animate-spin" />
+            ) : (
+              "Hoàn tiền"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const StaffPaymentManagement = () => {
   // --- State ---
@@ -29,9 +90,14 @@ const StaffPaymentManagement = () => {
   const [searchTerm, setSearchTerm] = useState(""); 
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(""); 
   
-  // Modal
+  // Detail Modal
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // Refund Modal State
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [refundPaymentId, setRefundPaymentId] = useState(null);
+  const [isRefunding, setIsRefunding] = useState(false);
 
   
   const fetchPayments = async () => {
@@ -43,12 +109,10 @@ const StaffPaymentManagement = () => {
         sort: "-createdAt", 
       };
 
-      
       if (statusFilter) {
         params.status = statusFilter;
       }
       
-  
       if (debouncedSearchTerm) {
         params.search = debouncedSearchTerm;
       }
@@ -81,21 +145,39 @@ const StaffPaymentManagement = () => {
   
   useEffect(() => {
     fetchPayments();
-    
   }, [page, statusFilter, debouncedSearchTerm]);
 
-  // --- Actions ---
-  const handleRefund = async (paymentId) => {
-    if (!window.confirm("Bạn có chắc chắn muốn hoàn tiền cho giao dịch này? Hành động này cũng sẽ hủy đăng ký lớp học.")) return;
+  // --- Actions: Mở Modal Refund ---
+  const openRefundModal = (paymentId) => {
+    setRefundPaymentId(paymentId);
+    setIsRefundModalOpen(true);
+  }
 
-    const toastId = toast.loading("Đang xử lý hoàn tiền...");
+  // --- Actions: Thực hiện Refund ---
+  const handleConfirmRefund = async () => {
+    if (!refundPaymentId) return;
+
+    setIsRefunding(true);
+    // Sử dụng toast.promise để hiển thị trạng thái đẹp hơn
+    const promise = api.admin.payment.refundPayment(refundPaymentId);
+
+    toast.promise(promise, {
+       loading: 'Đang xử lý hoàn tiền...',
+       success: 'Hoàn tiền thành công!',
+       error: (err) => err.response?.data?.message || "Lỗi khi hoàn tiền"
+    });
+
     try {
-      await api.admin.payment.refundPayment(paymentId);
-      toast.success("Hoàn tiền thành công!", { id: toastId });
-      fetchPayments(); 
+      await promise;
+      // Thành công
+      setIsRefundModalOpen(false);
+      setRefundPaymentId(null);
+      fetchPayments(); // Refresh data
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Lỗi khi hoàn tiền", { id: toastId });
+      // Lỗi đã được toast handle ở trên, không cần làm gì thêm
+    } finally {
+      setIsRefunding(false);
     }
   };
 
@@ -252,17 +334,17 @@ const StaffPaymentManagement = () => {
                         <div className="flex items-center justify-end gap-3">
                             {/* Nút Xem chi tiết */}
                             <button 
-                                onClick={() => { setSelectedPaymentId(payment._id); setIsModalOpen(true); }}
+                                onClick={() => { setSelectedPaymentId(payment._id); setIsDetailModalOpen(true); }}
                                 className="text-gray-400 hover:text-purple-600 transition-colors" 
                                 title="Xem chi tiết"
                             >
                                 <EyeIcon className="w-5 h-5" />
                             </button>
 
-                            {/* Nút Hoàn tiền (Chỉ hiện khi succeeded) */}
+                            {/* Nút Hoàn tiền (Chỉ hiện khi succeeded) -> MỞ MODAL THAY VÌ ALERT */}
                             {payment.status === 'succeeded' && (
                                 <button 
-                                    onClick={() => handleRefund(payment._id)}
+                                    onClick={() => openRefundModal(payment._id)}
                                     className="text-gray-400 hover:text-red-600 transition-colors"
                                     title="Hoàn tiền & Hủy lớp"
                                 >
@@ -313,11 +395,19 @@ const StaffPaymentManagement = () => {
         </div>
       </div>
 
-      
+      {/* Detail Modal */}
       <AdminPaymentDetailModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
         paymentId={selectedPaymentId}
+      />
+
+      {/* Refund Confirm Modal */}
+      <RefundConfirmModal 
+        isOpen={isRefundModalOpen}
+        onClose={() => setIsRefundModalOpen(false)}
+        onConfirm={handleConfirmRefund}
+        isProcessing={isRefunding}
       />
     </div>
   );

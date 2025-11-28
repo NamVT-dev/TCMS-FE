@@ -63,7 +63,7 @@ const AdminSubstituteManager = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">Quản lý Yêu cầu Dạy thay</h1>
+                        <h1 className="text-2xl font-bold text-gray-800">Quản Lý Yêu Cầu Dạy Thay</h1>
                         <p className="text-sm text-gray-500 mt-1">Xử lý các yêu cầu đổi lịch từ giáo viên</p>
                     </div>
                     <button onClick={fetchRequests} className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 border border-gray-200">

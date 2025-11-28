@@ -191,7 +191,7 @@ const AdminViewClassList = () => {
 
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản lý Lớp học</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản Lý Lớp Học</h1>
           <p className="text-gray-600">Thêm, xem, và xóa các lớp học trong hệ thống.</p>
         </div>
         <button onClick={openCreateModal} className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow-sm font-medium">
