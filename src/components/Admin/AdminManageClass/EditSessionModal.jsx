@@ -18,7 +18,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
   const [selectedTeacher, setSelectedTeacher] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
   
-  // State trạng thái (Mặc định là scheduled)
   const [isCanceled, setIsCanceled] = useState(false);
 
   const [teachers, setTeachers] = useState([]);
@@ -29,7 +28,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  // 1. Load Resources
   useEffect(() => {
     if (isOpen) {
       const fetchResources = async () => {
@@ -55,7 +53,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
     }
   }, [isOpen]);
 
-  // 2. Pre-fill Data
   useEffect(() => {
     if (isOpen && session && centerConfig) {
       const startMoment = moment(session.startAt).tz(TIMEZONE);
@@ -73,7 +70,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
       setSelectedTeacher(session.teacher?._id || session.teacher || "");
       setSelectedRoom(session.room?._id || session.room || "");
       
-      // Set trạng thái hủy dựa trên status hiện tại
       setIsCanceled(session.status === 'canceled');
       
       setError(null);
@@ -90,7 +86,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
 
   const availableShifts = getAvailableShiftsForDate();
 
-  // ⬇️ Xử lý nút Hủy/Khôi phục
   const toggleCancelStatus = () => {
     setIsCanceled(!isCanceled);
   };
@@ -98,7 +93,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Nếu không phải là hủy, thì phải điền đủ thông tin
     if (!isCanceled && (!selectedDate || !selectedShiftName || !selectedTeacher || !selectedRoom)) {
       setError("Vui lòng điền đầy đủ thông tin.");
       return;
@@ -113,12 +107,10 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
 
       let newStartAt, newEndAt;
 
-      // Nếu có shiftInfo (trường hợp bình thường)
       if (shiftInfo) {
         newStartAt = moment.tz(selectedDate, TIMEZONE).startOf('day').add(shiftInfo.startMinute, 'minutes').toDate();
         newEndAt = moment.tz(selectedDate, TIMEZONE).startOf('day').add(shiftInfo.endMinute, 'minutes').toDate();
       } else {
-        // Trường hợp hiếm: Hủy nhưng shift bị lỗi -> Giữ nguyên giờ cũ
         newStartAt = session.startAt;
         newEndAt = session.endAt;
       }
@@ -128,7 +120,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
         endAt: newEndAt,
         teacher: selectedTeacher,
         room: selectedRoom,
-        // ⬇️ Logic quan trọng: Nếu isCanceled = true -> gửi 'canceled', ngược lại gửi 'scheduled'
         status: isCanceled ? 'canceled' : 'scheduled' 
       };
 
@@ -151,7 +142,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
         
-        {/* Header */}
         <div className={`p-4 flex justify-between items-center text-white transition-colors ${isCanceled ? 'bg-red-600' : 'bg-purple-600'}`}>
           <div className="flex items-center gap-2">
              {isCanceled ? <Ban className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
@@ -176,7 +166,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
           ) : (
             <div className={`space-y-4 transition-opacity duration-300 ${isCanceled ? 'opacity-50 pointer-events-none grayscale' : 'opacity-100'}`}>
                
-               {/* 1. Chọn Ngày & Ca */}
                <div className="grid grid-cols-2 gap-4">
                   <div>
                      <label className="block text-xs font-medium text-gray-500 mb-1">Ngày học</label>
@@ -217,7 +206,7 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
                   </div>
                </div>
 
-               {/* 2. Chọn GV & Phòng */}
+               
                <div className="grid grid-cols-2 gap-4">
                   <div>
                      <label className="block text-xs font-medium text-gray-500 mb-1">Giáo viên</label>
@@ -257,10 +246,8 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
             </div>
           )}
 
-          {/* Footer Actions */}
           <div className="mt-8 pt-4 border-t border-gray-100 flex justify-between items-center">
              
-             {/* ⬇️ NÚT TOGGLE TRẠNG THÁI */}
              <button
                 type="button"
                 onClick={toggleCancelStatus}

@@ -14,23 +14,22 @@ const ChangeClassModal = ({ isOpen, onClose, student, currentClass, onSuccess })
     const [searchTerm, setSearchTerm] = useState("");
     const [error, setError] = useState(null);
 
-    //  Tính số buổi đã học 
     const calculateSessionsPassed = (classItem) => {
         if (!classItem.startAt || !classItem.weeklySchedules || classItem.weeklySchedules.length === 0) return 0;
         
         const start = new Date(classItem.startAt);
         const now = new Date();
         
-        // Nếu chưa bắt đầu
+        
         if (now < start) return 0;
 
-        // Lấy danh sách các thứ trong tuần học 
+       
         const learningDays = classItem.weeklySchedules.map(s => s.dayOfWeek);
         
         let count = 0;
         let current = new Date(start);
 
-        // Loop từ ngày bắt đầu đến hiện tại
+       
         while (current <= now) {
             if (learningDays.includes(current.getDay())) {
                 count++;
@@ -40,7 +39,6 @@ const ChangeClassModal = ({ isOpen, onClose, student, currentClass, onSuccess })
         return count;
     };
 
-    // 2. Fetch Classes 
     useEffect(() => {
         if (isOpen && currentClass) {
             const fetchClasses = async () => {
@@ -86,10 +84,8 @@ const ChangeClassModal = ({ isOpen, onClose, student, currentClass, onSuccess })
         setError(null);
 
         try {
-            // B1: Xóa khỏi lớp cũ
             await api.admin.class.removeStudentFromClass(currentClass._id, { studentId: student._id });
 
-            // B 2: Thêm vào lớp mới
             await api.admin.class.addStudentToClass(selectedClass._id, { studentId: student._id });
 
             alert("Chuyển lớp thành công!");
@@ -220,7 +216,6 @@ const ChangeClassModal = ({ isOpen, onClose, student, currentClass, onSuccess })
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="p-5 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 rounded-b-xl">
                     <button 
                         onClick={onClose}

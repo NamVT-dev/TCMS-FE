@@ -23,18 +23,14 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
   const [scopeType, setScopeType] = useState("future"); 
   const [updatePreferred, setUpdatePreferred] = useState(true);
   
-  // Preview State
   const [preview, setPreview] = useState(null);
 
-  // 1. Tải danh sách giáo viên (chỉ một lần)
   useEffect(() => {
     if (isOpen) {
       const fetchTeachers = async () => {
         setLoading(true);
         try {
-          // Lấy tất cả giáo viên
           const res = await api.admin.getTeachers({ limit: 1000, status: "true" });
-          // Lọc ra giáo viên hiện tại
           const currentTeacherId = classData.preferredTeacher;
           setTeachers(res.data.data.teachers.filter(t => t._id !== currentTeacherId));
         } catch (err) {
@@ -78,7 +74,6 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
       if (firstUpcomingNo) {
         scope.fromSessionNo = firstUpcomingNo;
       } else {
-        // Không có buổi nào sắp tới
         scope.fromSessionNo = 99999; 
       }
     }
@@ -155,7 +150,6 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
         className="relative w-full max-w-2xl p-6 bg-white rounded-lg shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900">
             {step === 1 ? "Thay đổi Giáo viên" : "Xem trước Thay đổi"}

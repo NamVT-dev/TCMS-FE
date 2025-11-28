@@ -27,7 +27,6 @@ const AdminViewListComplain = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [tempStatus, setTempStatus] = useState('');
-  const [deleteId, setDeleteId] = useState(null);
 
   const fetchComplains = async () => {
     setLoading(true);
@@ -46,28 +45,9 @@ const AdminViewListComplain = () => {
     fetchComplains();
   }, []);
 
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-  };
+  
 
-  const handleDelete = async () => {
-    if (!deleteId) return;
-    try {
-      await api.admin.complain.deleteComplain(deleteId);
-      
-      setComplains(prev => prev.filter(item => item._id !== deleteId));
-      if (selectedComplain?._id === deleteId) closeModal();
-      
-      toast.success("Đã xóa phản ánh thành công!", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    } catch (error) {
-      toast.error("Xóa thất bại: " + (error.response?.data?.message || error.message));
-    } finally {
-      setDeleteId(null);
-    }
-  };
+  
 
   const openModal = (complain) => {
     setSelectedComplain(complain);
@@ -231,12 +211,7 @@ const AdminViewListComplain = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button 
-                          onClick={() => confirmDelete(item._id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        
                       </div>
                     </td>
                   </tr>
@@ -247,35 +222,7 @@ const AdminViewListComplain = () => {
         </div>
       </div>
 
-      {deleteId && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Xác nhận xóa?</h3>
-              <p className="text-gray-500 text-sm mb-6">
-                Bạn có chắc chắn muốn xóa phản ánh này không? Hành động này không thể hoàn tác.
-              </p>
-              <div className="flex gap-3 w-full">
-                <button 
-                  onClick={() => setDeleteId(null)}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
-                >
-                  Hủy
-                </button>
-                <button 
-                  onClick={handleDelete}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
-                >
-                  Xóa ngay
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+     
 
       {isModalOpen && selectedComplain && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">

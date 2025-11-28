@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Calendar, User, Home, Clock } from "lucide-react";
 import EditSessionModal from "./EditSessionModal";
 
-// --- ĐỊNH NGHĨA CA HỌC ---
 const SHIFTS = [
   { name: "S1", start: "08:00", end: "09:50" },
   { name: "S2", start: "10:00", end: "11:50" },
@@ -12,10 +11,9 @@ const SHIFTS = [
   { name: "S6", start: "20:00", end: "21:50" },
 ];
 
-// --- HÀM TIỆN ÍCH ---
 const getWeekDays = (date) => {
   const curr = new Date(date);
-  const first = curr.getDate() - curr.getDay() + 1; // Thứ 2
+  const first = curr.getDate() - curr.getDay() + 1; 
   const days = [];
   for (let i = 0; i < 7; i++) {
     const day = new Date(curr.setDate(first + i));
@@ -57,7 +55,6 @@ const isFutureSession = (sessionDate) => {
   return sessionDate > now;
 };
 
-// --- COMPONENT CHÍNH ---
 function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedSession, setSelectedSession] = useState(null);
@@ -65,7 +62,6 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
 
   const weekDays = useMemo(() => getWeekDays(currentWeek), [currentWeek]);
 
-  // Nhóm sessions theo ngày
   const sessionsByDay = useMemo(() => {
     const grouped = {};
     sessions.forEach(session => {
@@ -79,13 +75,11 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
     return grouped;
   }, [sessions]);
 
-  // Lấy sessions của 1 ngày cụ thể
   const getSessionsForDay = (date) => {
     const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
     return sessionsByDay[dayKey] || [];
   };
 
-  // Lấy sessions của 1 ca cụ thể trong 1 ngày
   const getSessionForShift = (date, shift) => {
     const daySessions = getSessionsForDay(date);
     return daySessions.find(session => {
@@ -114,7 +108,6 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
   const handleSessionClick = (session) => {
     const sessionDate = new Date(session.startAt);
 
-    // Chỉ cho phép edit session trong tương lai
     if (!isFutureSession(sessionDate)) {
       alert("Chỉ có thể chỉnh sửa các buổi học trong tương lai!");
       return;
@@ -130,7 +123,6 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
   };
 
   const handleSessionUpdated = (updatedSession) => {
-    // Gọi callback từ parent để refresh data
     if (onSessionUpdated) {
       onSessionUpdated(updatedSession);
     }
@@ -139,7 +131,6 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
   return (
     <>
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Header - Toolbar */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-4">
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center gap-2">
@@ -174,10 +165,8 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
           </div>
         </div>
 
-        {/* Calendar Grid */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse min-w-[900px]">
-            {/* Header - Tên các ngày */}
             <thead>
               <tr className="bg-gray-50">
                 <th className="w-24 p-3 text-left border-b border-r border-gray-200 bg-gray-100">
@@ -204,11 +193,9 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
               </tr>
             </thead>
 
-            {/* Body - Các ca học */}
             <tbody>
               {SHIFTS.map((shift, shiftIdx) => (
                 <tr key={shiftIdx} className="hover:bg-gray-50/50">
-                  {/* Cột CA HỌC */}
                   <td className="p-3 border-r border-b border-gray-200 bg-gray-50">
                     <div className="text-right pr-2">
                       <div className="text-base font-bold text-purple-700">
@@ -220,7 +207,6 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
                     </div>
                   </td>
 
-                  {/* Các ô BUỔI HỌC theo ngày */}
                   {weekDays.map((day, dayIdx) => {
                     const session = getSessionForShift(day, shift);
                     const isTodayCell = isToday(day);
@@ -274,7 +260,6 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
           </table>
         </div>
 
-        {/* Footer - Thống kê */}
         <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
           <div className="flex items-center justify-between text-sm text-gray-600">
             <div>
@@ -294,7 +279,6 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
         </div>
       </div>
 
-      {/* Edit Session Modal */}
       <EditSessionModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
