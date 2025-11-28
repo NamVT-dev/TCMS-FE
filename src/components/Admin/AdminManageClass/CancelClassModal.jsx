@@ -1,66 +1,31 @@
 import React, { useState } from "react";
 import { 
-    X, AlertTriangle, Users, Calendar, Loader2, Ban, CheckCircle2, AlertCircle
+    X, AlertTriangle, Users, Calendar, Loader2, Ban 
 } from "lucide-react";
 
 const CancelClassModal = ({ isOpen, onClose, classData, onConfirm }) => {
     const [submitting, setSubmitting] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
-    const [error, setError] = useState(null);
 
     if (!isOpen || !classData) return null;
 
-    const handleClose = () => {
-        setIsSuccess(false);
-        setError(null);
-        onClose();
-    };
-
-    const handleConfirm = async () => {
-        setSubmitting(true);
-        setError(null);
-        try {
-            await onConfirm(); 
-            setIsSuccess(true); 
-        } catch (err) {
-            console.error(err);
-            setError(err.response?.data?.message || err.message || "Có lỗi xảy ra khi hủy lớp.");
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    if (isSuccess) {
-        return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center transform scale-100 transition-all">
-                    <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle2 className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">Hủy Lớp Thành Công!</h3>
-                    <p className="text-gray-500 mb-6 text-sm">
-                        Lớp học <strong>{classData.name}</strong> đã được hủy và cập nhật trạng thái.
-                    </p>
-                    <button 
-                        onClick={handleClose}
-                        className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
-                    >
-                        Hoàn tất
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
+    // Kiểm tra điều kiện an toàn
     const studentCount = classData.student?.length || 0;
     const reservedCount = classData.reservedCount || 0;
     const hasStudents = studentCount > 0 || reservedCount > 0;
     const sessionCount = classData.weeklySchedules?.length || 0;
 
+    const handleConfirm = async () => {
+        setSubmitting(true);
+        await onConfirm(); // Gọi hàm xử lý từ cha
+        setSubmitting(false);
+        onClose();
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden transform scale-100 transition-all">
                 
+                {/* Header: Màu đỏ cảnh báo */}
                 <div className="bg-red-50 p-4 border-b border-red-100 flex items-start gap-3">
                     <div className="p-2 bg-red-100 rounded-full shrink-0">
                         <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -72,27 +37,22 @@ const CancelClassModal = ({ isOpen, onClose, classData, onConfirm }) => {
                         </p>
                     </div>
                     <button 
-                        onClick={handleClose} 
+                        onClick={onClose} 
                         className="text-gray-400 hover:text-gray-600 transition p-1"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
+                {/* Body: Thông tin lớp */}
                 <div className="p-6 space-y-4">
-                    {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2 items-center text-red-700 text-sm">
-                            <AlertCircle className="w-4 h-4 shrink-0" />
-                            <span>{error}</span>
-                        </div>
-                    )}
-
                     <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                         <p className="text-xs text-gray-500 uppercase font-bold mb-1">Lớp học</p>
                         <p className="text-base font-semibold text-gray-800">{classData.name}</p>
                         <p className="text-sm text-gray-600 font-mono mt-1">{classData.classCode}</p>
                     </div>
 
+                    {/* Cảnh báo ảnh hưởng */}
                     <div className="space-y-2">
                         <p className="text-sm font-medium text-gray-700">Dữ liệu bị ảnh hưởng:</p>
                         
@@ -115,6 +75,7 @@ const CancelClassModal = ({ isOpen, onClose, classData, onConfirm }) => {
                         </div>
                     </div>
 
+                    {/* Thông báo chặn nếu còn học viên */}
                     {hasStudents && (
                         <div className="p-3 bg-orange-50 text-orange-700 text-xs rounded-lg border border-orange-200 flex gap-2 items-start">
                             <Ban className="w-4 h-4 shrink-0 mt-0.5" />
@@ -129,11 +90,11 @@ const CancelClassModal = ({ isOpen, onClose, classData, onConfirm }) => {
                 {/* Footer */}
                 <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
                     <button 
-                        onClick={handleClose}
+                        onClick={onClose}
                         className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-100 transition"
                         disabled={submitting}
                     >
-                        Hủy bỏ
+                        Quay lại
                     </button>
                     <button 
                         onClick={handleConfirm}

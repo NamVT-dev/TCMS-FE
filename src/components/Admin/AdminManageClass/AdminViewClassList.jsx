@@ -90,33 +90,7 @@ const AdminViewClassList = () => {
     });
   }, [courses, selectedCategories]);
 
-  const filteredClasses = useMemo(() => {
-    let result = classes;
-
-    if (selectedCategories.length > 0) {
-      result = result.filter(cls => {
-        const catId = typeof cls.course?.category === 'object' && cls.course?.category !== null
-          ? cls.course?.category._id
-          : cls.course?.category;
-        return selectedCategories.includes(catId);
-      });
-    }
-
-    if (selectedMonth) {
-      result = result.filter(cls => {
-        if (!cls.startAt) return false;
-
-        const classDate = new Date(cls.startAt);
-        const [filterYear, filterMonth] = selectedMonth.split('-');
-
-        return classDate.getFullYear() === parseInt(filterYear) &&
-          (classDate.getMonth() + 1) === parseInt(filterMonth);
-      });
-    }
-
-    return result;
-  }, [classes, selectedCategories, selectedMonth]);
-
+  
   useEffect(() => {
     if (selectedCourse && availableCourses.length > 0) {
       const exists = availableCourses.find(c => c._id === selectedCourse);
@@ -267,14 +241,15 @@ const AdminViewClassList = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Tháng mở lớp</label>
+             <div className="relative">
+              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Tìm kiếm theo tháng mở lớp</label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }}
+                  placeholder="Chọn tháng mở lớp"
                   className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm text-gray-700"
                 />
               </div>
@@ -308,7 +283,6 @@ const AdminViewClassList = () => {
         </div>
       </div>
 
-      {/* TABLE SECTION */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1000px]">
@@ -327,7 +301,7 @@ const AdminViewClassList = () => {
               {loading && (<tr><td colSpan="7" className="p-8 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-purple-600" /></td></tr>)}
               {!loading && error && (<tr><td colSpan="7" className="p-8 text-center text-red-600 bg-red-50">{error}</td></tr>)}
 
-              {!loading && !error && filteredClasses.length === 0 && (
+              {!loading && !error && classes.length === 0 && (
                 <tr>
                   <td colSpan="7" className="text-center p-12 flex flex-col items-center justify-center text-gray-500">
                     <div className="bg-gray-100 p-4 rounded-full mb-3"><Search className="w-6 h-6 text-gray-400" /></div>
@@ -337,7 +311,7 @@ const AdminViewClassList = () => {
                 </tr>
               )}
 
-              {!loading && !error && filteredClasses.map((cls) => (
+              {!loading && !error && classes.map((cls) => (
                 <tr key={cls._id} className="hover:bg-purple-50 transition-colors duration-150 group">
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">{cls.name}</div>
@@ -367,7 +341,7 @@ const AdminViewClassList = () => {
         {(!loading && totalResults > 0) && (
           <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-gray-200">
             <div className="text-sm text-gray-700">
-              Hiển thị <span className="font-medium">{filteredClasses.length}</span> kết quả phù hợp (trong trang hiện tại)
+              Hiển thị <span className="font-medium">{classes.length}</span> kết quả phù hợp (trong trang hiện tại)
             </div>
             <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
