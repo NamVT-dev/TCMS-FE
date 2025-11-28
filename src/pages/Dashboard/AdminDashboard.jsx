@@ -5,6 +5,7 @@ import Navbar from '../../components/Layout/Navbar';
 import AdminSidebar from '../../components/Layout/AdminSidebar';
 import AdminOverview from '../../components/Admin/AdminOverview/AdminOverview';
 import AdminViewStudentList from '../../components/Admin/AdminManageUser/AdminManagerSudent/AdminViewSudentList';
+import AdminStudentDetail from '../../components/Admin/AdminManageUser/AdminManagerSudent/AdminStudentDetail';
 import AdminViewTeacherList from '../../components/Admin/AdminManageUser/AdminManageTeacher/AdminViewTeacherList';
 import AdminViewClassList from '../../components/Admin/AdminManageClass/AdminViewClassList';
 import AdminClassDetail from '../../components/Admin/AdminManageClass/AdminClassDetail';
@@ -50,6 +51,7 @@ const AdminDashboard = () => {
           <Routes>
             <Route path="/overview" element={<AdminOverview />} />
             <Route path="/users/students" element={<AdminViewStudentList />} />
+            <Route path="/users/student/:id" element={<AdminStudentDetail />} />
 
           
             <Route path="/requests/dashboard" element={<AdminRequestDashboard />} />

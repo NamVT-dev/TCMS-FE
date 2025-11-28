@@ -106,6 +106,11 @@ const api = {
             axiosInstance.patch(`admin/staff/${id}`, formData),
         deleteStaff: (id) => axiosInstance.delete(`/admin/staff/${id}`),
 
+        getAllmember : (params) => axiosInstance.get("/staff/account", { params }),
+        getOnemember : (id) => axiosInstance.get(`/staff/account/${id}`),
+
+        unActiveAccount : (id) => axiosInstance.patch(`/admin/deactive-account/${id}`),
+
         center: {
             getConfig: () => axiosInstance.get("/admin/center/config"),
             updateConfig: (data) =>
