@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Eye, Trash2, Loader2, Plus, Edit, User, MoreVertical } from 'lucide-react';
+import { Search, Eye, Trash2, Loader2, Plus, Edit, User, MoreVertical, Ban, X, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom'; 
 import api from '../../../../utils/api';
 import { useDebounce } from '../../../../hooks/useDebounce'; 
 import AdminTeacherModal from './AdminTeacherModal';
+import toast from 'react-hot-toast';
 
 const Pagination = ({ page, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
@@ -49,6 +50,10 @@ const AdminViewTeacherList = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTeacherId, setSelectedTeacherId] = useState(null);
+
+  // Modal vô hiệu hóa
+  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+  const [teacherToDeactivate, setTeacherToDeactivate] = useState(null);
 
   useEffect(() => {
     if (location.pathname.includes('/teachers/create')) {
@@ -110,15 +115,66 @@ const AdminViewTeacherList = () => {
     if (window.confirm(`CẢNH BÁO: Bạn có chắc chắn muốn xóa giáo viên "${name}"?\nHành động này không thể hoàn tác.`)) {
       try {
         await api.admin.deleteTeacher(id);
-        alert("Đã xóa thành công!");
+        toast.success("Đã xóa thành công!", {
+          duration: 4000,
+          position: 'top-right',
+        });
         if (teachers.length === 1 && page > 1) {
           setPage(page - 1); 
         } else {
           fetchTeachers(page, debouncedSearch, selectedStatus);
         }
       } catch (err) {
-        alert(err.response?.data?.message || "Lỗi khi xóa giáo viên.");
+        toast.error(err.response?.data?.message || "Lỗi khi xóa giáo viên.", {
+          duration: 4000,
+          position: 'top-right',
+        });
       }
+    }
+  };
+
+  // Xử lý vô hiệu hóa
+  const openDeactivateModal = (teacher) => {
+    setTeacherToDeactivate(teacher);
+    setIsDeactivateModalOpen(true);
+  };
+
+  const closeDeactivateModal = () => {
+    setTeacherToDeactivate(null);
+    setIsDeactivateModalOpen(false);
+  };
+
+  const handleConfirmDeactivate = async () => {
+    if (!teacherToDeactivate) return;
+
+    try {
+      // Đóng modal trước
+      closeDeactivateModal();
+      
+      const res = await api.admin.unActiveAccount(teacherToDeactivate._id);
+      
+      // Cập nhật state local
+      setTeachers(prev => prev.map(teacher => 
+        teacher._id === teacherToDeactivate._id ? { ...teacher, active: false } : teacher
+      ));
+      
+      // Hiển thị toast
+      toast.success("✅ Vô hiệu hóa tài khoản thành công!", {
+        duration: 5000,
+        position: 'top-right',
+      });
+      
+    } catch (error) {
+      closeDeactivateModal();
+      
+      const errorMessage = error.response?.data?.message || "❌ Lỗi khi vô hiệu hóa tài khoản";
+      
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: 'top-right',
+      });
+      
+      console.error(error);
     }
   };
 
@@ -139,7 +195,7 @@ const AdminViewTeacherList = () => {
         </button>
       </div>
 
-      {/* Filter & Search Bar (Giữ nguyên UI) */}
+      {/* Filter & Search Bar */}
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 items-center">
         <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -172,16 +228,15 @@ const AdminViewTeacherList = () => {
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Giáo viên</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Thông tin liên hệ</th>
-               
                 <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan="5" className="p-12 text-center"><Loader2 className="w-10 h-10 mx-auto animate-spin text-purple-500" /></td></tr>
+                <tr><td colSpan="4" className="p-12 text-center"><Loader2 className="w-10 h-10 mx-auto animate-spin text-purple-500" /></td></tr>
               ) : error ? (
-                <tr><td colSpan="5" className="p-12 text-center text-red-500 font-medium">{error}</td></tr>
+                <tr><td colSpan="4" className="p-12 text-center text-red-500 font-medium">{error}</td></tr>
               ) : teachers.length > 0 ? (
                 teachers.map((teacher) => (
                   <tr key={teacher._id} className="hover:bg-purple-50/30 transition-colors group">
@@ -198,7 +253,6 @@ const AdminViewTeacherList = () => {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-bold text-gray-900">{teacher.profile?.fullname || teacher.username}</div>
-                          
                         </div>
                       </div>
                     </td>
@@ -206,7 +260,6 @@ const AdminViewTeacherList = () => {
                         <div className="text-sm text-gray-700">{teacher.email}</div>
                         <div className="text-xs text-gray-400 mt-0.5">{teacher.profile?.phoneNumber || 'Chưa cập nhật SĐT'}</div>
                     </td>
-                    
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
@@ -235,20 +288,25 @@ const AdminViewTeacherList = () => {
                         >
                           <Edit size={18} />
                         </button>
-                        <button
-                          onClick={() => handleDelete(teacher._id, teacher.profile?.fullname)}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Xóa giáo viên"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        
+                        {teacher.active && (
+                          <button
+                            onClick={() => openDeactivateModal(teacher)}
+                            className="p-2 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                            title="Vô hiệu hóa tài khoản"
+                          >
+                            <Ban size={18} />
+                          </button>
+                        )}
+                        
+                        
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="p-16 text-center">
+                  <td colSpan="4" className="p-16 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                         <User className="w-12 h-12 mb-3 opacity-20" />
                         <p className="text-lg font-medium text-gray-500">Không tìm thấy giáo viên nào</p>
@@ -277,6 +335,47 @@ const AdminViewTeacherList = () => {
         onSuccess={handleSuccess}
         teacherId={selectedTeacherId}
       />
+
+      {/* Modal Vô hiệu hóa */}
+      {isDeactivateModalOpen && teacherToDeactivate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100 relative">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-red-600" strokeWidth={2.5} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Xác nhận vô hiệu hóa?</h3>
+              <p className="text-gray-500 mb-2">
+                Bạn có chắc chắn muốn vô hiệu hóa tài khoản giáo viên <strong>{teacherToDeactivate.profile?.fullname || teacherToDeactivate.username}</strong>?
+              </p>
+              <p className="text-gray-500 text-sm mb-6">
+                Giáo viên sẽ không thể đăng nhập vào hệ thống sau khi thực hiện thao tác này.
+              </p>
+              
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={closeDeactivateModal}
+                  className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  onClick={handleConfirmDeactivate}
+                  className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-95"
+                >
+                  Vô hiệu hóa
+                </button>
+              </div>
+            </div>
+            <button 
+                onClick={closeDeactivateModal}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1"
+            >
+                <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

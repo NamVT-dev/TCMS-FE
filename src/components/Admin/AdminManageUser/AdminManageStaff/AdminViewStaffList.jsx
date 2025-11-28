@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Eye, Trash2, Loader2, Plus, User } from 'lucide-react';
+import { Search, Eye, Trash2, Loader2, Plus, Ban, AlertTriangle, X, CheckCircle } from 'lucide-react';
 import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useDebounce } from '../../../../hooks/useDebounce';
@@ -7,8 +7,9 @@ import { Modal } from "antd";
 import showToast from "../../../../utils/showToast";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import AdminStaffModal from './AdminStaffModal';
+import toast from 'react-hot-toast'; 
 
-// ... (Pagination Component giữ nguyên) ...
+
 const Pagination = ({ page, totalPages, onPageChange }) => {
     if (totalPages <= 1) return null;
     const getPages = () => {
@@ -41,7 +42,6 @@ const AdminViewStaffList = () => {
 
     const navigate = useNavigate();
     const location = useLocation();
-    const { id: paramId } = useParams();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
@@ -52,14 +52,16 @@ const AdminViewStaffList = () => {
     const [totalResults, setTotalResults] = useState(0);
     const limit = 10;
     
-    // Modal State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    // Staff hiện tại chưa hỗ trợ Edit modal trong code mẫu, chỉ Create.
-    // Nhưng ta vẫn bắt URL edit để nếu sau này mở rộng thì sẵn sàng.
+    
+    const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+    const [selectedStaffId, setSelectedStaffId] = useState(null);
+
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
 
     const [modal, contextHolder] = Modal.useModal();
 
-    // --- LOGIC TỰ ĐỘNG MỞ MODAL ---
     useEffect(() => {
         if (location.pathname.includes('/staff/create')) {
             setIsCreateModalOpen(true);
@@ -74,6 +76,43 @@ const AdminViewStaffList = () => {
 
     const handleCloseModal = () => {
         navigate('/admin/users/staff');
+    };
+
+    const openDeactivateModal = (id) => {
+        setSelectedStaffId(id);
+        setIsDeactivateModalOpen(true);
+    };
+
+    const closeDeactivateModal = () => {
+        setSelectedStaffId(null);
+        setIsDeactivateModalOpen(false);
+    };
+
+    const closeSuccessModal = () => {
+        setIsSuccessModalOpen(false);
+        setSuccessMessage("");
+    };
+
+    const handleConfirmDeactivate = async () => {
+        if (!selectedStaffId) return;
+
+        try {
+            const res = await api.admin.unActiveAccount(selectedStaffId);
+            
+            setStaffs(prev => prev.map(staff => 
+                staff._id === selectedStaffId ? { ...staff, active: false } : staff
+            ));
+            
+            closeDeactivateModal();
+            
+            setSuccessMessage(res.data?.message || "Vô hiệu hóa tài khoản thành công!");
+            setIsSuccessModalOpen(true);
+
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || "Lỗi khi vô hiệu hóa tài khoản";
+            toast.error(errorMessage);
+            console.error(err);
+        }
     };
 
     const fetchStaffs = useCallback(async (currentPage, search, status) => {
@@ -130,10 +169,9 @@ const AdminViewStaffList = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen font-sans">
+        <div className="p-6 bg-gray-50 min-h-screen font-sans relative">
             {contextHolder}
             
-            {/* Header */}
             <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Danh sách nhân viên</h1>
@@ -148,7 +186,6 @@ const AdminViewStaffList = () => {
                 </button>
             </div>
 
-            {/* Filter Bar */}
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 items-center">
                 <div className="relative flex-1 w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -228,9 +265,18 @@ const AdminViewStaffList = () => {
                                                 <Link to={`/admin/users/staff/detail/${staff._id}`} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Xem chi tiết">
                                                     <Eye size={18} />
                                                 </Link>
-                                                <button onClick={() => handleDelete(staff._id, staff.profile?.fullname)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
-                                                    <Trash2 size={18} />
-                                                </button>
+                                                
+                                                {staff.active && (
+                                                    <button 
+                                                        onClick={() => openDeactivateModal(staff._id)}
+                                                        className="p-2 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                                                        title="Vô hiệu hóa"
+                                                    >
+                                                        <Ban size={18} />
+                                                    </button>
+                                                )}
+
+                                                
                                             </div>
                                         </td>
                                     </tr>
@@ -254,6 +300,66 @@ const AdminViewStaffList = () => {
                 onClose={handleCloseModal}
                 onSuccess={() => fetchStaffs(page, debouncedSearch, selectedStatus)}
             />
+
+            {isDeactivateModalOpen && (
+                <div className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity p-4">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all scale-100 animate-fadeIn">
+                    <div className="p-6 text-center">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <AlertTriangle className="w-8 h-8 text-red-600" strokeWidth={2.5} />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Xác nhận vô hiệu hóa?</h3>
+                    <p className="text-gray-500 mb-6">
+                        Bạn có chắc chắn muốn vô hiệu hóa tài khoản nhân viên này? Họ sẽ không thể đăng nhập vào hệ thống nữa.
+                    </p>
+                    
+                    <div className="flex gap-3 justify-center">
+                        <button
+                        onClick={closeDeactivateModal}
+                        className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                        >
+                        Hủy bỏ
+                        </button>
+                        <button
+                        onClick={handleConfirmDeactivate}
+                        className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-95"
+                        >
+                        Vô hiệu hóa ngay
+                        </button>
+                    </div>
+                    </div>
+                    <button 
+                        onClick={closeDeactivateModal}
+                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+                </div>
+            )}
+
+            {isSuccessModalOpen && (
+                <div className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity p-4">
+                <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all scale-100 animate-fadeIn">
+                    <div className="p-8 text-center">
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5 animate-bounce-short">
+                        <CheckCircle className="w-10 h-10 text-green-600" strokeWidth={3} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Thành công!</h3>
+                    <p className="text-gray-500 mb-8 text-lg">
+                        {successMessage}
+                    </p>
+                    
+                    <button
+                        onClick={closeSuccessModal}
+                        className="w-full px-6 py-3 rounded-xl bg-green-600 text-white font-bold text-lg hover:bg-green-700 shadow-lg shadow-green-200 transition-all active:scale-95"
+                    >
+                        Đóng
+                    </button>
+                    </div>
+                </div>
+                </div>
+            )}
         </div>
     );
 };
