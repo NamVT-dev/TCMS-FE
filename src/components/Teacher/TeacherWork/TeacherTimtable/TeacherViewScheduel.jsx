@@ -4,7 +4,6 @@ import api from "../../../../utils/api";
 import Loading from '../../../UI/Loading';
 import SubstituteRequestModal from "./SubstituteRequestModal";
 
-// --- ĐỊNH NGHĨA CA HỌC ---
 const SHIFTS = [
   { name: "S1", start: "08:00", end: "09:50" },
   { name: "S2", start: "10:00", end: "11:50" },
@@ -14,10 +13,9 @@ const SHIFTS = [
   { name: "S6", start: "20:00", end: "21:50" },
 ];
 
-// --- HÀM TIỆN ÍCH ---
 const getWeekDays = (date) => {
   const curr = new Date(date);
-  const first = curr.getDate() - curr.getDay() + 1; // Thứ 2
+  const first = curr.getDate() - curr.getDay() + 1; 
   const days = [];
   for (let i = 0; i < 7; i++) {
     const day = new Date(curr.setDate(first + i));
@@ -101,7 +99,6 @@ function TeacherViewSchedule() {
     fetchSchedule(currentWeek);
   }, [currentWeek, fetchSchedule]);
 
-  // --- HELPERS ---
   const sessionsByDay = useMemo(() => {
     const grouped = {};
     sessions.forEach(session => {
@@ -147,14 +144,12 @@ function TeacherViewSchedule() {
   
   const totalSessionsInWeek = Object.values(sessionsByDay).flat().length;
 
-  // --- HANDLERS CHO MODAL ---
   const handleOpenRequestModal = (session) => {
       setSelectedSession(session);
       setIsRequestModalOpen(true);
   };
 
   const handleRequestSuccess = () => {
-      // Reload lại lịch để cập nhật trạng thái (nếu có hiển thị icon pending)
       fetchSchedule(currentWeek);
   };
 
@@ -168,7 +163,6 @@ function TeacherViewSchedule() {
           </div>
         )}
 
-        {/* Header - Toolbar */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-4">
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center gap-2">
@@ -213,10 +207,8 @@ function TeacherViewSchedule() {
           </div>
         )}
 
-        {/* Calendar Grid */}
          <div className="overflow-x-auto">
           <table className="w-full border-collapse min-w-[900px] table-fixed">
-            {/* Header */}
             <thead>
               <tr className="bg-gray-50">
                 <th className="w-28 p-3 text-left border-b border-r border-gray-200 bg-gray-100">
@@ -247,11 +239,9 @@ function TeacherViewSchedule() {
               </tr>
             </thead>
 
-            {/* Body */}
             <tbody>
               {SHIFTS.map((shift, shiftIdx) => (
                 <tr key={shiftIdx} className="group hover:bg-gray-50/50">
-                  {/* Cột CA HỌC */}
                   <td className="w-28 p-3 border-r border-b border-gray-200 bg-gray-50 group-hover:bg-gray-100 transition-colors">
                     <div className="text-right pr-2">
                       <div className="text-base font-bold text-purple-700">
@@ -318,7 +308,6 @@ function TeacherViewSchedule() {
                             )}
                           </div>
                         ) : (
-                          // Ô trống
                           <div className="w-full h-full flex items-center justify-center">
                           </div>
                         )}
@@ -331,7 +320,6 @@ function TeacherViewSchedule() {
           </table>
         </div>
 
-        {/* Footer */}
         <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
           <div className="flex items-center justify-between text-sm text-gray-600">
             <div>
@@ -351,7 +339,6 @@ function TeacherViewSchedule() {
         </div>
       </div>
 
-      {/* === MODAL XIN DẠY THAY === */}
       <SubstituteRequestModal 
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}

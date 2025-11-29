@@ -341,7 +341,6 @@ const StaffPaymentManagement = () => {
                                 <EyeIcon className="w-5 h-5" />
                             </button>
 
-                            {/* Nút Hoàn tiền (Chỉ hiện khi succeeded) -> MỞ MODAL THAY VÌ ALERT */}
                             {payment.status === 'succeeded' && (
                                 <button 
                                     onClick={() => openRefundModal(payment._id)}

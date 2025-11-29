@@ -1,8 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, Save, AlertCircle, CheckCircle2, XCircle, X } from 'lucide-react';
 import api from '../../../utils/api';
 import Loading from '../../UI/Loading';
+
+function Toast({ message, type = "success", onClose }) {
+    const icons = {
+        success: <CheckCircle2 className="w-5 h-5" />,
+        error: <AlertCircle className="w-5 h-5" />,
+        warning: <AlertCircle className="w-5 h-5" />
+    };
+
+    const styles = {
+        success: "bg-green-50 border-green-200 text-green-800",
+        error: "bg-red-50 border-red-200 text-red-800",
+        warning: "bg-yellow-50 border-yellow-200 text-yellow-800"
+    };
+
+    return (
+        <div className={`fixed top-4 right-4 z-[60] flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg ${styles[type]} transform transition-all duration-300 ease-out`}>
+            <div className="flex-shrink-0">
+                {icons[type]}
+            </div>
+            <p className="text-sm font-medium">{message}</p>
+            <button
+                onClick={onClose}
+                className="flex-shrink-0 ml-2 hover:opacity-70 transition-opacity"
+            >
+                <X className="w-4 h-4" />
+            </button>
+        </div>
+    );
+}
 
 const AttendanceDetailPage = () => {
     const { attendanceId } = useParams();
@@ -14,15 +43,18 @@ const AttendanceDetailPage = () => {
     const [attendanceList, setAttendanceList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [error, setError] = useState(null);
+    const [toast, setToast] = useState(null);
+
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 5000);
+    };
 
     useEffect(() => {
         if (!initialData) {
             navigate('/teacher/attendance');
             return;
         }
-
-        
 
         const processData = () => {
             try {
@@ -49,7 +81,7 @@ const AttendanceDetailPage = () => {
 
             } catch (e) {
                 console.error("Lỗi xử lý dữ liệu:", e);
-                setError("Có lỗi khi hiển thị danh sách học viên.");
+                showToast("Có lỗi khi hiển thị danh sách học viên.", "error");
                 setIsLoading(false);
             }
         };
@@ -77,7 +109,6 @@ const AttendanceDetailPage = () => {
 
     const handleSaveAttendance = async () => {
         setIsSaving(true);
-        setError(null);
 
         try {
             const payload = attendanceList.map(item => ({
@@ -86,18 +117,14 @@ const AttendanceDetailPage = () => {
                 note: item.note || ''
             }));
 
-            
-
             await api.teacher.attendance.takeAttendance(attendanceId, payload);
 
-            setTimeout(() => {
-                alert("✅ Điểm danh thành công!");
-                setIsSaving(false);
-            }, 500);
+            showToast("Điểm danh thành công!", "success");
+            setIsSaving(false);
 
         } catch (err) {
             console.error("Lỗi khi lưu:", err);
-            setError(err.response?.data?.message || "Không thể lưu điểm danh.");
+            showToast(err.response?.data?.message || "Không thể lưu điểm danh.", "error");
             setIsSaving(false);
         }
     };
@@ -130,118 +157,118 @@ const AttendanceDetailPage = () => {
     const absentCount = attendanceList.filter(item => item.status === "absent").length;
 
     return (
-        <div className="container mx-auto p-4 md:p-6 max-w-5xl">
-            {isSaving && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <Loading variant="card" message="Đang lưu dữ liệu..." />
-                </div>
+        <>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
             )}
 
-            <button
-                onClick={() => navigate('/teacher/attendance')}
-                className="flex items-center text-gray-600 hover:text-purple-600 font-medium mb-4 transition-colors"
-            >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Quay lại danh sách
-            </button>
-
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-                {/* Header đơn giản */}
-                <div className="p-5 border-b bg-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        Điểm danh học viên
-                    </h1>
-
-                    <div className="flex space-x-3 text-sm font-medium">
-                        <div className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg flex items-center shadow-sm">
-                            <CheckCircle2 className="w-4 h-4 mr-1.5" /> {presentCount} Có mặt
-                        </div>
-                        <div className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg flex items-center shadow-sm">
-                            <XCircle className="w-4 h-4 mr-1.5" /> {absentCount} Vắng
-                        </div>
-                    </div>
-                </div>
-
-                {error && (
-                    <div className="m-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
-                        <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
-                        {error}
+            <div className="container mx-auto p-4 md:p-6 max-w-5xl">
+                {isSaving && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                        <Loading variant="card" message="Đang lưu dữ liệu..." />
                     </div>
                 )}
 
-                {/* Danh sách học viên */}
-                <div className="divide-y divide-gray-100">
-                    {attendanceList.map((item, index) => (
-                        <div
-                            key={item.student._id}
-                            className={`p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${
-                                item.status === "absent" ? "bg-red-50/30" : ""
-                            }`}
-                        >
-                            <div className="flex items-center min-w-[250px]">
-                                <span className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-600 rounded-full font-bold text-sm mr-3">
-                                    {index + 1}
-                                </span>
-                                <div>
-                                    <p className="font-semibold text-gray-800 text-base">{item.student.name}</p>
-                                    {item.student.studentCode && (
-                                        <p className="text-xs text-gray-500 font-mono mt-0.5">{item.student.studentCode}</p>
-                                    )}
-                                </div>
+                <button
+                    onClick={() => navigate('/teacher/attendance')}
+                    className="flex items-center text-gray-600 hover:text-purple-600 font-medium mb-4 transition-colors"
+                >
+                    <ArrowLeft className="w-5 h-5 mr-2" />
+                    Quay lại danh sách
+                </button>
+
+                <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                    <div className="p-5 border-b bg-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <h1 className="text-2xl font-bold text-gray-800">
+                            Điểm danh học viên
+                        </h1>
+
+                        <div className="flex space-x-3 text-sm font-medium">
+                            <div className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg flex items-center shadow-sm">
+                                <CheckCircle2 className="w-4 h-4 mr-1.5" /> {presentCount} Có mặt
                             </div>
-
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:justify-end">
-                                <input
-                                    type="text"
-                                    placeholder="Ghi chú..."
-                                    value={item.note}
-                                    onChange={(e) => handleNoteChange(item.student._id, e.target.value)}
-                                    className="flex-1 md:max-w-xs px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                                />
-
-                                <div className="flex items-center gap-4 bg-gray-50 px-3 py-2 rounded-lg">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name={`status-${item.student._id}`}
-                                            value="present"
-                                            checked={item.status === "present"}
-                                            onChange={() => handleChangeStatus(item.student._id, "present")}
-                                            className="h-4 w-4 text-green-600 focus:ring-green-500"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">Có mặt</span>
-                                    </label>
-
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name={`status-${item.student._id}`}
-                                            value="absent"
-                                            checked={item.status === "absent"}
-                                            onChange={() => handleChangeStatus(item.student._id, "absent")}
-                                            className="h-4 w-4 text-red-600 focus:ring-red-500"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">Vắng</span>
-                                    </label>
-                                </div>
+                            <div className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg flex items-center shadow-sm">
+                                <XCircle className="w-4 h-4 mr-1.5" /> {absentCount} Vắng
                             </div>
                         </div>
-                    ))}
-                </div>
+                    </div>
 
-                {/* Footer với nút lưu */}
-                <div className="p-4 bg-gray-50 border-t border-gray-200 sticky bottom-0 z-10 flex justify-end shadow-inner">
-                    <button
-                        onClick={handleSaveAttendance}
-                        disabled={isSaving}
-                        className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <Save className="w-5 h-5 mr-2" />
-                        {isSaving ? "Đang lưu..." : "Lưu kết quả điểm danh"}
-                    </button>
+                    <div className="divide-y divide-gray-100">
+                        {attendanceList.map((item, index) => (
+                            <div
+                                key={item.student._id}
+                                className={`p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${
+                                    item.status === "absent" ? "bg-red-50/30" : ""
+                                }`}
+                            >
+                                <div className="flex items-center min-w-[250px]">
+                                    <span className="w-8 h-8 flex items-center justify-center bg-purple-100 text-purple-600 rounded-full font-bold text-sm mr-3">
+                                        {index + 1}
+                                    </span>
+                                    <div>
+                                        <p className="font-semibold text-gray-800 text-base">{item.student.name}</p>
+                                        {item.student.studentCode && (
+                                            <p className="text-xs text-gray-500 font-mono mt-0.5">{item.student.studentCode}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:justify-end">
+                                    <input
+                                        type="text"
+                                        placeholder="Ghi chú..."
+                                        value={item.note}
+                                        onChange={(e) => handleNoteChange(item.student._id, e.target.value)}
+                                        className="flex-1 md:max-w-xs px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                    />
+
+                                    <div className="flex items-center gap-4 bg-gray-50 px-3 py-2 rounded-lg">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name={`status-${item.student._id}`}
+                                                value="present"
+                                                checked={item.status === "present"}
+                                                onChange={() => handleChangeStatus(item.student._id, "present")}
+                                                className="h-4 w-4 text-green-600 focus:ring-green-500"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">Có mặt</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name={`status-${item.student._id}`}
+                                                value="absent"
+                                                checked={item.status === "absent"}
+                                                onChange={() => handleChangeStatus(item.student._id, "absent")}
+                                                className="h-4 w-4 text-red-600 focus:ring-red-500"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">Vắng</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="p-4 bg-gray-50 border-t border-gray-200 sticky bottom-0 z-10 flex justify-end shadow-inner">
+                        <button
+                            onClick={handleSaveAttendance}
+                            disabled={isSaving}
+                            className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+                        >
+                            <Save className="w-5 h-5 mr-2" />
+                            {isSaving ? "Đang lưu..." : "Lưu kết quả điểm danh"}
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

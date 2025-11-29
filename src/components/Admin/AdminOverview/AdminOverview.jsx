@@ -7,12 +7,10 @@ import {
   Calendar, ArrowRight, Loader2, RefreshCw
 } from 'lucide-react';
 
-// Hàm format tiền tệ VND
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
-// Hàm format ngày giờ
 const formatDate = (dateString) => {
   if (!dateString) return '';
   return new Date(dateString).toLocaleString('vi-VN', {
@@ -20,9 +18,7 @@ const formatDate = (dateString) => {
   });
 };
 
-// Component con: Thẻ Thống Kê (Stat Card)
 const StatCard = ({ title, value, subValue, icon: Icon, color, to, loading }) => {
-  // Map màu sắc
   const colorClasses = {
     purple: 'bg-purple-50 text-purple-600 border-purple-200 hover:border-purple-400',
     blue: 'bg-blue-50 text-blue-600 border-blue-200 hover:border-blue-400',
@@ -50,7 +46,6 @@ const StatCard = ({ title, value, subValue, icon: Icon, color, to, loading }) =>
         </div>
       </div>
 
-      {/* Sub-value (ví dụ: +55 tháng này) */}
       {subValue && !loading && (
         <div className="mt-4 flex items-center text-sm">
           <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium flex items-center">
@@ -61,7 +56,6 @@ const StatCard = ({ title, value, subValue, icon: Icon, color, to, loading }) =>
         </div>
       )}
 
-      {/* Link Button */}
       {to && (
         <Link
           to={to}
@@ -84,7 +78,7 @@ const AdminOverview = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const res = await api.admin.getDashboardOverview(); // Gọi API bạn đã định nghĩa
+      const res = await api.admin.getDashboardOverview(); 
       if (res.data.status === 'success') {
         setStats(res.data.data);
       }
@@ -111,7 +105,6 @@ const AdminOverview = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Tổng quan hệ thống</h1>
@@ -130,9 +123,7 @@ const AdminOverview = () => {
 
       </div>
 
-      {/* Grid Thống kê Chính */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* 1. Doanh thu */}
         <StatCard
           title="Doanh thu tháng này"
           value={stats ? formatCurrency(stats.totalRevenueThisMonth) : 0}
@@ -142,7 +133,6 @@ const AdminOverview = () => {
           loading={loading}
         />
 
-        {/* 2. Học viên */}
         <StatCard
           title="Tổng Học viên"
           value={stats?.totalMembers || 0}
@@ -153,7 +143,6 @@ const AdminOverview = () => {
           loading={loading}
         />
 
-        {/* 3. Lớp học */}
         <StatCard
           title="Lớp đang hoạt động"
           value={stats?.totalClasses || 0}
@@ -164,7 +153,6 @@ const AdminOverview = () => {
           loading={loading}
         />
 
-        {/* 4. Giáo viên */}
         <StatCard
           title="Tổng Giáo viên"
           value={stats?.totalTeachers || 0}
@@ -175,10 +163,8 @@ const AdminOverview = () => {
         />
       </div>
 
-      {/* Grid Thống kê Phụ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Cột 1: Xếp lớp & Ghi danh */}
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <UserCog className="w-5 h-5 mr-2 text-indigo-600" />
@@ -192,11 +178,9 @@ const AdminOverview = () => {
               </div>
               <Link to="/admin/users/enrollments" className="text-sm text-indigo-600 hover:underline font-medium">Xử lý ngay</Link>
             </div>
-            {/* Bạn có thể thêm các chỉ số khác ở đây nếu BE cung cấp thêm */}
           </div>
         </div>
 
-        {/* Cột 2: Khiếu nại & Hỗ trợ */}
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <AlertCircle className="w-5 h-5 mr-2 text-red-600" />
@@ -213,12 +197,10 @@ const AdminOverview = () => {
             </div>
           </div>
           <div className="mt-4 text-center">
-            {/* Link này tạm thời trỏ về students vì chưa có trang khiếu nại riêng trong menu */}
             <Link to="/admin/users/students" className="text-sm text-gray-500 hover:text-gray-700 underline">Xem danh sách yêu cầu</Link>
           </div>
         </div>
 
-        {/* Cột 3: Quick Links (Lối tắt) */}
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <Calendar className="w-5 h-5 mr-2 text-gray-600" />

@@ -5,13 +5,11 @@ import {
     Clock, 
     Loader2, 
     Eye, 
-    AlertTriangle,
     Bell
 } from 'lucide-react';
 import api from '../../../utils/api';
 import SubstituteDetailModal from '../../Common/SubstituteDetailModal';
 
-// CẬP NHẬT: Thêm trường hợp default
 const STATUS_MAP = {
     "Lời mời dạy thay": { label: "Cần phản hồi", color: "bg-blue-100 text-blue-700" },
     "Phân công dạy thay (Admin)": { label: "Đã phân công", color: "bg-purple-100 text-purple-700" },

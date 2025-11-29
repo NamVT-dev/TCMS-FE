@@ -43,15 +43,7 @@ const AdminRequestList = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn chắc chắn muốn xóa yêu cầu này?")) return;
-    try {
-      await api.admin.request.delete(id);
-      fetchRequests();
-    } catch (error) {
-      alert("Không thể xóa yêu cầu");
-    }
-  };
+  
 
   const openDetail = (id) => {
     setSelectedId(id);

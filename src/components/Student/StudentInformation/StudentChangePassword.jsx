@@ -24,9 +24,8 @@ const StudentChangePassword = () => {
 
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // ✅ Thêm state cho error
+  const [errorMessage, setErrorMessage] = useState(""); 
 
-  // ✅ Validate mật khẩu
   const validatePassword = () => {
     const { newPassword, confirmPassword } = formData;
     setErrors({
@@ -57,15 +56,15 @@ const StudentChangePassword = () => {
     setShowPasswords({ ...showPasswords, [field]: !showPasswords[field] });
   };
 
-  // ✅ Gọi API đổi mật khẩu với error handling tốt hơn
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!isFormValid()) return;
 
     setLoading(true);
-    setErrorMessage(""); // Clear error cũ
-    setSuccessMessage(""); // Clear success cũ
+    setErrorMessage(""); 
+    setSuccessMessage(""); 
     
     try {
       const payload = {
@@ -186,7 +185,6 @@ const StudentChangePassword = () => {
             </div>
           </div>
 
-          {/* Confirm Password */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 block">
               Xác nhận mật khẩu mới
@@ -215,7 +213,6 @@ const StudentChangePassword = () => {
             </div>
           </div>
 
-          {/* Validation Messages */}
           <div className="space-y-2 text-sm">
             <div className="flex items-center space-x-2">
               {errors.match ? (
@@ -257,7 +254,6 @@ const StudentChangePassword = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={!isFormValid() || loading}
@@ -270,7 +266,6 @@ const StudentChangePassword = () => {
             {loading ? "Đang xử lý..." : "Cập nhật mật khẩu"}
           </button>
 
-          {/* ✅ Error message - Hiển thị trên UI */}
           {errorMessage && (
             <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -278,7 +273,6 @@ const StudentChangePassword = () => {
             </div>
           )}
 
-          {/* ✅ Success message */}
           {successMessage && (
             <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
               <Check className="w-5 h-5 text-green-500 flex-shrink-0" />

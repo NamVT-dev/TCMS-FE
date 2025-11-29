@@ -186,14 +186,12 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
             const res = await api.admin.class.createClass(payload);
             const newClassId = res.data.data.data._id;
 
-            // Thay alert bằng toast
             toast.success(`Tạo lớp "${finalName}" thành công!`);
             
             onSuccess();
             onClose();
             navigate(`/admin/classes/detail/${newClassId}`);
         } catch (err) {
-            // Thay alert bằng toast
             toast.error(err.response?.data?.message || "Lỗi khi tạo lớp.");
         } finally {
             setSaving(false);

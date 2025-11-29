@@ -1,4 +1,3 @@
-// src/components/Admin/AdminManageShedule/components/common/FriendlyLogView.jsx
 
 import React, { useEffect, useRef } from "react";
 import {
@@ -10,7 +9,6 @@ import {
   FileText,
 } from "lucide-react";
 
-// Hàm helper để chọn icon và màu sắc dựa trên "stage"
 const getLogAppearance = (log) => {
   const stage = log.stage || "";
 
@@ -34,14 +32,12 @@ const getLogAppearance = (log) => {
     return { icon: Loader2, color: "text-purple-500", animate: true };
   }
 
-  // Mặc định
   return { icon: FileText, color: "text-gray-500" };
 };
 
 function FriendlyLogView({ logs }) {
   const logContainerRef = useRef(null);
 
-  // Tự động cuộn xuống log mới nhất
   useEffect(() => {
     if (logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;

@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Calendar, User, Home, Clock } from "lucide-react";
+import React, { useMemo, useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Calendar, User, Home, Clock, AlertTriangle, X } from "lucide-react";
 import EditSessionModal from "./EditSessionModal";
 
 const SHIFTS = [
@@ -10,6 +10,31 @@ const SHIFTS = [
   { name: "S5", start: "18:00", end: "19:50" },
   { name: "S6", start: "20:00", end: "21:50" },
 ];
+
+const Toast = ({ message, type = "warning", onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3500);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const styles = {
+    warning: { bg: "bg-amber-500", Icon: AlertTriangle },
+    error: { bg: "bg-red-500", Icon: AlertTriangle },
+    info: { bg: "bg-blue-500", Icon: AlertTriangle }
+  };
+
+  const { bg, Icon } = styles[type] || styles.warning;
+
+  return (
+    <div className={`fixed top-4 right-4 ${bg} text-white px-6 py-4 rounded-lg shadow-xl flex items-center gap-3 z-[100] animate-slide-in min-w-[320px] max-w-md`}>
+      <Icon className="w-5 h-5 flex-shrink-0" />
+      <span className="font-medium flex-1">{message}</span>
+      <button onClick={onClose} className="ml-2 hover:bg-white/20 rounded p-1 transition">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
 
 const getWeekDays = (date) => {
   const curr = new Date(date);
@@ -59,6 +84,7 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [selectedSession, setSelectedSession] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const weekDays = useMemo(() => getWeekDays(currentWeek), [currentWeek]);
 
@@ -109,7 +135,10 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
     const sessionDate = new Date(session.startAt);
 
     if (!isFutureSession(sessionDate)) {
-      alert("Chỉ có thể chỉnh sửa các buổi học trong tương lai!");
+      setToast({ 
+        message: "Chỉ có thể chỉnh sửa các buổi học trong tương lai!", 
+        type: "warning" 
+      });
       return;
     }
 
@@ -130,6 +159,22 @@ function ClassScheduleCalendar({ sessions, classInfo, onSessionUpdated }) {
 
   return (
     <>
+      <style>{`
+        @keyframes slide-in {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in { animation: slide-in 0.3s ease-out; }
+      `}</style>
+
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-4">
           <div className="flex items-center justify-between text-white">

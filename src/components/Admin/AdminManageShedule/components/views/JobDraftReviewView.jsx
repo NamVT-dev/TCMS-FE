@@ -48,7 +48,6 @@ function JobDraftReviewView({ job, onRefetch }) {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
-      {/* 1. Header: Tiêu đề và Nút Actions */}
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-800">
@@ -58,7 +57,6 @@ function JobDraftReviewView({ job, onRefetch }) {
             Đã chạy xong. Vui lòng xem lại và chốt lịch.
           </p>
         </div>
-        {/* ⬇️ SỬA KHỐI NÀY: Thêm ô chọn ngày */}
         <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-end sm:space-x-3 ">
          
           <button
