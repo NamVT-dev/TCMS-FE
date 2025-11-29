@@ -66,7 +66,6 @@ const AdminViewStudentList = () => {
       
       closeDeactivateModal();
 
-      // LOGIC MỚI: Mở modal thông báo thành công thay vì dùng toast
       setSuccessMessage(res.data?.message || "Vô hiệu hóa tài khoản thành công!");
       setIsSuccessModalOpen(true);
 
