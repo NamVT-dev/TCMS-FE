@@ -121,7 +121,7 @@ const AdminStudentDetail = () => {
                     <div>
                         <h3 className="text-lg font-bold text-gray-800 flex items-center">
                             <GraduationCap className="w-6 h-6 mr-2 text-purple-600" />
-                            Hồ sơ học viên liên kết
+                            Hồ sơ học viên quản lý
                         </h3>
                         <p className="text-gray-500 text-sm mt-1">Các học viên thuộc quản lý của tài khoản này</p>
                     </div>
