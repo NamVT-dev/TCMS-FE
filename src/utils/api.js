@@ -157,6 +157,9 @@ const api = {
         enrollment: {
             getStudentDemand: (params) =>
                 axiosInstance.get("/admin/student-demand", { params }),
+
+            getEnrollments: (params) =>
+                axiosInstance.get("/staff/enrollment", { params }),
         },
 
         request: {
