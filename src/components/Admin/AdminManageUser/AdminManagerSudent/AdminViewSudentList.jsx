@@ -201,7 +201,6 @@ const AdminViewStudentList = () => {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-bold text-gray-900">{student.profile?.fullname || "Chưa cập nhật"}</div>
-                        <div className="text-xs text-gray-500 font-mono">ID: {student._id.slice(-6).toUpperCase()}</div>
                       </div>
                     </div>
                   </td>
