@@ -289,14 +289,14 @@ const LearnerRoadmapPage = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
-                                        Chọn hồ sơ học viên
+                                        Chọn hồ sơ học viên <span className="text-red-500">*</span>
                                     </label>
                                     <select
                                         value={selectedStudent}
                                         onChange={(e) => setSelectedStudent(e.target.value)}
                                         className={inputClass}
                                     >
-                                        <option value="">-- Chọn hồ sơ --</option>
+                                        <option value="">-- Chọn hồ sơ --</option> 
                                         {myStudents.map(s => (
                                             <option key={s._id} value={s._id}>{s.name}</option>
                                         ))}
@@ -306,7 +306,7 @@ const LearnerRoadmapPage = () => {
                                 <div>
                                     <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
                                         <BookOpen className="w-4 h-4 mr-2 text-purple-600" />
-                                        Chương trình học
+                                        Chương trình học <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
@@ -361,7 +361,7 @@ const LearnerRoadmapPage = () => {
                                         {/* Info Header */}
                                         <div className="flex flex-col md:flex-row justify-between mb-10 gap-4">
                                             <div>
-                                                <p className="text-gray-500 text-sm uppercase font-semibold tracking-wider">Mục tiêu cuối cùng</p>
+                                                <p className="text-gray-500 text-sm uppercase font-semibold tracking-wider">Mục tiêu cuối cùng</p> 
                                                 <div className="flex items-center gap-2">
                                                     <Target className="w-6 h-6 text-red-500" />
                                                     <p className="text-3xl font-bold text-gray-800">{existingTarget.targetScore}</p>
@@ -466,7 +466,7 @@ const LearnerRoadmapPage = () => {
                                         <div>
                                             <label htmlFor="targetScore" className="flex items-center text-sm font-medium text-gray-700 mb-1">
                                                 <Target className="w-4 h-4 mr-2 text-purple-600" />
-                                                Mục tiêu (Level mong muốn)
+                                                Mục tiêu (Level mong muốn) <span className="text-red-500">*</span>
                                             </label>
                                             <select
                                                 id="targetScore"
@@ -493,7 +493,7 @@ const LearnerRoadmapPage = () => {
                                         <div>
                                             <label htmlFor="deadline" className="flex items-center text-sm font-medium text-gray-700 mb-1">
                                                 <Calendar className="w-4 h-4 mr-2 text-purple-600" />
-                                                Thời hạn (Deadline)
+                                                Thời hạn (Deadline) <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="date" id="deadline"

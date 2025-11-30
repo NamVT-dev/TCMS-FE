@@ -69,15 +69,11 @@ const RegisterForm = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col">
-      {/* Navbar at the top */}
       <Navbar />
 
-      {/* Main content area */}
       <div className="flex-1 flex bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900">
-        {/* Form Section - 55% */}
         <div className="w-full md:w-[55%] flex items-center justify-center p-4">
           <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl px-8 py-10 space-y-6">
-            {/* Logo */}
             <div className="flex flex-col items-center space-y-3">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
                 TutorCenter
@@ -89,12 +85,10 @@ const RegisterForm = () => {
               <p className="text-gray-500 text-sm">Đăng ký để bắt đầu hành trình học tập</p>
             </div>
 
-            {/* Thông báo */}
             {message && <p className="text-green-600 text-center font-medium">{message}</p>}
             {error && <p className="text-red-500 text-center font-medium">{error}</p>}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Họ tên - Email (1 dòng) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField 
                   label="Họ và tên" 
@@ -118,7 +112,6 @@ const RegisterForm = () => {
                 />
               </div>
 
-              {/* Số điện thoại - Ngày sinh (1 dòng) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField 
                   label="Số điện thoại" 
@@ -141,7 +134,6 @@ const RegisterForm = () => {
                 />
               </div>
 
-              {/* Password fields (2 cột) */}
               <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                 <PasswordField 
                   label="Mật khẩu" 
@@ -150,6 +142,7 @@ const RegisterForm = () => {
                   onChange={handleChange} 
                   show={showPassword} 
                   setShow={setShowPassword} 
+                  required
                 />
                 <PasswordField 
                   label="Xác nhận mật khẩu" 
@@ -158,6 +151,7 @@ const RegisterForm = () => {
                   onChange={handleChange} 
                   show={showConfirmPassword} 
                   setShow={setShowConfirmPassword} 
+                  required
                 />
               </div>
 
@@ -182,7 +176,6 @@ const RegisterForm = () => {
           </div>
         </div>
 
-        {/* Image Section - 45% */}
         <div className="hidden md:block md:w-[45%]">
           <img 
             src="/images/banner.png" 
@@ -195,23 +188,29 @@ const RegisterForm = () => {
   );
 };
 
-/* ========== Sub Components ========== */
-const InputField = ({ label, icon, ...props }) => (
+const InputField = ({ label, icon, required, ...props }) => (
   <div className="space-y-2">
-    <label className="text-sm font-medium text-gray-700 block">{label}</label>
+    <label className="text-sm font-medium text-gray-700 block">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
     <div className="relative">
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{icon}</div>
       <input 
-        {...props} 
+        {...props}
+        required={required}
         className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none" 
       />
     </div>
   </div>
 );
 
-const PasswordField = ({ label, name, value, onChange, show, setShow }) => (
+const PasswordField = ({ label, name, value, onChange, show, setShow, required }) => (
   <div className="space-y-2">
-    <label className="text-sm font-medium text-gray-700 block">{label}</label>
+    <label className="text-sm font-medium text-gray-700 block">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
     <div className="relative">
       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
       <input
@@ -221,7 +220,7 @@ const PasswordField = ({ label, name, value, onChange, show, setShow }) => (
         onChange={onChange}
         placeholder="••••••••"
         className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
-        required
+        required={required}
       />
       <button 
         type="button" 

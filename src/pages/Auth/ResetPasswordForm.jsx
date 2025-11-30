@@ -90,7 +90,6 @@ const ResetPasswordForm = () => {
             </p>
           </div>
 
-          {/* Title */}
           <div className="text-center space-y-1">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800">
               Đặt lại mật khẩu
@@ -100,12 +99,10 @@ const ResetPasswordForm = () => {
             </p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Password Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 block">
-                Mật khẩu mới
+                Mật khẩu mới <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -133,10 +130,9 @@ const ResetPasswordForm = () => {
               </div>
             </div>
 
-            {/* Password Confirm Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 block">
-                Xác nhận mật khẩu
+                Xác nhận mật khẩu <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -164,7 +160,6 @@ const ResetPasswordForm = () => {
               </div>
             </div>
 
-            {/* Password requirements */}
             <div className="bg-purple-50 rounded-lg p-3">
               <p className="text-xs text-gray-600">
                 Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.
@@ -180,7 +175,6 @@ const ResetPasswordForm = () => {
               {isLoading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
             </button>
 
-            {/* Error message */}
             {error && (
               <div className="flex justify-center">
                 <p className="inline-block text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-600 hover:text-white transition-all duration-200">
@@ -189,7 +183,6 @@ const ResetPasswordForm = () => {
               </div>
             )}
 
-            {/* Password mismatch warning */}
             {password && passwordConfirm && password !== passwordConfirm && (
               <div className="flex justify-center">
                 <p className="inline-block text-orange-600 bg-orange-50 border border-orange-200 rounded-lg px-4 py-2 text-sm font-medium">
@@ -201,7 +194,6 @@ const ResetPasswordForm = () => {
         </div>
       </div>
 
-      {/* Right side - Image */}
       <div className="hidden md:block md:w-1/2">
         <img
           src="/images/banner.png"

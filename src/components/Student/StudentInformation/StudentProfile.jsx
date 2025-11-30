@@ -229,7 +229,7 @@ const StudentProfile = () => {
               disabled={!isEditing}
               className={`w-full border rounded-lg p-2 focus:outline-none ${isEditing
                   ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
-                  : "bg-gray-100 border-gray-300 text-gray-700"
+                  : "bg-gray-100 border-gray-300 text-gray-700" 
                 }`}
             />
           </div>

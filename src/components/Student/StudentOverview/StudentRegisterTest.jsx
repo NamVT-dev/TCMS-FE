@@ -28,7 +28,6 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  // 🧠 Khi chọn "Đăng ký cho bản thân" → tự fill thông tin từ profile
   useEffect(() => {
     const fetchProfile = async () => {
       if (isForSelf && isOpen) {
@@ -204,7 +203,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4 text-purple-600" />
-                      Họ và tên
+                      Họ và tên <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -223,7 +222,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-purple-600" />
-                      Ngày sinh
+                      Ngày sinh <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -241,7 +240,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-purple-600" />
-                      Chọn khóa học
+                      Chọn khóa học <span className="text-red-500">*</span>
                     </label>
                     <select
                       name="categoryId"

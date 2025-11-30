@@ -130,7 +130,7 @@ const StudentChangePassword = () => {
           {/* Old Password */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 block">
-              Mật khẩu hiện tại
+              Mật khẩu hiện tại <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -159,7 +159,7 @@ const StudentChangePassword = () => {
           {/* New Password */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 block">
-              Mật khẩu mới
+              Mật khẩu mới <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -187,7 +187,7 @@ const StudentChangePassword = () => {
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 block">
-              Xác nhận mật khẩu mới
+              Xác nhận mật khẩu mới <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
