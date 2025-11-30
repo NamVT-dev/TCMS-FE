@@ -428,7 +428,6 @@
 
 // export default AdminViewEnrollmentList;
 
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Search, Filter, RefreshCw, Loader2, UserPlus, 
@@ -477,7 +476,9 @@ const STATUS_CONFIG = {
   all: { label: "Tất cả", color: "bg-gray-800", icon: LayoutGrid, textColor: "text-gray-800" },
   confirmed: { label: "Đã xác nhận", color: "bg-green-600", icon: CheckCircle, textColor: "text-green-600" },
   hold: { label: "Giữ chỗ", color: "bg-amber-500", icon: Clock, textColor: "text-amber-600" },
-  removed: { label: "Đã xóa khỏi lớp", color: "bg-gray-500", icon: UserX, textColor: "text-gray-500" }, // Cập nhật Label cho rõ nghĩa
+  
+  removed: { label: "Cần xếp lớp", color: "bg-orange-500", icon: RotateCcw, textColor: "text-orange-600" },
+  
   canceled: { label: "Đã hủy", color: "bg-red-500", icon: XCircle, textColor: "text-red-600" },
   refunded: { label: "Hoàn tiền", color: "bg-purple-500", icon: RotateCcw, textColor: "text-purple-600" },
   waitlisted: { label: "Chờ lớp", color: "bg-blue-500", icon: AlertCircle, textColor: "text-blue-600" }
@@ -518,7 +519,6 @@ const AdminViewEnrollmentList = () => {
     fetchData();
   }, []); 
 
-  
   const statusCounts = useMemo(() => {
     const counts = { all: enrollments.length, confirmed: 0, hold: 0, removed: 0, canceled: 0, refunded: 0, waitlisted: 0 };
     enrollments.forEach(item => {
@@ -575,7 +575,7 @@ const AdminViewEnrollmentList = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-           <h1 className="text-3xl font-bold text-gray-800">Quản lý Enrollment</h1>
+           <h1 className="text-3xl font-bold text-gray-800">Quản lý học viên đăng ký lớp</h1>
            <p className="text-gray-500 mt-1">Theo dõi trạng thái đăng ký và xếp lớp học viên</p>
         </div>
         
@@ -671,7 +671,6 @@ const AdminViewEnrollmentList = () => {
                         {item.student ? (
                             <div>
                                 <div className="font-bold text-gray-900">{item.student.name}</div>
-                                <div className="text-xs text-gray-500 font-mono mt-0.5" title={item._id}>ID: ...{item._id.slice(-6)}</div>
                             </div>
                         ) : (
                             <span className="text-red-500 italic text-xs">Không có dữ liệu học viên</span>
@@ -710,16 +709,23 @@ const AdminViewEnrollmentList = () => {
                         {formatCurrency(item.amount)}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {['confirmed', 'hold', 'waitlisted', 'removed'].includes(item.status) && item.student && (
+                      {['removed', 'hold', 'waitlisted'].includes(item.status) && item.student && (
                           <button
                             onClick={() => handleEnrollClick(item)}
-                            className="inline-flex items-center px-3 py-1.5 bg-white border border-purple-200 text-purple-700 text-xs font-medium rounded-lg hover:bg-purple-600 hover:text-white transition shadow-sm"
+                            className={`inline-flex items-center px-3 py-1.5 border text-xs font-medium rounded-lg transition shadow-sm
+                                ${item.status === 'removed' 
+                                    ? 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100' 
+                                    : 'bg-white border-purple-200 text-purple-700 hover:bg-purple-600 hover:text-white' 
+                                }`}
                           >
                             <UserPlus className="w-4 h-4 mr-1.5" />
                             Xếp lớp
                           </button>
                       )}
-                      {!item.student && <span className="text-gray-300">-</span>}
+                      
+                      {(!['removed', 'hold', 'waitlisted'].includes(item.status) || !item.student) && (
+                          <span className="text-gray-300">-</span>
+                      )}
                     </td>
                   </tr>
                 ))
