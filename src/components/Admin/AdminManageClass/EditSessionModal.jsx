@@ -318,7 +318,7 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
             <div className="flex items-center gap-2">
                {isCanceled ? <Ban className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
                <div>
-                 <h2 className="text-lg font-bold">{isCanceled ? "Buổi học (Đã Hủy)" : "Chỉnh sửa Buổi học"}</h2>
+                 <h2 className="text-lg font-bold">{isCanceled ? "Buổi học (Đã Hủy)" : "Chỉnh sửa buổi học"}</h2>
                  <p className="text-xs opacity-80">{isCanceled ? "Buổi học này sẽ không diễn ra" : "Cập nhật thời gian & địa điểm"}</p>
                </div>
             </div>
@@ -340,7 +340,7 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
                  
                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                       <label className="block text-xs font-medium text-gray-500 mb-1">Ngày học</label>
+                       <label className="block text-xs font-medium text-gray-500 mb-1">Ngày học <span className="text-red-500 ml-1">*</span></label>
                        <div className="relative">
                           <Calendar className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
                           <input 
@@ -352,7 +352,7 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
                        </div>
                     </div>
                     <div>
-                       <label className="block text-xs font-medium text-gray-500 mb-1">Ca học</label>
+                       <label className="block text-xs font-medium text-gray-500 mb-1">Ca học<span className="text-red-500 ml-1">*</span></label>
                        <div className="relative">
                           <Clock className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
                           <select 
@@ -379,7 +379,7 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
                  
                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                       <label className="block text-xs font-medium text-gray-500 mb-1">Giáo viên</label>
+                       <label className="block text-xs font-medium text-gray-500 mb-1">Giáo viên<span className="text-red-500 ml-1">*</span></label>
                        <div className="relative">
                           <User className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
                           <select 
@@ -395,7 +395,7 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
                        </div>
                     </div>
                     <div>
-                       <label className="block text-xs font-medium text-gray-500 mb-1">Phòng học</label>
+                       <label className="block text-xs font-medium text-gray-500 mb-1">Phòng học<span className="text-red-500 ml-1">*</span></label>
                        <div className="relative">
                           <Home className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
                           <select 

@@ -110,7 +110,7 @@ const AdminStaffModal = ({ isOpen, onClose, onSuccess }) => {
                             </div>
 
                             <div>
-                                <label className={labelClass}>Số điện thoại</label>
+                                <label className={labelClass}><span className="text-red-500">*</span> Số điện thoại</label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                                     <input 
@@ -125,7 +125,7 @@ const AdminStaffModal = ({ isOpen, onClose, onSuccess }) => {
                             </div>
 
                             <div>
-                                <label className={labelClass}>Ngày sinh</label>
+                                <label className={labelClass}><span className="text-red-500">*</span> Ngày sinh</label>
                                 <div className="relative">
                                     <input 
                                         type="date" 

@@ -75,7 +75,7 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
           {/* ⬇️ SỬA LẠI LAYOUT INPUT */}
           <div>
             <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-              Gom học sinh từ ngày
+              Gom học sinh từ ngày <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="date"
@@ -89,7 +89,7 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
           
           <div>
             <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-              Gom học sinh đến ngày
+              Gom học sinh đến ngày <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="date"
@@ -104,7 +104,7 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
           {/* ⬇️ THÊM TRƯỜNG MỚI */}
           <div>
             <label htmlFor="classStartAnchor" className="block text-sm font-medium text-gray-700">
-              Ngày Khai Giảng (Dự kiến)
+              Ngày Khai Giảng (Dự kiến) <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="date"
@@ -119,7 +119,7 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
 
           <div>
             <label htmlFor="threshold" className="block text-sm font-medium text-gray-700">
-              Ngưỡng thành công (VD: 0.7 = 70%)
+              Ngưỡng thành công (VD: 0.7 = 70%) <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="number"

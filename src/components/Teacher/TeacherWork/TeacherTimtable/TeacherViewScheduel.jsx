@@ -245,7 +245,7 @@ function TeacherViewSchedule() {
                   <td className="w-28 p-3 border-r border-b border-gray-200 bg-gray-50 group-hover:bg-gray-100 transition-colors">
                     <div className="text-right pr-2">
                       <div className="text-base font-bold text-purple-700">
-                        {shift.name}
+                        {shift.name} 
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5 font-medium ">
                         {shift.start} - {shift.end}

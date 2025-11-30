@@ -294,11 +294,11 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Sĩ số Min</label>
+                                <label className="block text-sm font-medium text-gray-700">Sĩ số Min <span className="text-red-500">*</span> </label>
                                 <input type="number" name="minStudent" value={formData.minStudent} onChange={handleChange} className={inputClass} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Sĩ số Max</label>
+                                <label className="block text-sm font-medium text-gray-700">Sĩ số Max<span className="text-red-500">*</span> </label>
                                 <input type="number" name="maxStudent" value={formData.maxStudent} onChange={handleChange} className={inputClass} />
                             </div>
 

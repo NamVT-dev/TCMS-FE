@@ -329,7 +329,7 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">2. Chọn giáo viên thay thế</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">2. Chọn giáo viên thay thế <span className="text-red-500 ml-1">*</span></label>
                   <div className="h-60 overflow-y-auto border border-gray-200 rounded-lg p-2 bg-gray-50/50 space-y-1">
                     {loading && <div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin text-purple-600" /></div>}
                     

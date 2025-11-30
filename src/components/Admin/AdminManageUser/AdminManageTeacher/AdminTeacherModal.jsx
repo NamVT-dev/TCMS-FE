@@ -314,27 +314,26 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
 
                                     <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-2 gap-5">
                                         <div className="sm:col-span-2">
-                                            <label className={labelClass}>Họ và tên</label>
+                                            <label className={labelClass}>Họ và tên<span className="text-red-500">*</span> </label>
                                             <input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} required placeholder="VD: Nguyễn Văn A" />
                                         </div>
                                         <div>
-                                            <label className={labelClass}>Email</label>
+                                            <label className={labelClass}>Email <span className="text-red-500">*</span> </label>
                                             <input type="email" name="email" value={formData.email} onChange={handleChange} className={`${inputClass} ${isEditMode ? 'bg-gray-100 text-gray-500' : ''}`} required disabled={isEditMode} />
                                         </div>
                                         <div>
-                                            <label className={labelClass}>Số điện thoại</label>
+                                            <label className={labelClass}>Số điện thoại <span className="text-red-500">*</span> </label>
                                             <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className={inputClass} placeholder="09xx..." />
                                         </div>
                                         <div>
-                                            <label className={labelClass}>Ngày sinh</label>
+                                            <label className={labelClass}>Ngày sinh <span className="text-red-500">*</span> </label>
                                             <input type="date" name="dob" value={formData.dob} onChange={handleChange} className={inputClass} />
                                         </div>
                                         <div>
-                                            <label className={labelClass}>Giới tính</label>
+                                            <label className={labelClass}>Giới tính <span className="text-red-500">*</span> </label>
                                             <select name="gender" value={formData.gender} onChange={handleChange} className={inputClass}>
                                                 <option value="male">Nam</option>
                                                 <option value="female">Nữ</option>
-                                                <option value="other">Khác</option>
                                             </select>
                                         </div>
                                     </div>
@@ -343,7 +342,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                 {isEditMode && (
                                     <div className="border-t border-gray-100 pt-6">
                                         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                                            Kỹ năng & Chuyên môn
+                                            Kỹ năng & Chuyên môn <span className="text-red-500">*</span>
                                             <span className="ml-3 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded border border-gray-200 flex items-center">
                                                 <HelpCircle className="w-3 h-3 mr-1" /> Chọn môn học và năng lực giảng dạy
                                             </span>

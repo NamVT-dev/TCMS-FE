@@ -295,7 +295,9 @@ export default function TeacherRegisterSchedule() {
 
           {/* --- Chọn ngày --- */}
           <section className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-3">Chọn ngày trong tuần</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-3">Chọn ngày trong tuần
+              {editing && <span className="text-red-500 ml-1">*</span>}
+            </h3>
             <div className="flex flex-wrap gap-3">
               {DAY_NAMES.filter(
                 (d) =>
@@ -327,7 +329,9 @@ export default function TeacherRegisterSchedule() {
 
           {/* --- Thiết lập theo ngày --- */}
           <section className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-3">Thiết lập ca cho từng ngày</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-3">Thiết lập ca cho từng ngày
+              {editing && <span className="text-red-500 ml-1">*</span>}
+            </h3>
             {!editing && slots.length === 0 && <p className="text-gray-500">Chưa chọn ngày nào.</p>}
             {editing && slots.length === 0 && <p className="text-gray-500">Hãy chọn một ngày ở trên để thiết lập ca.</p>}
 

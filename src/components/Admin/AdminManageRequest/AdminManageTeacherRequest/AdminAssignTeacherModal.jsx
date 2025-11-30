@@ -223,7 +223,7 @@ const AdminAssignTeacherModal = ({ isOpen, onClose, request, onSuccess }) => {
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                <p className="text-sm text-gray-600 mb-2 font-medium">Đề xuất {suggestions.length} giáo viên phù hợp:</p>
+                                <p className="text-sm text-gray-600 mb-2 font-medium">Đề xuất {suggestions.length} giáo viên phù hợp :<span className="text-red-500 ml-1">*</span></p>
                                 {suggestions.map((teacher) => (
                                     <div 
                                         key={teacher._id}
