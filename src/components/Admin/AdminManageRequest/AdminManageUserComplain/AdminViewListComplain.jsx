@@ -35,7 +35,7 @@ const AdminViewListComplain = () => {
       const data = res.data.data?.data || res.data.data || res.data.complains || []; 
       setComplains(data);
     } catch (error) {
-      toast.error("Không thể tải danh sách phản ánh.");
+      toast.error("Không thể tải danh sách khiếu nại.");
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ const AdminViewListComplain = () => {
     if (!selectedComplain) return;
     
     if (FINAL_STATUSES.includes(selectedComplain.status)) {
-      toast.warning("Phản ánh này đã ở trạng thái cuối cùng.");
+      toast.warning("khiếu nại này đã ở trạng thái cuối cùng.");
       return;
     }
 
@@ -112,7 +112,7 @@ const AdminViewListComplain = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Quản lý Phản ánh & Khiếu nại</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Quản lý khiếu nại</h1>
             <p className="text-sm text-gray-500">Xem và xử lý các phản hồi từ học viên</p>
           </div>
           
@@ -154,7 +154,7 @@ const AdminViewListComplain = () => {
               ) : filteredComplains.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="p-8 text-center text-gray-500">
-                    Không tìm thấy phản ánh nào.
+                    Không tìm thấy khiếu nại nào.
                   </td>
                 </tr>
               ) : (
@@ -229,7 +229,7 @@ const AdminViewListComplain = () => {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             
             <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-lg text-gray-800">Chi tiết phản ánh</h3>
+              <h3 className="font-bold text-lg text-gray-800">Chi tiết khiếu nại</h3>
               <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
               </button>

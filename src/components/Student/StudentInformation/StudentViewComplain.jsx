@@ -67,7 +67,7 @@ const StudentViewComplain = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <MessageSquare className="text-purple-600" /> Danh sách phản ánh
+            <MessageSquare className="text-purple-600" /> Danh sách khiếu nại
           </h1>
           <p className="text-gray-500 mt-1">Quản lý các ý kiến, khiếu nại của bạn gửi tới trung tâm.</p>
         </div>
@@ -75,7 +75,7 @@ const StudentViewComplain = () => {
           onClick={() => setIsModalOpen(true)}
           className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg shadow-md transition flex items-center gap-2 font-medium"
         >
-          <Plus className="w-5 h-5" /> Tạo phản ánh
+          <Plus className="w-5 h-5" /> Tạo đơn khiếu nại
         </button>
       </div>
 
@@ -88,7 +88,7 @@ const StudentViewComplain = () => {
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900">Chưa có phản ánh nào</h3>
+          <h3 className="text-lg font-medium text-gray-900">Chưa có khiếu nại nào</h3>
           <p className="text-gray-500 mt-1 mb-6">Bạn chưa gửi bất kỳ ý kiến đóng góp nào.</p>
         </div>
       ) : (

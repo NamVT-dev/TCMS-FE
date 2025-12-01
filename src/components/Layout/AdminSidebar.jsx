@@ -149,7 +149,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             items: [
                 { name: "Phòng học", path: "/admin/facility/rooms", icon: DoorOpen },
                 { name: "Thời gian hoạt động", path: "/admin/facility/working-hours", icon: Clock1 },
-                { name: "Góp ý phản ánh", path: "/admin/facility/complain", icon: MessageSquareShare },
+                { name: "Góp ý khiếu nại", path: "/admin/facility/complain", icon: MessageSquareShare },
             ]
         },
         {

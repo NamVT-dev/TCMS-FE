@@ -57,7 +57,7 @@ const StudentComplainModal = ({ isOpen, onClose, onSuccess }) => {
         
         // Validate cơ bản
         if (!issueType) {
-            toast.warning("Vui lòng chọn chủ đề phản ánh!");
+            toast.warning("Vui lòng chọn chủ đề để khiếu nại!");
             return;
         }
         if (!detail.trim()) {
@@ -74,7 +74,7 @@ const StudentComplainModal = ({ isOpen, onClose, onSuccess }) => {
 
             await api.user.sendComplain({ content: finalContent });
             
-            toast.success("Gửi phản ánh thành công! Chúng tôi sẽ phản hồi sớm.");
+            toast.success("Gửi khiếu nại thành công! Chúng tôi sẽ phản hồi sớm.");
             onSuccess();
             onClose();
         } catch (error) {
@@ -94,7 +94,7 @@ const StudentComplainModal = ({ isOpen, onClose, onSuccess }) => {
                 <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex justify-between items-center shrink-0">
                     <div>
                         <h2 className="text-white text-xl font-bold flex items-center gap-2">
-                            <Send className="w-5 h-5" /> Gửi Phản Ánh & Góp Ý
+                            <Send className="w-5 h-5" /> Gửi Khiếu Nại & Góp Ý
                         </h2>
                         <p className="text-purple-100 text-xs mt-1">Ý kiến của bạn giúp chúng tôi cải thiện chất lượng dịch vụ.</p>
                     </div>
@@ -159,7 +159,7 @@ const StudentComplainModal = ({ isOpen, onClose, onSuccess }) => {
 
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2 flex justify-between">
-                                    <span>Chi tiết phản ánh <span className="text-red-500">*</span></span>
+                                    <span>Chi tiết khiếu nại <span className="text-red-500">*</span></span>
                                     <span className="text-xs text-gray-400 font-normal">{detail.length}/500 ký tự</span>
                                 </label>
                                 <div className="relative">
@@ -178,7 +178,7 @@ const StudentComplainModal = ({ isOpen, onClose, onSuccess }) => {
 
                         <div className="flex items-start gap-3 p-3 bg-blue-50 text-blue-800 rounded-md text-sm">
                             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                            <p>Chúng tôi cam kết bảo mật thông tin của bạn. Phản ánh sẽ được bộ phận CSKH tiếp nhận và xử lý trong vòng <strong>24h làm việc</strong>.</p>
+                            <p>Chúng tôi cam kết bảo mật thông tin của bạn. Khiếu nại sẽ được bộ phận CSKH tiếp nhận và xử lý trong vòng <strong>24h làm việc</strong>.</p>
                         </div>
 
                     </form>
@@ -199,7 +199,7 @@ const StudentComplainModal = ({ isOpen, onClose, onSuccess }) => {
                         className="px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition flex items-center gap-2 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-95"
                     >
                         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                        {loading ? "Đang gửi..." : "Gửi Phản Ánh"}
+                        {loading ? "Đang gửi..." : "Gửi khiếu nại"}
                     </button>
                 </div>
             </div>
