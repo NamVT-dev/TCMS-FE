@@ -165,10 +165,7 @@ const TeacherClassDetail = () => {
                                 <h3 className={`font-bold text-lg ${isNext ? "text-purple-900" : "text-gray-800"}`}>
                                   Buổi {session.sessionNo}
                                 </h3>
-                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border
-                                                ${session.status === 'scheduled' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                                  {session.status}
-                                </span>
+                                
                               </div>
                               {isNext && <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded font-bold animate-pulse">NEXT</span>}
                             </div>
