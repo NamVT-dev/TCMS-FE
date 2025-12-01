@@ -69,13 +69,13 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
         {/* Body */}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <p className="text-sm text-gray-600">
-            Chọn khoảng thời gian gom học sinh và ngày khai giảng dự kiến.
+            Chọn khoảng thời gian lấy học sinh và ngày khai giảng dự kiến.
           </p>
           
           {/* ⬇️ SỬA LẠI LAYOUT INPUT */}
           <div>
             <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-              Gom học sinh từ ngày <span className="text-red-500 ml-1">*</span>
+              Lấy học sinh từ ngày <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="date"
@@ -89,7 +89,7 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
           
           <div>
             <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-              Gom học sinh đến ngày <span className="text-red-500 ml-1">*</span>
+              Lấy học sinh đến ngày <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="date"

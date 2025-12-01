@@ -3,8 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import {
     LayoutDashboard, Users, UserCircle, GraduationCap, Users2, UserCog,
     School, ListChecks, BookOpen, BookOpenCheck, Building2, DoorOpen,
-    Wallet,  BanknoteArrowUp, PieChart,ChevronRight, 
-    ChevronLeft, ShieldUser, Clock1, CalendarCog,MessageSquarePlus, 
+    Wallet, BanknoteArrowUp, PieChart, ChevronRight,
+    ChevronLeft, ShieldUser, Clock1, CalendarCog, MessageSquarePlus,
     LayoutList, ArrowRightLeft, MessageSquareShare,
 } from "lucide-react";
 
@@ -69,8 +69,11 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
                         } else if (item.path === '/admin/classes') {
                             isActive = currentPath.startsWith('/admin/classes');
                         } else if (item.path === '/admin/scheduler/dashboard') {
-                            isActive = currentPath.startsWith('/admin/scheduler');
-                        } else {
+                            isActive = currentPath === '/admin/scheduler/dashboard';
+                        } else if (item.path === '/admin/scheduler/analytics') {
+                            isActive = currentPath === '/admin/scheduler/analytics';
+                        }
+                        else {
                             isActive = currentPath === item.path;
                         }
 
@@ -114,7 +117,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             items: [
                 { name: "Học viên", path: "/admin/users/students", icon: UserCircle },
                 { name: "Giáo viên", path: "/admin/users/teachers", icon: GraduationCap },
-                { name: "Nhân viên", path: "/admin/users/staff", icon: Users2 }, 
+                { name: "Nhân viên", path: "/admin/users/staff", icon: Users2 },
                 { name: "Xếp lớp học viên", path: "/admin/users/enrollments", icon: UserCog }
             ]
         },
@@ -123,7 +126,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
             title: "Quản lý lớp học",
             items: [
                 { name: "Danh sách lớp", path: "/admin/classes", icon: ListChecks },
-                { name: "Yêu cầu dạy thay", path: "/admin/requests/substitute", icon: ArrowRightLeft }, 
+                { name: "Yêu cầu dạy thay", path: "/admin/requests/substitute", icon: ArrowRightLeft },
                 { name: "Thống kê nhu cầu", path: "/admin/requests/dashboard", icon: MessageSquarePlus },
                 { name: "Danh sách yêu cầu", path: "/admin/requests/list", icon: LayoutList }
             ]
@@ -160,7 +163,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
                 { name: "Báo cáo doanh thu", path: "/admin/finance/revenue", icon: PieChart }
             ]
         },
-        
+
     ];
 
     return (
