@@ -6,7 +6,6 @@ import {
   Clock, Calendar, BookOpen, AlertCircle 
 } from "lucide-react";
 
-// Helper: Map thứ tự số sang chữ
 const DAYS_MAP = {
   0: "Chủ Nhật", 1: "Thứ 2", 2: "Thứ 3", 3: "Thứ 4", 
   4: "Thứ 5", 5: "Thứ 6", 6: "Thứ 7"
@@ -26,7 +25,6 @@ const AdminRequestDashboard = () => {
       const res = await api.admin.request.getSummary();
       let data = res.data.data || [];
       
-      // LOGIC MỚI: Sắp xếp giảm dần theo số lượng học viên (Ưu tiên nhóm đông người)
       data.sort((a, b) => b.studentCount - a.studentCount);
       
       setDemands(data);
@@ -51,11 +49,10 @@ const AdminRequestDashboard = () => {
     });
   };
 
-  // Helper: Xác định mức độ ưu tiên dựa trên số lượng
   const getPriorityColor = (count) => {
-    if (count >= 5) return "border-red-500 bg-red-50 text-red-700"; // Rất cao
-    if (count >= 3) return "border-orange-500 bg-orange-50 text-orange-700"; // Cao
-    return "border-blue-500 bg-blue-50 text-blue-700"; // Bình thường
+    if (count >= 5) return "border-red-500 bg-red-50 text-red-700"; 
+    if (count >= 3) return "border-orange-500 bg-orange-50 text-orange-700"; 
+    return "border-blue-500 bg-blue-50 text-blue-700"; 
   };
 
   if (loading) return (
@@ -91,9 +88,7 @@ const AdminRequestDashboard = () => {
             return (
               <div key={index} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col overflow-hidden group">
                 
-                {/* Header Card: Tên Môn Học & Level */}
                 <div className="p-5 border-b border-gray-100 relative">
-                  {/* Badge số lượng học viên */}
                   <div className={`absolute top-0 right-0 px-3 py-1 rounded-bl-xl text-xs font-bold border-l border-b tracking-wide flex items-center ${priorityClass}`}>
                     <Users className="w-3 h-3 mr-1" />
                     {item.studentCount} HỌC VIÊN
@@ -116,9 +111,7 @@ const AdminRequestDashboard = () => {
                   </div>
                 </div>
 
-                {/* Body Card: Thông tin lịch & Danh sách */}
                 <div className="p-5 flex-1 flex flex-col gap-4">
-                  {/* Block Lịch học - Điểm nhấn chính */}
                   <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-500" />
@@ -137,7 +130,6 @@ const AdminRequestDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Danh sách Avatar */}
                   <div>
                     <p className="text-xs font-semibold text-gray-500 mb-2 flex items-center">
                       DANH SÁCH CHỜ ({item.studentCount})
@@ -163,7 +155,6 @@ const AdminRequestDashboard = () => {
                   </div>
                 </div>
 
-                {/* Footer Action */}
                 <div className="p-4 pt-0 mt-auto">
                   <button
                     onClick={() => handleCreateClass(item)}

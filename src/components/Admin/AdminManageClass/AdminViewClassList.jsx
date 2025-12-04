@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Search, Eye, Trash2, Loader2, Plus, Filter, Calendar, X } from 'lucide-react';
+import { Search, Eye, Loader2, Plus, Filter, Calendar, X } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../../../utils/api';
 import { useDebounce } from '../../../hooks/useDebounce';
@@ -9,7 +9,18 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const Pagination = ({ page, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
-  const pages = [...Array(totalPages).keys()].map(i => i + 1);
+  
+  
+  let startPage = Math.max(1, page - 2);
+  let endPage = Math.min(totalPages, page + 2);
+  
+  if (endPage - startPage < 4) {
+    if (startPage === 1) endPage = Math.min(5, totalPages);
+    else if (endPage === totalPages) startPage = Math.max(1, totalPages - 4);
+  }
+
+  const pages = [...Array(endPage - startPage + 1).keys()].map(i => startPage + i);
+
   return (
     <div className="flex space-x-2">
       <button onClick={() => onPageChange(page - 1)} disabled={page === 1} className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50">Trước</button>
@@ -32,9 +43,11 @@ const AdminViewClassList = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [classes, setClasses] = useState([]);
+  const [displayedClasses, setDisplayedClasses] = useState([]); 
+  
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -45,7 +58,6 @@ const AdminViewClassList = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
 
   const [page, setPage] = useState(1);
@@ -58,7 +70,7 @@ const AdminViewClassList = () => {
   const statusOptions = [
     { value: "", label: "Tất cả Trạng Thái" },
     { value: "approved", label: "Đang hoạt động" },
-    { value: "archived", label: "Đã lưu trữ" },
+    // { value: "archived", label: "Đã lưu trữ" },
     { value: "canceled", label: "Đã hủy" },
   ];
 
@@ -69,7 +81,6 @@ const AdminViewClassList = () => {
           api.admin.getCourse({ page: 1, limit: 1000 }),
           api.admin.getCategories({ limit: 100 })
         ]);
-
         setCourses(courseRes.data.data.courses || []);
         setCategories(catRes.data.data.data || catRes.data.data.categories || []);
       } catch (err) {
@@ -78,7 +89,6 @@ const AdminViewClassList = () => {
     };
     initData();
   }, []);
-
 
   const availableCourses = useMemo(() => {
     if (selectedCategories.length === 0) return courses;
@@ -90,7 +100,6 @@ const AdminViewClassList = () => {
     });
   }, [courses, selectedCategories]);
 
-  
   useEffect(() => {
     if (selectedCourse && availableCourses.length > 0) {
       const exists = availableCourses.find(c => c._id === selectedCourse);
@@ -98,36 +107,75 @@ const AdminViewClassList = () => {
     }
   }, [availableCourses, selectedCourse]);
 
-  const fetchClasses = useCallback(async (currentPage, search, courseId, status, categoryIds, monthStr) => {
+
+  const fetchAndFilterClasses = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      
+      const isFeFiltering = (selectedMonth !== "") || (selectedCategories.length > 0);
+      
+      const fetchLimit = isFeFiltering ? 1000 : limit; 
+      const fetchPage = isFeFiltering ? 1 : page; 
+
       const params = {
-        page: currentPage,
-        limit,
-        search: search || undefined,
-        course: courseId || undefined,
-        status: status || undefined,
-        category: categoryIds.length > 0 ? categoryIds.join(',') : undefined,
-        month: monthStr || undefined
+        page: fetchPage,
+        limit: fetchLimit,
+        search: debouncedSearch || undefined,
+        course: selectedCourse || undefined,
+        status: selectedStatus || undefined,
       };
 
       const res = await api.admin.class.listClasses(params);
+      let fetchedClasses = res.data.data.classes || [];
+      let serverTotal = res.data.total;
 
-      setClasses(res.data.data.classes);
-      setPage(res.data.page);
-      setTotalPages(res.data.totalPages);
-      setTotalResults(res.data.total);
+      if (isFeFiltering) {
+        if (selectedMonth) {
+          fetchedClasses = fetchedClasses.filter(cls => {
+            if (!cls.startAt) return false;
+            return cls.startAt.substring(0, 7) === selectedMonth;
+          });
+        }
+
+        if (selectedCategories.length > 0) {
+          fetchedClasses = fetchedClasses.filter(cls => {
+            const courseData = cls.course;
+            if (!courseData) return false;
+            
+            const catId = typeof courseData.category === 'object' && courseData.category !== null
+              ? courseData.category._id 
+              : courseData.category;
+              
+            return selectedCategories.includes(catId);
+          });
+        }
+
+        const totalItemsAfterFilter = fetchedClasses.length;
+        setTotalResults(totalItemsAfterFilter);
+        setTotalPages(Math.ceil(totalItemsAfterFilter / limit));
+
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        setDisplayedClasses(fetchedClasses.slice(startIndex, endIndex));
+
+      } else {
+        setDisplayedClasses(fetchedClasses);
+        setTotalResults(serverTotal);
+        setTotalPages(res.data.totalPages);
+      }
+
     } catch (err) {
+      console.error(err);
       setError(err.response?.data?.message || "Lỗi khi tải danh sách lớp");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, debouncedSearch, selectedCourse, selectedStatus, selectedCategories, selectedMonth]);
 
   useEffect(() => {
-    fetchClasses(page, debouncedSearch, selectedCourse, selectedStatus, selectedCategories, selectedMonth);
-  }, [page, debouncedSearch, selectedCourse, selectedStatus, selectedCategories, selectedMonth, fetchClasses]);
+    fetchAndFilterClasses();
+  }, [fetchAndFilterClasses]);
 
   useEffect(() => {
     if (location.pathname.includes('/classes/create')) {
@@ -147,7 +195,7 @@ const AdminViewClassList = () => {
   const closeCreateModal = () => navigate('/admin/classes');
 
   const handleCategoryChange = (catId) => {
-    setPage(1);
+    setPage(1); 
     setSelectedCategories(prev => {
       if (prev.includes(catId)) return prev.filter(id => id !== catId);
       else return [...prev, catId];
@@ -159,7 +207,7 @@ const AdminViewClassList = () => {
     setSelectedCategories([]);
     setSelectedCourse("");
     setSelectedStatus("");
-    setSelectedMonth("");
+    setSelectedMonth(""); 
     setPage(1);
   };
 
@@ -176,13 +224,9 @@ const AdminViewClassList = () => {
 
   const getTeacherNames = (cls) => {
     const firstSchedule = cls?.weeklySchedules?.[0];
-    const preferredTeacherName =
-      cls?.preferredTeacher?.profile?.fullname;
-
-    const teacherNameFromSchedule =
-      firstSchedule?.teacher?.profile?.fullname;
-
-    return  preferredTeacherName || teacherNameFromSchedule || "Chưa có giáo viên";
+    const preferredTeacherName = cls?.preferredTeacher?.profile?.fullname;
+    const teacherNameFromSchedule = firstSchedule?.teacher?.profile?.fullname;
+    return preferredTeacherName || teacherNameFromSchedule || "Chưa có giáo viên";
   };
 
   return (
@@ -219,7 +263,7 @@ const AdminViewClassList = () => {
                 type="text"
                 placeholder="Tìm tên lớp, mã lớp..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
               />
             </div>
@@ -242,7 +286,7 @@ const AdminViewClassList = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
              <div className="relative">
-              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Tìm kiếm theo tháng mở lớp</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Tháng mở lớp</label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
@@ -256,7 +300,7 @@ const AdminViewClassList = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Khóa học {selectedCategories.length > 0 && "(Đã lọc theo danh mục)"}</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Khóa học {selectedCategories.length > 0 && "(Theo danh mục)"}</label>
               <select
                 value={selectedCourse}
                 onChange={(e) => { setSelectedCourse(e.target.value); setPage(1); }}
@@ -292,7 +336,6 @@ const AdminViewClassList = () => {
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Khóa học</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Giáo viên</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Ngày bắt đầu</th>
-                
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Thao tác</th>
               </tr>
@@ -301,7 +344,7 @@ const AdminViewClassList = () => {
               {loading && (<tr><td colSpan="7" className="p-8 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-purple-600" /></td></tr>)}
               {!loading && error && (<tr><td colSpan="7" className="p-8 text-center text-red-600 bg-red-50">{error}</td></tr>)}
 
-              {!loading && !error && classes.length === 0 && (
+              {!loading && !error && displayedClasses.length === 0 && (
                 <tr>
                   <td colSpan="7" className="text-center p-12 flex flex-col items-center justify-center text-gray-500">
                     <div className="bg-gray-100 p-4 rounded-full mb-3"><Search className="w-6 h-6 text-gray-400" /></div>
@@ -311,7 +354,7 @@ const AdminViewClassList = () => {
                 </tr>
               )}
 
-              {!loading && !error && classes.map((cls) => (
+              {!loading && !error && displayedClasses.map((cls) => (
                 <tr key={cls._id} className="hover:bg-purple-50 transition-colors duration-150 group">
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">{cls.name}</div>
@@ -341,7 +384,7 @@ const AdminViewClassList = () => {
         {(!loading && totalResults > 0) && (
           <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-gray-200">
             <div className="text-sm text-gray-700">
-              Hiển thị <span className="font-medium">{classes.length}</span> kết quả phù hợp (trong trang hiện tại)
+              Hiển thị <span className="font-medium">{displayedClasses.length}</span> / {totalResults} kết quả
             </div>
             <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
@@ -351,7 +394,7 @@ const AdminViewClassList = () => {
       <AdminCreateClassModal
         isOpen={isCreateModalOpen}
         onClose={closeCreateModal}
-        onSuccess={() => fetchClasses(page, debouncedSearch, selectedCourse, selectedStatus, selectedCategories, selectedMonth)}
+        onSuccess={() => fetchAndFilterClasses()}
         prefillData={modalPrefillData}
       />
     </div>
