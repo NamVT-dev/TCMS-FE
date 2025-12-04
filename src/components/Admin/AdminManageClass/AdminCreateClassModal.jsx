@@ -3,7 +3,7 @@ import api from '../../../utils/api';
 import { Loader2, Save, X, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../../components/UI/Loading';
-import { toast } from 'react-toastify'; // Import Toast
+import { toast } from 'react-toastify'; 
 
 const inputClass = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm";
 const readOnlyClass = "mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-100 text-gray-700 font-medium rounded-md shadow-sm sm:text-sm cursor-not-allowed";
@@ -294,11 +294,11 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Sĩ số Min <span className="text-red-500">*</span> </label>
+                                <label className="block text-sm font-medium text-gray-700">Sĩ số tối thiểu <span className="text-red-500">*</span> </label>
                                 <input type="number" name="minStudent" value={formData.minStudent} onChange={handleChange} className={inputClass} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Sĩ số Max<span className="text-red-500">*</span> </label>
+                                <label className="block text-sm font-medium text-gray-700">Sĩ số tối đa<span className="text-red-500">*</span> </label>
                                 <input type="number" name="maxStudent" value={formData.maxStudent} onChange={handleChange} className={inputClass} />
                             </div>
 

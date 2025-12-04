@@ -3,7 +3,7 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
-    timeout: 10000,
+    timeout: 20000,
     withCredentials: true,
 });
 
@@ -311,6 +311,9 @@ const api = {
         getAllPayments: (params) => axiosInstance.get("/payment/my-payments", { params }),
 
         getPaymentDetail: (id) => axiosInstance.get(`/payment/${id}`),
+    },
+    ai: {
+        chat: (question) => axiosInstance.post("/ai/chat", { question }),
     },
 
 };

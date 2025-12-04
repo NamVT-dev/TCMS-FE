@@ -139,13 +139,8 @@ const AdminRequestList = () => {
                       >
                         <Eye className="w-5 h-5" />
                       </button>
-                      <button 
-                        onClick={() => handleDelete(req._id)}
-                        className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
-                        title="Xóa"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      
+                        
                     </td>
                   </tr>
                 ))

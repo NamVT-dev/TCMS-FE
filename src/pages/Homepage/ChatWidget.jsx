@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send } from 'lucide-react';
+import api from '../../utils/api'; 
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +12,6 @@ const ChatWidget = () => {
     { id: 1, text: "Hi! Chào mừng bạn đến với trung tâm. Mình là Neko AI Support, mình có thể giúp gì cho bạn?", sender: 'bot' }
   ]);
 
-  // Các câu hỏi gợi ý nhanh (Quick Actions)
   const suggestionChips = [
     "Tư vấn lộ trình",
     "Học phí bao nhiêu?",
@@ -21,35 +21,50 @@ const ChatWidget = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isTyping]);
 
-  const handleSendMessage = (text) => {
+  const sendMessageToBackend = async (text) => {
+    try {
+      const response = await api.ai.chat(text);
+
+      
+      if (response.data.status === 'success') {
+        return response.data.data.answer;
+      } else {
+        return "Xin lỗi, mình chưa hiểu rõ câu hỏi. Bạn thử diễn đạt lại nhé!";
+      }
+    } catch (error) {
+      console.error("AI Chat Error:", error);
+      return "Hệ thống đang quá tải, bạn vui lòng thử lại sau chút xíu nhé!";
+    }
+  };
+
+  const handleSendMessage = async (text) => {
     if (!text.trim()) return;
 
     const newMsg = { id: Date.now(), text: text, sender: 'user' };
     setMessages(prev => [...prev, newMsg]);
     setInputValue('');
-    setIsTyping(true);
+    setIsTyping(true); 
 
-    setTimeout(() => {
-      const botReply = { 
+    const botAnswer = await sendMessageToBackend(text);
+
+    const botReply = { 
         id: Date.now() + 1, 
-        text: "Cảm ơn bạn đã quan tâm! Nhân viên tư vấn sẽ liên hệ chi tiết về '" + text + "' sớm nhất nhé.", 
+        text: botAnswer, 
         sender: 'bot' 
-      };
-      setMessages(prev => [...prev, botReply]);
-      setIsTyping(false);
-    }, 1500);
+    };
+    
+    setMessages(prev => [...prev, botReply]);
+    setIsTyping(false); 
   };
 
   return (
     <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
-      {/* --- CHAT WINDOW --- */}
       <div className={`
         bg-white w-[350px] h-[500px] rounded-2xl shadow-2xl border border-purple-100 overflow-hidden flex flex-col transition-all duration-300 origin-bottom-right
         ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-0 opacity-0 translate-y-10 pointer-events-none'}
       `}>
-        {/* --- HEADER --- */}
         <div className="bg-purple-600 p-4 flex items-center justify-between text-white shadow-md">
           <div className="flex items-center gap-2">
             <div className="bg-white/20 p-0.5 rounded-full overflow-hidden">
@@ -71,8 +86,7 @@ const ChatWidget = () => {
           </button>
         </div>
 
-        {/* --- MESSAGES AREA --- */}
-        <div className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-4">
+        <div className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-4 scrollbar-thin scrollbar-thumb-purple-200">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.sender === 'bot' && (
@@ -85,7 +99,7 @@ const ChatWidget = () => {
                 </div>
               )}
               <div className={`
-                max-w-[75%] p-3 rounded-2xl text-sm leading-relaxed shadow-sm
+                max-w-[75%] p-3 rounded-2xl text-sm leading-relaxed shadow-sm whitespace-pre-wrap
                 ${msg.sender === 'user' 
                   ? 'bg-purple-600 text-white rounded-br-none' 
                   : 'bg-white text-gray-700 border border-gray-200 rounded-bl-none'}
@@ -95,7 +109,6 @@ const ChatWidget = () => {
             </div>
           ))}
           
-          {/* --- TYPING INDICATOR --- */}
           {isTyping && (
             <div className="flex justify-start">
               <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-2 border border-purple-200 overflow-hidden">
@@ -115,22 +128,21 @@ const ChatWidget = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* --- INPUT AREA --- */}
         <div className="bg-white p-3 border-t border-gray-100">
-          {/* Suggestion Chips */}
-          <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide mb-1">
-            {suggestionChips.map((chip, idx) => (
-              <button 
-                key={idx}
-                onClick={() => handleSendMessage(chip)}
-                className="whitespace-nowrap px-3 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-100 rounded-full hover:bg-purple-100 transition"
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
+          {!isTyping && (
+             <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide mb-1">
+                {suggestionChips.map((chip, idx) => (
+                <button 
+                    key={idx}
+                    onClick={() => handleSendMessage(chip)}
+                    className="whitespace-nowrap px-3 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-100 rounded-full hover:bg-purple-100 transition"
+                >
+                    {chip}
+                </button>
+                ))}
+            </div>
+          )}
 
-          {/* Input */}
           <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-full">
             <input 
               type="text" 
@@ -138,11 +150,13 @@ const ChatWidget = () => {
               placeholder="Nhập câu hỏi..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
+              onKeyPress={(e) => e.key === 'Enter' && !isTyping && handleSendMessage(inputValue)}
+              disabled={isTyping} 
             />
             <button 
               onClick={() => handleSendMessage(inputValue)}
-              className={`p-2 rounded-full transition-all ${inputValue.trim() ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+              disabled={isTyping || !inputValue.trim()}
+              className={`p-2 rounded-full transition-all ${inputValue.trim() && !isTyping ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
             >
               <Send size={16} />
             </button>
@@ -153,7 +167,7 @@ const ChatWidget = () => {
         </div>
       </div>
 
-      {/* --- NÚT LAUNCHER (với viền tím khi đóng) --- */}
+   
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={`
@@ -173,7 +187,7 @@ const ChatWidget = () => {
           </div>
         )}
         
-        {/* Tooltip */}
+       
         {!isOpen && (
           <span className="absolute right-16 bg-white text-gray-800 text-xs font-bold py-1 px-3 rounded-lg shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 border border-gray-100">
             Chat với chúng tôi!
