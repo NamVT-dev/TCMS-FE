@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
-import { Loader2, Send, ArrowLeft, Calendar, Clock, CheckCircle } from 'lucide-react';
+import { Loader2, Send, ArrowLeft, CheckCircle } from 'lucide-react';
 
-// Hàm helper để đọc query params từ URL
 function useQuery() {
   const { search } = useLocation();
   return useMemo(() => new URLSearchParams(search), [search]);
@@ -20,7 +18,6 @@ const DAY_NAMES = [
   { id: 6, label: "T7" },
 ];
 
-
 const SHIFTS = [
   { name: "S1", time: "08:00 - 09:50" },
   { name: "S2", time: "10:00 - 11:50" },
@@ -30,7 +27,6 @@ const SHIFTS = [
   { name: "S6", time: "20:00 - 21:50" },
 ];
 
-
 const LearnerCustomSchedulePage = () => {
   const query = useQuery();
   const navigate = useNavigate();
@@ -38,10 +34,11 @@ const LearnerCustomSchedulePage = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-
-
   const studentId = query.get('student');
   const categoryId = query.get('category');
+  
+  const courseIdParam = query.get('course');
+  
 
   const [note, setNote] = useState('');
   const [constraints, setConstraints] = useState({
@@ -49,13 +46,11 @@ const LearnerCustomSchedulePage = () => {
     shifts: [],
   });
 
-
   useEffect(() => {
     if (!studentId || !categoryId) {
       setError("Thiếu thông tin học viên hoặc môn học. Vui lòng quay lại Bước 1.");
     }
   }, [studentId, categoryId]);
-
 
   const toggleConstraint = (type, value) => {
     setConstraints(prev => {
@@ -76,22 +71,26 @@ const LearnerCustomSchedulePage = () => {
     const payload = {
       student: studentId,
       category: categoryId,
+      courseId: courseIdParam, 
       preferredDays: constraints.days,
       preferredShifts: constraints.shifts,
       note: note,
     };
+    
+    if (!courseIdParam) delete payload.courseId;
+
+    console.log("[DEBUG] Final Payload sent to API:", payload);
 
     try {
       await api.learner.createCustomSchedule(payload);
       setSuccess(true);
     } catch (err) {
+      console.error("[DEBUG] API Error:", err);
       setError(err.response?.data?.message || "Lỗi khi gửi yêu cầu.");
     } finally {
       setSaving(false);
     }
   };
-
-  // ⬇️ XÓA: Phần 'loadingConfig'
 
   return (
     <div className="bg-gray-50">
@@ -155,11 +154,9 @@ const LearnerCustomSchedulePage = () => {
                     </div>
                   </div>
 
-
                   <div>
                     <label className="block text-base font-medium text-gray-700 mb-3">Chọn ca có thể học (Lặp lại hàng tuần)</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-
                       {SHIFTS.map(shift => (
                         <button
                           type="button"
@@ -178,7 +175,6 @@ const LearnerCustomSchedulePage = () => {
                       ))}
                     </div>
                   </div>
-
                 </div>
               </section>
 
@@ -213,7 +209,6 @@ const LearnerCustomSchedulePage = () => {
               </div>
             </>
           )}
-
         </form>
       </div>
     </div>

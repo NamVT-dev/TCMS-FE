@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import api from '../../utils/api';
 import { Loader2, ArrowLeft, BookOpen, Check, Map, Clock, AlertCircle, CheckCircle, X } from 'lucide-react';
 import EnrollmentModal from './EnrollmentModal';
@@ -158,6 +158,11 @@ const LearnerRoadmapResults = () => {
     fetchRoadmapAndProfile();
   };
 
+  const courseId = suitableStage ? suitableStage._id : '';
+  const customScheduleUrl = `/learner/custom-schedule?student=${studentId}&category=${categoryId}${courseId ? `&course=${courseId}` : ''}`;
+  
+  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
@@ -187,7 +192,6 @@ const LearnerRoadmapResults = () => {
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sidebar - Roadmap Timeline */}
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 sticky top-24">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
@@ -232,7 +236,6 @@ const LearnerRoadmapResults = () => {
             </div>
           </div>
 
-          {/* Main Content - Classes List */}
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               Lớp học phù hợp ({suitableStage ? suitableStage.name : 'Đang tìm lớp...'})
@@ -243,7 +246,7 @@ const LearnerRoadmapResults = () => {
               <p className="text-sm text-blue-700">
                 Không tìm thấy lớp có thời gian học phù hợp?
                 <Link
-                  to={`/learner/custom-schedule?student=${studentId}&category=${categoryId}`}
+                  to={customScheduleUrl}
                   className="font-semibold underline hover:text-blue-900 ml-1"
                 >
                   Bấm vào đây để thiết lập lịch tùy chỉnh

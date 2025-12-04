@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../../utils/api";
-import { Loader2, TrendingUp, CalendarPlus, Users } from "lucide-react";
+import { 
+  Loader2, TrendingUp, CalendarPlus, Users, 
+  Clock, Calendar, BookOpen, AlertCircle 
+} from "lucide-react";
+
+// Helper: Map thứ tự số sang chữ
+const DAYS_MAP = {
+  0: "Chủ Nhật", 1: "Thứ 2", 2: "Thứ 3", 3: "Thứ 4", 
+  4: "Thứ 5", 5: "Thứ 6", 6: "Thứ 7"
+};
 
 const AdminRequestDashboard = () => {
   const [demands, setDemands] = useState([]);
@@ -15,7 +24,12 @@ const AdminRequestDashboard = () => {
   const fetchSummary = async () => {
     try {
       const res = await api.admin.request.getSummary();
-      setDemands(res.data.data || []);
+      let data = res.data.data || [];
+      
+      // LOGIC MỚI: Sắp xếp giảm dần theo số lượng học viên (Ưu tiên nhóm đông người)
+      data.sort((a, b) => b.studentCount - a.studentCount);
+      
+      setDemands(data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -24,14 +38,11 @@ const AdminRequestDashboard = () => {
   };
 
   const handleCreateClass = (item) => {
-    
     navigate("/admin/classes/create", {
       state: {
         prefill: {
           courseId: item.targetType === "Course" ? item.targetInfo._id : null,
-         
           categoryId: item.targetType === "Category" ? item.targetInfo._id : null,
-          
           schedule: [
             { dayOfWeek: item.dayOfWeek, shiftName: item.shift }
           ]
@@ -40,77 +51,132 @@ const AdminRequestDashboard = () => {
     });
   };
 
-  if (loading) return <div className="p-10 flex justify-center"><Loader2 className="animate-spin text-purple-600 w-10 h-10" /></div>;
+  // Helper: Xác định mức độ ưu tiên dựa trên số lượng
+  const getPriorityColor = (count) => {
+    if (count >= 5) return "border-red-500 bg-red-50 text-red-700"; // Rất cao
+    if (count >= 3) return "border-orange-500 bg-orange-50 text-orange-700"; // Cao
+    return "border-blue-500 bg-blue-50 text-blue-700"; // Bình thường
+  };
+
+  if (loading) return (
+    <div className="p-10 flex justify-center items-center h-[50vh]">
+      <Loader2 className="animate-spin text-purple-600 w-10 h-10" />
+    </div>
+  );
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-          <TrendingUp className="mr-2 text-purple-600" /> 
-          Nhu Cầu Mở Lớp (Gợi ý)
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+          <TrendingUp className="mr-3 text-purple-600 w-8 h-8" /> 
+          Nhu Cầu Mở Lớp
         </h1>
-        <p className="text-gray-600 mt-1">Danh sách các nhóm học viên có cùng nhu cầu về môn học và thời gian.</p>
+        <p className="text-gray-600 mt-2 text-lg">
+          Danh sách các nhóm học viên đang chờ xếp lớp, được sắp xếp theo độ ưu tiên.
+        </p>
       </div>
 
       {demands.length === 0 ? (
-        <div className="text-center py-10 bg-white rounded-lg shadow">
-          <p className="text-gray-500">Chưa có dữ liệu nhu cầu nào đủ lớn hoặc tất cả đã được xử lý.</p>
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-gray-100 p-4 rounded-full mb-4">
+            <Users className="w-10 h-10 text-gray-400" />
+          </div>
+          <p className="text-gray-500 text-lg font-medium">Hiện chưa có nhu cầu nào cần xử lý.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {demands.map((item, index) => (
-            <div key={index} className="bg-white rounded-lg shadow hover:shadow-md transition border-l-4 border-purple-500 overflow-hidden flex flex-col">
-              <div className="p-5 flex-1">
-                <div className="flex justify-between items-start mb-4">
-                  <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${item.targetType === 'Course' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
-                    {item.targetType}
-                  </span>
-                  <div className="flex items-center bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">
-                    <Users className="w-3 h-3 mr-1" />
-                    {item.studentCount} Waiting
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {demands.map((item, index) => {
+            const priorityClass = getPriorityColor(item.studentCount);
+            
+            return (
+              <div key={index} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col overflow-hidden group">
                 
-                <h3 className="text-lg font-bold text-gray-800 mb-1 line-clamp-2 h-14">
-                    {item.targetInfo?.name || "Unknown"}
-                </h3>
-                {item.targetType === 'Course' && <p className="text-sm text-gray-500 mb-3">{item.targetInfo?.level}</p>}
+                {/* Header Card: Tên Môn Học & Level */}
+                <div className="p-5 border-b border-gray-100 relative">
+                  {/* Badge số lượng học viên */}
+                  <div className={`absolute top-0 right-0 px-3 py-1 rounded-bl-xl text-xs font-bold border-l border-b tracking-wide flex items-center ${priorityClass}`}>
+                    <Users className="w-3 h-3 mr-1" />
+                    {item.studentCount} HỌC VIÊN
+                  </div>
 
-                <div className="bg-gray-50 p-3 rounded border text-sm text-gray-700 space-y-1">
-                  <p> Thứ: <strong>{item.dayOfWeek}</strong></p>
-                  <p> Ca: <strong>{item.shift}</strong></p>
-                </div>
-
-                <div className="mt-4">
-                  <p className="text-xs text-gray-500 mb-2">Học viên quan tâm:</p>
-                  <div className="flex -space-x-2 overflow-hidden">
-                    {item.students.slice(0, 5).map((st) => (
-                      <img
-                        key={st._id}
-                        className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
-                        src={st.profile?.photo || "https://ui-avatars.com/api/?name=" + st.name}
-                        alt={st.name}
-                        title={`${st.name} - ${st.profile?.phoneNumber}`}
-                      />
-                    ))}
-                    {item.studentCount > 5 && (
-                      <div className="flex items-center justify-center h-8 w-8 rounded-full ring-2 ring-white bg-gray-200 text-xs font-medium text-gray-600">
-                        +{item.studentCount - 5}
-                      </div>
-                    )}
+                  <div className="flex items-start gap-3 mt-2">
+                    <div className={`p-3 rounded-lg flex-shrink-0 ${item.targetType === 'Course' ? 'bg-purple-100 text-purple-600' : 'bg-green-100 text-green-600'}`}>
+                      <BookOpen className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800 line-clamp-2 leading-tight">
+                        {item.targetInfo?.name || "Chưa xác định"}
+                      </h3>
+                      {item.targetInfo?.level && (
+                        <p className="text-sm font-medium text-gray-500 mt-1 flex items-center">
+                          Level: <span className="text-gray-700 ml-1 bg-gray-100 px-2 py-0.5 rounded">{item.targetInfo.level}</span>
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <button
-                onClick={() => handleCreateClass(item)}
-                className="w-full py-3 bg-gray-50 hover:bg-purple-50 text-purple-600 font-medium text-sm border-t transition flex justify-center items-center"
-              >
-                <CalendarPlus className="w-4 h-4 mr-2" />
-                Tạo lớp học cho nhóm này
-              </button>
-            </div>
-          ))}
+                {/* Body Card: Thông tin lịch & Danh sách */}
+                <div className="p-5 flex-1 flex flex-col gap-4">
+                  {/* Block Lịch học - Điểm nhấn chính */}
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-gray-500" />
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase font-bold">Ngày học</p>
+                        <p className="font-semibold text-gray-800">{DAYS_MAP[item.dayOfWeek]}</p>
+                      </div>
+                    </div>
+                    <div className="h-8 w-[1px] bg-gray-300 mx-2"></div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-gray-500" />
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase font-bold">Ca học</p>
+                        <p className="font-semibold text-purple-700 text-lg">{item.shift}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Danh sách Avatar */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 mb-2 flex items-center">
+                      DANH SÁCH CHỜ ({item.studentCount})
+                    </p>
+                    <div className="flex items-center">
+                      <div className="flex -space-x-3 overflow-hidden py-1 pl-1">
+                        {item.students.slice(0, 5).map((st) => (
+                          <img
+                            key={st._id}
+                            className="inline-block h-9 w-9 rounded-full ring-2 ring-white object-cover shadow-sm bg-gray-200"
+                            src={st.profile?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(st.name)}&background=random`}
+                            alt={st.name}
+                            title={st.name}
+                          />
+                        ))}
+                      </div>
+                      {item.studentCount > 5 && (
+                        <div className="ml-3 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                          +{item.studentCount - 5} người khác
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Action */}
+                <div className="p-4 pt-0 mt-auto">
+                  <button
+                    onClick={() => handleCreateClass(item)}
+                    className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex justify-center items-center group-hover:scale-[1.02]"
+                  >
+                    <CalendarPlus className="w-5 h-5 mr-2" />
+                    Mở Lớp Ngay
+                  </button>
+                </div>
+
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
