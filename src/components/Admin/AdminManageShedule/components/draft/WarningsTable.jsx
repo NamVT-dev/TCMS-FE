@@ -38,7 +38,7 @@ function WarningsTable({ warnings }) {
                   scope="col"
                   className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                 >
-                  Chi Tiết Cảnh Báo (Ép Lịch)
+                  Chi Tiết Cảnh Báo (Lịch làm việc không phù hợp)
                 </th>
               </tr>
             </thead>

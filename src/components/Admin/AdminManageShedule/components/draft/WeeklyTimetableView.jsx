@@ -25,13 +25,13 @@ const ScheduleCard = ({ assignment }) => {
           : 'border-green-500 hover:shadow-green-100'
         }
       `}
-      title={violatesAvailability ? "Cảnh báo: Lịch này bị ép (GV không rảnh)" : ""}
+      title={violatesAvailability ? "Cảnh báo: Lịch này bị không phù hợp (GV không đăng ký)" : ""}
     >
      
       {violatesAvailability && (
         <div className="flex items-center text-red-600 mb-1">
           <AlertTriangle className="h-4 w-4 mr-1.5 flex-shrink-0" />
-          <span className="text-xs font-bold">Ép Lịch</span>
+          <span className="text-xs font-bold">Lịch không phù hợp</span>
         </div>
       )}
 

@@ -137,12 +137,12 @@ const ForcedWarningsChart = ({ data }) => {
           <Tooltip 
             cursor={{ fill: '#f3f4f6', radius: 4 }}
             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-            formatter={(value) => [<span className="text-red-600 font-bold">{value} lần</span>, "Bị ép lịch"]}
+            formatter={(value) => [<span className="text-red-600 font-bold">{value} lần</span>, "Lịch chưa phù hợp"]}
             labelStyle={{ color: '#111827', fontWeight: 'bold', marginBottom: '4px' }}
           />
           <Bar 
             dataKey="forcedCount" 
-            name="Số lần bị ép lịch" 
+            name="Lịch chưa phù hợp" 
             fill="#f87171" 
             radius={[0, 4, 4, 0]} 
             background={{ fill: '#f9fafb' }} 
@@ -208,7 +208,7 @@ function AdminScheduleAnalytics() {
           <div className="xl:col-span-2">
             <AnalyticsCard
                 icon={AlertTriangle}
-                title="Top Giáo Viên Bị Ép Lịch"
+                title="Top Giáo Viên Bị Xếp Lịch Không Phù Hợp"
                 description="Những giáo viên bị xếp dạy vào khung giờ không đăng ký rảnh (do thiếu nhân sự)."
                 className="h-full border-l-4 border-l-red-400"
             >
