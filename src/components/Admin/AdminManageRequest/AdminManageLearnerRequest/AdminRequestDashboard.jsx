@@ -3,13 +3,8 @@ import { useNavigate } from "react-router-dom";
 import api from "../../../../utils/api";
 import { 
   Loader2, TrendingUp, CalendarPlus, Users, 
-  Clock, Calendar, BookOpen, AlertCircle 
+  BookOpen, Layers 
 } from "lucide-react";
-
-const DAYS_MAP = {
-  0: "Chủ Nhật", 1: "Thứ 2", 2: "Thứ 3", 3: "Thứ 4", 
-  4: "Thứ 5", 5: "Thứ 6", 6: "Thứ 7"
-};
 
 const AdminRequestDashboard = () => {
   const [demands, setDemands] = useState([]);
@@ -29,7 +24,7 @@ const AdminRequestDashboard = () => {
       
       setDemands(data);
     } catch (error) {
-      console.error(error);
+      console.error("Lỗi tải summary:", error);
     } finally {
       setLoading(false);
     }
@@ -41,9 +36,6 @@ const AdminRequestDashboard = () => {
         prefill: {
           courseId: item.targetType === "Course" ? item.targetInfo._id : null,
           categoryId: item.targetType === "Category" ? item.targetInfo._id : null,
-          schedule: [
-            { dayOfWeek: item.dayOfWeek, shiftName: item.shift }
-          ]
         }
       }
     });
@@ -63,13 +55,30 @@ const AdminRequestDashboard = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #d1d5db; 
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #9ca3af; 
+        }
+      `}</style>
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 flex items-center">
           <TrendingUp className="mr-3 text-purple-600 w-8 h-8" /> 
-          Nhu Cầu Mở Lớp
+          Tổng Hợp Nhu Cầu
         </h1>
         <p className="text-gray-600 mt-2 text-lg">
-          Danh sách các nhóm học viên đang chờ xếp lớp, được sắp xếp theo độ ưu tiên.
+          Danh sách các nhóm học viên đang chờ, được gom nhóm theo Khóa học hoặc Danh mục.
         </p>
       </div>
 
@@ -84,10 +93,12 @@ const AdminRequestDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {demands.map((item, index) => {
             const priorityClass = getPriorityColor(item.studentCount);
+            const isCourse = item.targetType === 'Course';
             
             return (
               <div key={index} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col overflow-hidden group">
                 
+                {/* Header Card */}
                 <div className="p-5 border-b border-gray-100 relative">
                   <div className={`absolute top-0 right-0 px-3 py-1 rounded-bl-xl text-xs font-bold border-l border-b tracking-wide flex items-center ${priorityClass}`}>
                     <Users className="w-3 h-3 mr-1" />
@@ -95,14 +106,17 @@ const AdminRequestDashboard = () => {
                   </div>
 
                   <div className="flex items-start gap-3 mt-2">
-                    <div className={`p-3 rounded-lg flex-shrink-0 ${item.targetType === 'Course' ? 'bg-purple-100 text-purple-600' : 'bg-green-100 text-green-600'}`}>
-                      <BookOpen className="w-6 h-6" />
+                    <div className={`p-3 rounded-lg flex-shrink-0 ${isCourse ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
+                      {isCourse ? <BookOpen className="w-6 h-6" /> : <Layers className="w-6 h-6" />}
                     </div>
                     <div>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 block ${isCourse ? 'text-blue-600' : 'text-green-600'}`}>
+                        {isCourse ? 'Khóa Học' : 'Danh Mục'}
+                      </span>
                       <h3 className="text-lg font-bold text-gray-800 line-clamp-2 leading-tight">
                         {item.targetInfo?.name || "Chưa xác định"}
                       </h3>
-                      {item.targetInfo?.level && (
+                      {isCourse && item.targetInfo?.level && (
                         <p className="text-sm font-medium text-gray-500 mt-1 flex items-center">
                           Level: <span className="text-gray-700 ml-1 bg-gray-100 px-2 py-0.5 rounded">{item.targetInfo.level}</span>
                         </p>
@@ -111,57 +125,45 @@ const AdminRequestDashboard = () => {
                   </div>
                 </div>
 
-                <div className="p-5 flex-1 flex flex-col gap-4">
-                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase font-bold">Ngày học</p>
-                        <p className="font-semibold text-gray-800">{DAYS_MAP[item.dayOfWeek]}</p>
-                      </div>
-                    </div>
-                    <div className="h-8 w-[1px] bg-gray-300 mx-2"></div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gray-500" />
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase font-bold">Ca học</p>
-                        <p className="font-semibold text-purple-700 text-lg">{item.shift}</p>
-                      </div>
-                    </div>
+                {/* Body Card: Danh sách học viên (SCROLLABLE) */}
+                <div className="p-5 flex-1 flex flex-col">
+                  <p className="text-xs font-semibold text-gray-500 mb-3 flex items-center uppercase tracking-wide">
+                    Danh sách chờ ({item.studentCount})
+                  </p>
+                  
+                  {/* --- KHU VỰC CUỘN --- */}
+                  {/* max-h-[180px]: Chiều cao cố định khoảng 3-4 item */}
+                  {/* overflow-y-auto: Tự động hiện thanh cuộn nếu danh sách dài */}
+                  {/* custom-scrollbar: Class CSS tùy chỉnh thanh cuộn cho đẹp */}
+                  <div className="max-h-[180px] overflow-y-auto custom-scrollbar pr-2 space-y-2">
+                      {item.students.map((st) => (
+                          <div key={st._id} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                              <img
+                                  className="h-9 w-9 rounded-full ring-1 ring-gray-200 object-cover bg-gray-100 flex-shrink-0"
+                                  src={st.profile?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(st.name)}&background=random`}
+                                  alt={st.name}
+                              />
+                              <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-semibold text-gray-800 truncate">{st.name}</p>
+                                  {/* Hiển thị thêm thông tin phụ nếu cần */}
+                                  <p className="text-xs text-gray-500 truncate">
+                                      {st.learningGoal?.category?.name || "Chưa có mục tiêu"}
+                                  </p>
+                              </div>
+                          </div>
+                      ))}
                   </div>
-
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 mb-2 flex items-center">
-                      DANH SÁCH CHỜ ({item.studentCount})
-                    </p>
-                    <div className="flex items-center">
-                      <div className="flex -space-x-3 overflow-hidden py-1 pl-1">
-                        {item.students.slice(0, 5).map((st) => (
-                          <img
-                            key={st._id}
-                            className="inline-block h-9 w-9 rounded-full ring-2 ring-white object-cover shadow-sm bg-gray-200"
-                            src={st.profile?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(st.name)}&background=random`}
-                            alt={st.name}
-                            title={st.name}
-                          />
-                        ))}
-                      </div>
-                      {item.studentCount > 5 && (
-                        <div className="ml-3 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          +{item.studentCount - 5} người khác
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  {/* ------------------- */}
                 </div>
 
-                <div className="p-4 pt-0 mt-auto">
+                {/* Footer Action */}
+                <div className="p-4 pt-0 mt-auto bg-white border-t border-gray-50">
                   <button
                     onClick={() => handleCreateClass(item)}
-                    className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex justify-center items-center group-hover:scale-[1.02]"
+                    className="w-full mt-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex justify-center items-center group-hover:scale-[1.02]"
                   >
                     <CalendarPlus className="w-5 h-5 mr-2" />
-                    Mở Lớp Ngay
+                    Tạo Lớp Cho Nhóm Này
                   </button>
                 </div>
 

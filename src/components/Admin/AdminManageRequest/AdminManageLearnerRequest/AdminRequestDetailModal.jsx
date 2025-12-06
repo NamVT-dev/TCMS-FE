@@ -34,9 +34,7 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message }) => {
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md animate-scale-in">
         <div className="p-6">
-          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-green-100 mx-auto mb-4">
-            <Save className="w-7 h-7 text-green-600" />
-          </div>
+          
 
           <h3 className="text-xl font-bold text-gray-800 text-center mb-3">
             {title}
@@ -234,13 +232,10 @@ const AdminRequestDetailModal = ({ isOpen, onClose, requestId, onSuccess }) => {
                 <div className="p-6 space-y-6">
 
                   <div className="flex items-start gap-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
-                    <div className="p-3 bg-white rounded-full shadow-sm">
-                      <User className="w-6 h-6 text-purple-600" />
-                    </div>
+                    
                     <div>
                       <h3 className="font-bold text-gray-800 text-lg">{data.student?.name || "Không có tên"}</h3>
-                      {/* Email bị ẩn vì dữ liệu không có, chỉ hiển thị ID nếu cần */}
-                      {/* <p className="text-gray-600">{data.student?.email}</p> */}
+                     
                       <p className="text-xs text-gray-400 mt-1 flex items-center">
                         Ngày tạo: {moment(data.createdAt).format("DD/MM/YYYY HH:mm")}
                       </p>
