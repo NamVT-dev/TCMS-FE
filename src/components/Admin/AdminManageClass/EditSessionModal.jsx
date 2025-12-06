@@ -257,14 +257,7 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
       const res = await api.admin.class.updateSession(session._id, payload);
       onSessionUpdated(res.data.data.session);
       
-      setToast({ 
-        message: isCanceled ? "Đã hủy buổi học thành công!" : "Cập nhật buổi học thành công!", 
-        type: "success" 
-      });
-
-      setTimeout(() => {
-        onClose();
-      }, 1500);
+      onClose();
 
     } catch (err) {
       console.error(err);
