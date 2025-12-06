@@ -69,7 +69,7 @@ export const UserProvider = ({ children }) => {
                         const roleRoutes = {
                             admin: "/admin/overview",
                             teacher: "/teacher/overview",
-                            staff: "/staff/overview",
+                            staff: "/staff/profile",
                             member: "/",
                         };
                         console.log(`✅ Already authenticated, redirecting from ${currentPath} to dashboard`);

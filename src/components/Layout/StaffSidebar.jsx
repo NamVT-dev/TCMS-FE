@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-    LayoutDashboard,
-    User,
-    CalendarClock,
-    CalendarDays,
-    ClipboardList,
-    ChevronRight,
-    FileBarChart2,
-    ChevronLeft,
-    GraduationCap,
-    Users,
-    UserCircle,
-    Users2,
-    UserCog,
+    Users, UserCircle, GraduationCap, UserCog,
+    School, ListChecks, MessageSquarePlus, LayoutList, ArrowRightLeft,
+    DoorOpen, Clock1, MessageSquareShare, ChevronRight, ChevronLeft,
+    UserStar, Building2, User
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -39,21 +30,10 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
                             </div>
                         </div>
                     </div>
-                    {/* Tooltip */}
-                    <div className="hidden group-hover:block absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded whitespace-nowrap">
+                    <div className="hidden group-hover:block absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded whitespace-nowrap z-50">
                         {title}
                     </div>
                 </div>
-                {/* Mini Dropdown */}
-                {items && items.map((item, index) => (
-                    <Link
-                        key={index}
-                        to={item.path}
-                        className="hidden group-hover:block ml-2 px-2 py-1 text-sm text-gray-600 hover:text-sky-600"
-                    >
-                        {item.icon && <item.icon className="w-4 h-4" />}
-                    </Link>
-                ))}
             </div>
         );
     }
@@ -66,21 +46,15 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
                     }`}
             >
                 <div className="flex items-center space-x-3">
-                    <div
-                        className={`p-2 rounded-lg ${isOpen ? "bg-sky-100" : "bg-gray-100"
-                            }`}
-                    >
-                        <Icon
-                            className={`w-5 h-5 ${isOpen ? "text-sky-600" : "text-gray-600"
-                                }`}
-                        />
+                    <div className={`p-2 rounded-lg ${isOpen ? "bg-purple-100" : "bg-gray-100"}`}>
+                        <Icon className={`w-5 h-5 ${isOpen ? "text-purple-600" : "text-gray-600"}`} />
                     </div>
-                    <span className={`font-medium ${isOpen ? "text-sky-600" : ""}`}>
+                    <span className={`font-medium ${isOpen ? "text-purple-600" : ""}`}>
                         {title}
                     </span>
                 </div>
                 <ChevronRight
-                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-90 text-sky-600" : "text-gray-400"
+                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-90 text-purple-600" : "text-gray-400"
                         }`}
                 />
             </button>
@@ -88,14 +62,14 @@ const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => 
             {isOpen && items && (
                 <div className="ml-14 mt-2 space-y-1">
                     {items.map((item, index) => {
-                        const isActive = currentPath === item.path;
+                        const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/');
                         return (
                             <Link
                                 key={index}
                                 to={item.path}
                                 className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${isActive
-                                    ? "bg-sky-100 text-sky-600 font-medium"
-                                    : "text-gray-600 hover:text-sky-600 hover:bg-sky-50"
+                                    ? "bg-purple-100 text-purple-600 font-medium"
+                                    : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
                                     }`}
                             >
                                 {item.icon && <item.icon className="w-4 h-4" />}
@@ -113,46 +87,48 @@ const StaffSidebar = ({ isCollapsed, onToggle }) => {
     const location = useLocation();
     const currentPath = location.pathname;
 
+    // Cấu hình menu dành riêng cho Staff dựa trên hình ảnh thư mục
     const menuItems = [
         {
-            icon: LayoutDashboard,
-            title: "Tổng quan",
+            icon: User,
+            title: "Cá nhân",
             items: [
-                {
-                    name: "Tổng quan",
-                    path: "/staff/overview",
-                    icon: LayoutDashboard,
-                },
-                { name: "Giao dịch", path: "/staff/transactions", icon: FileBarChart2 }
-            ],
+                { name: "Thông tin cá nhân", path: "/staff/profile", icon: User },
+            ]
         },
         {
             icon: Users,
             title: "Quản lý người dùng",
             items: [
+                { name: "Học viên", path: "/staff/users/students", icon: UserCircle },
                 { name: "Giáo viên", path: "/staff/users/teachers", icon: GraduationCap },
-                { name: "Học viên", path: "/staff/users/students", icon: UserCircle }
+                { name: "Xếp lớp học viên", path: "/staff/users/enrollments", icon: UserCog }
             ]
         },
         {
-            icon: User,
-            title: "Cá nhân",
+            icon: School,
+            title: "Quản lý lớp học",
             items: [
-                {
-                    name: "Thông tin cá nhân",
-                    path: "/staff/profile",
-                    icon: User,
-                }
-            ],
-        }
+                { name: "Danh sách lớp", path: "/staff/classes", icon: ListChecks },
+                { name: "Yêu cầu dạy thay", path: "/staff/requests/substitute", icon: ArrowRightLeft },
+                { name: "Thống kê nhu cầu", path: "/staff/requests/dashboard", icon: MessageSquarePlus },
+                { name: "Danh sách yêu cầu", path: "/staff/requests/list", icon: LayoutList }
+            ]
+        },
+        {
+            icon: Building2,
+            title: "Quản lý trung tâm",
+            items: [
+                { name: "Phòng học", path: "/staff/facility/rooms", icon: DoorOpen },
+                { name: "Góp ý khiếu nại", path: "/staff/facility/complain", icon: MessageSquareShare },
+            ]
+        },
+        
     ];
 
     return (
-        <div
-            className={`${isCollapsed ? 'w-20' : 'w-72'
-                } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}
-        >
-            {/* Toggle Button */}
+        <div className={`${isCollapsed ? 'w-20' : 'w-72'
+            } h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
             <button
                 onClick={onToggle}
                 className="absolute -right-3 top-6 bg-white border border-gray-200 rounded-full p-1.5 hover:bg-gray-50 z-50"
@@ -164,29 +140,26 @@ const StaffSidebar = ({ isCollapsed, onToggle }) => {
                 )}
             </button>
 
-
-            {/* Header Section  */}
             <div className="p-4 border-b border-gray-200">
                 {isCollapsed ? (
                     <div className="flex justify-center">
-                        <GraduationCap className="w-8 h-8 text-sky-600" />
+                        <UserStar className="w-8 h-8 text-purple-600" />
                     </div>
                 ) : (
-                    <div className="flex items-center space-x-3 bg-sky-50 p-3 rounded-lg">
-                        <GraduationCap className="w-8 h-8 text-sky-600" />
+                    <div className="flex items-center space-x-3 bg-purple-50 p-3 rounded-lg">
+                        <UserStar className="w-8 h-8 text-purple-600" />
                         <div>
                             <h2 className="text-lg font-semibold text-gray-800">
-                                Chào mừng, Nhân viên
+                                Nhân Viên
                             </h2>
                             <p className="text-sm text-gray-500">
-                                Quản lý công việc của bạn
+                                Làm việc hiệu quả!
                             </p>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Menu Items */}
             <div className="flex-1 overflow-y-auto scrollbar-thin">
                 <div className="p-4 space-y-2">
                     {menuItems.map((item, index) => (

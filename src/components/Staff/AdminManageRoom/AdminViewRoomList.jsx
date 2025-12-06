@@ -1,0 +1,289 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { Search, Trash2 } from "lucide-react";
+import api from "../../../utils/api";
+import AdminCreateRoomModal from "./AdminCreateRoomModal";
+import { Switch, Modal, Tooltip } from "antd";
+import { ExclamationCircleFilled } from "@ant-design/icons";
+import showToast from "../../../utils/showToast";
+
+const AdminViewRoomList = () => {
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [modal, contextHolder] = Modal.useModal();
+  const [togglingId, setTogglingId] = useState(null);
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 1,
+    total: 0,
+    results: 0,
+  });
+
+  // Modal tạo mới
+  const [openCreate, setOpenCreate] = useState(false);
+  // Hàm xử lý chuyển đổi trạng thái phòng học
+
+  const fetchRooms = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = { page: currentPage, limit: PAGE_SIZE, search: searchTerm };
+      const response = await api.admin.getRooms(params);
+
+      const data = response.data;
+      const total = data.total ?? 0;
+      const results = data.results;
+
+      setRooms(response.data.data.rooms);
+      setPagination({
+        page: data.page ?? currentPage,
+        totalPages: Math.ceil(total / PAGE_SIZE),
+        total,
+        results,
+      });
+    } catch (err) {
+      console.error(err);
+      setError("Không thể tải dữ liệu phòng học.");
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, searchTerm]);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => fetchRooms(), 500);
+    return () => clearTimeout(debounce);
+  }, [fetchRooms]);
+
+  const getStatusColor = (status) => {
+    if (status === "active") return "bg-green-100 text-green-800";
+    if (status === "closed") return "bg-red-100 text-red-800";
+    return "bg-gray-100 text-gray-800";
+  };
+
+  const updateStatus = async (roomId, status) => {
+    const toastId = showToast.loading("Đang đóng phòng học...");
+    try {
+      setTogglingId(roomId);
+      console.log("Updating room:", roomId, "to status:", status);
+      await api.admin.updateRoom(roomId, { status });
+      // cập nhật UI ngay
+      setRooms(prev =>
+        prev.map(r => r._id === roomId ? { ...r, status } : r)
+      );
+      showToast.updateSuccess(toastId, status === "closed" ? "Đã đóng lớp học thành công!" : "Đã mở lớp học thành công!");
+    } catch (err) {
+      console.error(err);
+      showToast.updateError(toastId, err?.response?.data?.message || "Cập nhật trạng thái lớp học thất bại!");
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleToggleSwitch = (room, checked) => {
+    // đang ACTIVE mà user tắt switch -> confirm đóng
+    if (room.status === "active" && !checked) {
+      modal.confirm({
+        title: "Bạn có muốn đóng phòng học này?",
+        icon: <ExclamationCircleFilled />,
+        content: "Thao tác này sẽ chuyển trạng thái về 'closed'.",
+        okText: "OK",
+        cancelText: "Cancel",
+        okType: "danger",
+        getContainer: false,
+        zIndex: 2000,
+        onOk: () => updateStatus(room._id, "closed"),
+      });
+      return;
+    }
+
+    // (tuỳ chọn) đang CLOSE mà bật switch -> confirm mở
+    if ((room.status === "closed") && checked) {
+      modal.confirm({
+        title: "Bạn có muốn mở lại phòng học này?",
+        content: "Thao tác này sẽ chuyển trạng thái về 'active'.",
+        icon: <ExclamationCircleFilled />,
+        okText: "OK",
+        cancelText: "Cancel",
+        getContainer: false,
+        zIndex: 2000,
+        onOk: () => updateStatus(room._id, "active"),
+      });
+      return;
+    }
+  };
+
+  // Xoá phòng học
+  const handleDelete = (id) => {
+    modal.confirm({
+      title: "Xác nhận xóa phòng học?",
+      icon: <ExclamationCircleFilled />,
+      content: "Thao tác này không thể hoàn tác.",
+      okText: "Xóa",
+      cancelText: "Hủy",
+      okType: "danger",
+      getContainer: false,
+      zIndex: 2000,
+      async onOk() {
+        const toastId = showToast.loading("Đang xóa phòng học...");
+        try {
+          await api.admin.deleteRoomById(id);
+          showToast.updateSuccess(toastId, "Xóa phòng học thành công!");
+          // Nếu xóa xong trang hiện tại không còn item nào và không phải trang 1 -> lùi về trang trước
+          if (rooms.length === 1 && currentPage > 1) {
+            setCurrentPage((p) => p - 1);
+          } else {
+            fetchRooms();
+          }
+        } catch (err) {
+          console.error(err);
+          showToast.updateError(
+            toastId,
+            err?.response?.data?.message || "Xóa phòng học thất bại!"
+          );
+        }
+      },
+    });
+  };
+
+  if (loading) return <div className="p-6 text-center">Đang tải dữ liệu...</div>;
+  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {contextHolder}
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Danh sách phòng học</h1>
+        <p className="text-gray-600">Quản lý phòng học và tình trạng sử dụng</p>
+      </div>
+
+      {/* Search + Create Button */}
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tên phòng hoặc chỗ học..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+            />
+          </div>
+
+          {/* Nút mở Modal tạo phòng */}
+          <button
+            onClick={() => setOpenCreate(true)}
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-md hover:shadow-lg"
+          >
+            + Tạo phòng
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">STT</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Tên phòng</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Số lượng chỗ ngồi</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Trạng thái</th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {rooms.length > 0 ? (
+                rooms.map((room, index) => (
+                  <tr key={room._id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <td className="px-6 py-4 font-medium text-gray-800">
+                      {(currentPage - 1) * PAGE_SIZE + index + 1}
+                    </td>
+                    <td className="px-6 py-4">{room.name}</td>
+                    <td className="px-6 py-4">{room.capacity}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(room.status)}`}>
+                        {room.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-3">
+                        <Tooltip placement="topLeft" title={"Đóng/Mở phòng học"} >
+                          <Switch
+                            checked={room.status === "active"}
+                            loading={togglingId === room._id}
+                            onChange={(checked) => handleToggleSwitch(room, checked)}
+                            checkedChildren="Active"
+                            unCheckedChildren="Close"
+                          />
+                        </Tooltip>
+                        <Tooltip placement="topLeft" title={"Xóa phòng học"} >
+                          <button onClick={() => handleDelete(room._id)} className="text-red-600 hover:text-red-800" title="Xóa">
+                            <Trash2 className="text-red-600 hover:text-red-800 w-5 h-5" />
+                          </button>
+                        </Tooltip>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="px-6 py-4 text-center text-gray-500">Không có dữ liệu phòng học</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination bar */}
+        <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+          <div className="text-sm text-gray-700">
+            Hiển thị <span className="font-medium">{pagination.results}</span>{" "}
+            trong tổng số <span className="font-medium">{pagination.total}</span> phòng học
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Trước
+            </button>
+
+            <span className="px-3 py-1 text-sm">
+              Trang {pagination.page} / {pagination.totalPages}
+            </span>
+
+            <button
+              onClick={() =>
+                setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))
+              }
+              disabled={currentPage === pagination.totalPages}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Sau
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal tạo phòng */}
+      <AdminCreateRoomModal
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        onSuccess={fetchRooms}
+      />
+    </div>
+  );
+};
+
+export default AdminViewRoomList;
