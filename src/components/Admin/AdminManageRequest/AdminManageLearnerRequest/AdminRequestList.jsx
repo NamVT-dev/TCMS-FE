@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; 
 import api from "../../../../utils/api";
 import { 
     Loader2, Eye, CheckCircle, AlertCircle, XCircle, 
-    Lightbulb, BarChart2, Calendar, X 
+    Lightbulb, Calendar, X, CalendarPlus, Users
 } from "lucide-react";
 import AdminRequestDetailModal from "./AdminRequestDetailModal";
 import moment from "moment";
@@ -10,7 +11,7 @@ import moment from "moment";
 const DAYS = ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
 const SHIFTS = ["S1", "S2", "S3", "S4", "S5", "S6"];
 
-const CourseSuggestionPanel = ({ courseId, courseName, onClose }) => {
+const CourseSuggestionPanel = ({ courseId, courseName, onClose, onCreateClass }) => {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState(null);
 
@@ -19,6 +20,7 @@ const CourseSuggestionPanel = ({ courseId, courseName, onClose }) => {
         const analyze = async () => {
             setLoading(true);
             try {
+                // 1. Lấy toàn bộ request OPEN của course này
                 const res = await api.admin.request.getAll({
                     course: courseId,
                     status: 'open',
@@ -26,10 +28,11 @@ const CourseSuggestionPanel = ({ courseId, courseName, onClose }) => {
                 });
                 const requests = res.data.data.data || [];
 
+                // 2. Xử lý dữ liệu (Aggregation) 
                 const heatmap = {}; 
-                const monthlyTrend = {}; 
                 const uniqueStudents = new Set();
 
+                // Init khung heatmap
                 DAYS.forEach((_, d) => {
                     heatmap[d] = {};
                     SHIFTS.forEach(s => heatmap[d][s] = new Set());
@@ -41,10 +44,7 @@ const CourseSuggestionPanel = ({ courseId, courseName, onClose }) => {
                     
                     uniqueStudents.add(sId);
 
-                    const monthKey = moment(req.createdAt).format("MM/YYYY");
-                    if (!monthlyTrend[monthKey]) monthlyTrend[monthKey] = new Set();
-                    monthlyTrend[monthKey].add(sId);
-
+                    // Thống kê Heatmap (Lịch học)
                     (req.preferredDays || []).forEach(day => {
                         (req.preferredShifts || []).forEach(shift => {
                             if (heatmap[day] && heatmap[day][shift]) {
@@ -54,7 +54,7 @@ const CourseSuggestionPanel = ({ courseId, courseName, onClose }) => {
                     });
                 });
 
-                setStats({ heatmap, monthlyTrend, totalUnique: uniqueStudents.size });
+                setStats({ heatmap, totalUnique: uniqueStudents.size });
 
             } catch (err) {
                 console.error("Lỗi phân tích:", err);
@@ -65,6 +65,7 @@ const CourseSuggestionPanel = ({ courseId, courseName, onClose }) => {
         analyze();
     }, [courseId]);
 
+    // Helper màu sắc
     const getCellColor = (size) => {
         if (size === 0) return "bg-gray-50 text-gray-300";
         if (size < 3) return "bg-blue-50 text-blue-600";
@@ -79,10 +80,12 @@ const CourseSuggestionPanel = ({ courseId, courseName, onClose }) => {
         <div className="bg-white border-2 border-purple-100 rounded-xl mb-6 shadow-sm overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="bg-purple-50 px-6 py-4 flex justify-between items-center border-b border-purple-100">
                 <div className="flex items-center gap-3">
-                    
+                    <div className="p-2 bg-white rounded-full shadow-sm">
+                        <Lightbulb className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                    </div>
                     <div>
                         <h3 className="font-bold text-purple-900">Gợi Ý Mở Lớp: {courseName}</h3>
-                        <p className="text-xs text-purple-700">Dựa trên <span className="font-bold">{stats.totalUnique}</span> học viên đang chờ (đã lọc trùng)</p>
+                        <p className="text-xs text-purple-700">Hiện có <span className="font-bold text-lg">{stats.totalUnique}</span> học viên đang chờ xếp lớp (đã lọc trùng)</p>
                     </div>
                 </div>
                 <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
@@ -118,27 +121,27 @@ const CourseSuggestionPanel = ({ courseId, courseName, onClose }) => {
                             </tbody>
                         </table>
                     </div>
+                    <div className="mt-2 flex gap-4 text-[10px] text-gray-500 justify-end">
+                        <span className="flex items-center"><span className="w-2 h-2 bg-blue-50 mr-1 rounded"></span> Ít</span>
+                        <span className="flex items-center"><span className="w-2 h-2 bg-blue-200 mr-1 rounded"></span> Trung bình</span>
+                        <span className="flex items-center"><span className="w-2 h-2 bg-purple-600 mr-1 rounded"></span> Cao (Hot)</span>
+                    </div>
                 </div>
 
-                <div className="lg:col-span-1 border-l border-gray-100 pl-8">
-                    <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center"><BarChart2 className="w-4 h-4 mr-2"/> Xu hướng theo tháng</h4>
-                    <div className="space-y-3">
-                        {Object.entries(stats.monthlyTrend)
-                            .sort((a, b) => b[1].size - a[1].size)
-                            .slice(0, 5)
-                            .map(([month, setIds]) => (
-                                <div key={month} className="flex items-center justify-between group">
-                                    <span className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded group-hover:bg-purple-50 transition">{month}</span>
-                                    <div className="flex items-center">
-                                        <div className="h-2 bg-purple-200 rounded-full mr-2 w-24 overflow-hidden">
-                                            <div className="h-full bg-purple-600" style={{ width: `${(setIds.size / stats.totalUnique) * 100}%` }}></div>
-                                        </div>
-                                        <span className="text-sm font-bold text-purple-700">{setIds.size}</span>
-                                    </div>
-                                </div>
-                            ))
-                        }
-                    </div>
+            
+                <div className="lg:col-span-1 border-l border-gray-100 pl-8 flex flex-col justify-center items-center text-center">
+                    
+                    <p className="text-sm text-gray-500 mb-6">
+                        Tạo lớp học mới cho khóa <span className="font-semibold text-purple-700">{courseName}</span> dựa trên gợi ý lịch học bên cạnh.
+                    </p>
+                    
+                    <button 
+                        onClick={onCreateClass}
+                        className="w-full py-3 px-6 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-200 transition-all flex items-center justify-center transform active:scale-95"
+                    >
+                        
+                        Tạo Lớp Mới Ngay
+                    </button>
                 </div>
             </div>
         </div>
@@ -146,50 +149,47 @@ const CourseSuggestionPanel = ({ courseId, courseName, onClose }) => {
 };
 
 const AdminRequestList = () => {
+    const navigate = useNavigate(); 
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     
+    // Data cho Filter
     const [coursesForFilter, setCoursesForFilter] = useState([]); 
     
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     
+    // Filter State
     const [statusFilter, setStatusFilter] = useState(""); 
     const [courseFilter, setCourseFilter] = useState(""); 
 
     const [selectedId, setSelectedId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-   
     useEffect(() => {
         const fetchCoursesFromRequests = async () => {
             try {
-                // Gọi API lấy nhiều requests để trích xuất danh sách khóa học thực tế
                 const res = await api.admin.request.getAll({ limit: 1000 });
                 const allRequests = res.data.data.data || [];
-
-                // Dùng Map để lọc Course trùng lặp dựa trên ID
                 const uniqueCoursesMap = new Map();
 
                 allRequests.forEach(req => {
-                    // Chỉ lấy những request có trường course và có _id
                     if (req.course && req.course._id) {
                         uniqueCoursesMap.set(req.course._id, req.course);
                     }
                 });
-
-                // Chuyển Map thành Array để map vào Dropdown
                 setCoursesForFilter(Array.from(uniqueCoursesMap.values()));
-
             } catch (err) {
-                console.error("Lỗi tải danh sách khóa học cho bộ lọc:", err);
+                console.error("Lỗi tải danh sách khóa học:", err);
             }
         };
         fetchCoursesFromRequests();
     }, []);
 
+    // Fetch Requests Table
     useEffect(() => {
         fetchRequests();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, statusFilter, courseFilter]);
 
     const fetchRequests = async () => {
@@ -216,6 +216,24 @@ const AdminRequestList = () => {
     const openDetail = (id) => {
         setSelectedId(id);
         setIsModalOpen(true);
+    };
+
+  
+    const handleCreateClassFromSuggestion = () => {
+        if (!courseFilter) return;
+
+        // Tìm thông tin Course object từ ID để lấy Category ID 
+        const selectedCourseObj = coursesForFilter.find(c => c._id === courseFilter);
+        const categoryId = selectedCourseObj?.category?._id || selectedCourseObj?.category;
+
+        navigate("/admin/classes/create", {
+            state: {
+                prefill: {
+                    courseId: courseFilter,
+                    categoryId: categoryId,
+                }
+            }
+        });
     };
 
     const getStatusBadge = (status) => {
@@ -282,6 +300,7 @@ const AdminRequestList = () => {
                     courseId={courseFilter} 
                     courseName={selectedCourseName}
                     onClose={() => setCourseFilter("")}
+                    onCreateClass={handleCreateClassFromSuggestion} 
                 />
             )}
 
@@ -351,6 +370,7 @@ const AdminRequestList = () => {
                     </table>
                 </div>
 
+                {/* Pagination */}
                 <div className="px-6 py-4 border-t flex items-center justify-between">
                     <span className="text-sm text-gray-700">Trang {page} / {totalPages}</span>
                     <div className="space-x-2">
