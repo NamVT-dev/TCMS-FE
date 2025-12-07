@@ -1,4 +1,3 @@
-// src/components/Admin/AdminManageShedule/components/draft/InputAnalysisView.jsx
 
 import React from "react";
 import { Users, ClipboardList, ListFilter } from "lucide-react";

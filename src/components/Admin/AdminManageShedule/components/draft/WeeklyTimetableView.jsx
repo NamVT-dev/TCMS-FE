@@ -1,4 +1,3 @@
-
 import React, { useMemo } from "react";
 import { User, Home, BookOpen, AlertTriangle } from "lucide-react";
 
@@ -109,58 +108,76 @@ function WeeklyTimetableView({ draftSchedule }) {
   }
 
   return (
-    <div className="w-full overflow-x-auto scrollbar-thin">
-      <div className="min-w-[1200px]"> 
-       
-        <div className="grid grid-cols-8 gap-px bg-gray-200 border border-gray-200">
-          
+    <>
+      <style>{`
+        .timetable-grid {
+          display: grid;
+          grid-template-columns: 80px repeat(7, 1fr);
+          gap: 1px;
+          background-color: rgb(229, 231, 235);
+          border: 1px solid rgb(229, 231, 235);
+        }
         
-          <div className="bg-purple-800 text-white p-3 font-semibold text-sm sticky left-0 z-10">
-            Ca học
-          </div>
-          {days.map((day) => (
-            <div key={day.id} className="bg-purple-800 text-white p-3 font-semibold text-sm text-center">
-              {day.name}
-            </div>
-          ))}
+        .shift-column {
+          width: 80px;
+          min-width: 80px;
+          max-width: 80px;
+        }
+      `}</style>
 
-      
-          {shiftNames.map((shiftName) => (
-            <React.Fragment key={shiftName}>
-             
-              <div className="bg-purple-100 text-purple-900 p-3 font-semibold text-sm sticky left-0 z-10">
-                {shiftName}
+      <div className="w-full overflow-x-auto scrollbar-thin">
+        <div className="min-w-[1200px]"> 
+          <div className="timetable-grid">
+            
+            {/* Header - Ca học */}
+            <div className="shift-column bg-purple-800 text-white p-3 font-semibold text-sm sticky left-0 z-10">
+              Ca học
+            </div>
+            
+            {/* Header - Days */}
+            {days.map((day) => (
+              <div key={day.id} className="bg-purple-800 text-white p-3 font-semibold text-sm text-center">
+                {day.name}
               </div>
-              
-          
-              {days.map((day) => {
-                const key = `D${day.id}_${shiftName}`;
-                const assignmentsForCell = gridData.get(key) || [];
+            ))}
+
+            {/* Grid Content */}
+            {shiftNames.map((shiftName) => (
+              <React.Fragment key={shiftName}>
+                {/* Shift Name Column */}
+                <div className="shift-column bg-purple-100 text-purple-900 p-3 font-semibold text-sm sticky left-0 z-10">
+                  {shiftName}
+                </div>
                 
-                return (
-                  <div 
-                    key={key} 
-                    className="bg-white p-2 min-h-[100px] align-top"
-                  >
-             
-                    {assignmentsForCell.length > 0 && (
-                      <div className="space-y-2">
-                        {assignmentsForCell.map((assignment) => (
-                          <ScheduleCard 
-                            key={assignment.virtualClassId + assignment.day} 
-                            assignment={assignment} 
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </React.Fragment>
-          ))}
+                {/* Day Columns */}
+                {days.map((day) => {
+                  const key = `D${day.id}_${shiftName}`;
+                  const assignmentsForCell = gridData.get(key) || [];
+                  
+                  return (
+                    <div 
+                      key={key} 
+                      className="bg-white p-2 min-h-[100px] align-top"
+                    >
+                      {assignmentsForCell.length > 0 && (
+                        <div className="space-y-2">
+                          {assignmentsForCell.map((assignment) => (
+                            <ScheduleCard 
+                              key={assignment.virtualClassId + assignment.day} 
+                              assignment={assignment} 
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

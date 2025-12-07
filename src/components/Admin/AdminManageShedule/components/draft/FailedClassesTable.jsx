@@ -1,4 +1,3 @@
-// src/components/Admin/AdminManageShedule/components/draft/FailedClassesTable.jsx
 
 import React from "react";
 import { ListX } from "lucide-react";

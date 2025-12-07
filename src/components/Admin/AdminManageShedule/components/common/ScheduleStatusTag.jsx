@@ -1,4 +1,3 @@
-// src/components/Admin/AdminManageShedule/components/common/ScheduleStatusTag.jsx
 
 import React from "react";
 
