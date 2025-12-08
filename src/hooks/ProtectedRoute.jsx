@@ -21,6 +21,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       admin: '/admin/overview',
       teacher: '/teacher/timetable',
       member: '/',
+      staff: '/staff/profile',
     };
     return <Navigate to={roleRoutes[user.role] || '/login'} replace />;
   }
