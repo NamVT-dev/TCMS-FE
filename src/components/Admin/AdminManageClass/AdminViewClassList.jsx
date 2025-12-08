@@ -4,16 +4,16 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../../../utils/api';
 import { useDebounce } from '../../../hooks/useDebounce';
 import AdminCreateClassModal from './AdminCreateClassModal';
-import { ToastContainer } from 'react-toastify'; 
-import 'react-toastify/dist/ReactToastify.css'; 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Pagination = ({ page, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
-  
-  
+
+
   let startPage = Math.max(1, page - 2);
   let endPage = Math.min(totalPages, page + 2);
-  
+
   if (endPage - startPage < 4) {
     if (startPage === 1) endPage = Math.min(5, totalPages);
     else if (endPage === totalPages) startPage = Math.max(1, totalPages - 4);
@@ -43,11 +43,11 @@ const AdminViewClassList = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [displayedClasses, setDisplayedClasses] = useState([]); 
-  
+  const [displayedClasses, setDisplayedClasses] = useState([]);
+
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -73,7 +73,17 @@ const AdminViewClassList = () => {
     // { value: "archived", label: "Đã lưu trữ" },
     { value: "canceled", label: "Đã hủy" },
   ];
-
+  const LEVEL_PRIORITY = {
+    "Starter": 1,
+    "Beginner": 2,
+    "Elementary": 3,
+    "Pre-Intermediate": 4,
+    "Intermediate": 5,
+    "Upper-Intermediate": 6,
+    "Advanced": 7,
+    "Expert": 8
+  };
+  
   useEffect(() => {
     const initData = async () => {
       try {
@@ -81,6 +91,26 @@ const AdminViewClassList = () => {
           api.admin.getCourse({ page: 1, limit: 1000 }),
           api.admin.getCategories({ limit: 100 })
         ]);
+        let fetchedCourses = courseRes.data.data.courses || [];
+
+        // --- BẮT ĐẦU LOGIC SẮP XẾP ---
+        fetchedCourses.sort((a, b) => {
+          // 1. Ưu tiên sắp xếp theo Tên Khóa học (IELTS gom vào 1 chỗ, TOEIC gom vào 1 chỗ)
+          // Nếu bạn chỉ muốn sort thuần Level thì bỏ đoạn if này đi
+          const nameA = a.name || "";
+          const nameB = b.name || "";
+          
+          // Kiểm tra xem là IELTS hay TOEIC để gom nhóm (Tuỳ chọn, nhưng nên dùng cho dropdown đẹp)
+          if (nameA.includes("IELTS") && !nameB.includes("IELTS")) return -1;
+          if (!nameA.includes("IELTS") && nameB.includes("IELTS")) return 1;
+
+          // 2. Sắp xếp theo Level từ bé đến lớn
+          const levelA = LEVEL_PRIORITY[a.level] || 99; // 99 là giá trị mặc định nếu level không nằm trong list
+          const levelB = LEVEL_PRIORITY[b.level] || 99;
+
+          return levelA - levelB;
+        });
+        
         setCourses(courseRes.data.data.courses || []);
         setCategories(catRes.data.data.data || catRes.data.data.categories || []);
       } catch (err) {
@@ -112,11 +142,11 @@ const AdminViewClassList = () => {
     setLoading(true);
     setError(null);
     try {
-      
+
       const isFeFiltering = (selectedMonth !== "") || (selectedCategories.length > 0);
-      
-      const fetchLimit = isFeFiltering ? 1000 : limit; 
-      const fetchPage = isFeFiltering ? 1 : page; 
+
+      const fetchLimit = isFeFiltering ? 1000 : limit;
+      const fetchPage = isFeFiltering ? 1 : page;
 
       const params = {
         page: fetchPage,
@@ -142,11 +172,11 @@ const AdminViewClassList = () => {
           fetchedClasses = fetchedClasses.filter(cls => {
             const courseData = cls.course;
             if (!courseData) return false;
-            
+
             const catId = typeof courseData.category === 'object' && courseData.category !== null
-              ? courseData.category._id 
+              ? courseData.category._id
               : courseData.category;
-              
+
             return selectedCategories.includes(catId);
           });
         }
@@ -195,7 +225,7 @@ const AdminViewClassList = () => {
   const closeCreateModal = () => navigate('/admin/classes');
 
   const handleCategoryChange = (catId) => {
-    setPage(1); 
+    setPage(1);
     setSelectedCategories(prev => {
       if (prev.includes(catId)) return prev.filter(id => id !== catId);
       else return [...prev, catId];
@@ -207,7 +237,7 @@ const AdminViewClassList = () => {
     setSelectedCategories([]);
     setSelectedCourse("");
     setSelectedStatus("");
-    setSelectedMonth(""); 
+    setSelectedMonth("");
     setPage(1);
   };
 
@@ -285,7 +315,7 @@ const AdminViewClassList = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             <div className="relative">
+            <div className="relative">
               <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Tháng mở lớp</label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -365,7 +395,7 @@ const AdminViewClassList = () => {
                   <td className="px-6 py-4 text-gray-700 text-sm">
                     {cls.startAt ? new Date(cls.startAt).toLocaleDateString('vi-VN') : "N/A"}
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(cls.status)}`}>
                       {getStatusText(cls.status)}
