@@ -74,7 +74,6 @@ const AdminCourseDetailModal = ({
 
     const onFinish = async (values) => {
         setSaving(true);
-        const toastId = showToast.loading("Đang cập nhật khóa học...");
         try {
             const fd = new FormData();
             fd.append("name", values.name);
@@ -90,12 +89,17 @@ const AdminCourseDetailModal = ({
             }
             
             await api.admin.updateCourseById(courseId, fd);
-            showToast.updateSuccess(toastId, "Cập nhật thành công!");
             
-            setIsEditing(false);
-            if (onUpdated) onUpdated();
+            // Đóng modal trước
+            onClose();
+            
+            // Gọi callback để reload data và hiển thị toast
+            if (onUpdated) {
+                onUpdated();
+            }
+            
         } catch (err) {
-            showToast.updateError(toastId, err?.response?.data?.message || "Cập nhật thất bại!");
+            showToast.error(err?.response?.data?.message || "Cập nhật thất bại!");
         } finally {
             setSaving(false);
         }
@@ -160,8 +164,7 @@ const AdminCourseDetailModal = ({
             width={800}
             centered
             maskClosable={!isEditing} 
-            
-            destroyOnHidden
+            destroyOnClose
         >
            
             <Spin spinning={loading}>
@@ -171,7 +174,6 @@ const AdminCourseDetailModal = ({
                     onFinish={onFinish} 
                     disabled={!isEditing}
                     className="mt-4"
-                    
                     style={{ opacity: loading ? 0.5 : 1, pointerEvents: loading ? 'none' : 'auto' }}
                 >
                     <Row gutter={[24, 24]}>

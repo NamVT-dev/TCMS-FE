@@ -9,7 +9,7 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 
 const AdminViewCourseList = () => {
     const [courses, setCourses] = useState([]);
-    const [categories, setCategories] = useState([]); // Lưu raw data từ API
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -27,10 +27,9 @@ const AdminViewCourseList = () => {
         try {
             const [catRes, courseRes] = await Promise.all([
                 api.admin.getCategories(),
-                api.admin.getCourse({ limit: 1000 }) // Lấy tất cả để group
+                api.admin.getCourse({ limit: 1000 })
             ]);
 
-            // Lưu dữ liệu trả về (có thể là array hoặc object { data: [] })
             setCategories(catRes.data?.data || []);
             setCourses(courseRes.data?.data?.courses || []);
         } catch (err) {
@@ -64,7 +63,7 @@ const AdminViewCourseList = () => {
                 try {
                     await api.admin.deleteCourseById(id);
                     showToast.success("Đã xóa khóa học");
-                    fetchData(); // Reload data
+                    fetchData();
                 } catch (err) {
                     showToast.error(err?.response?.data?.message || "Lỗi khi xóa");
                 }
@@ -72,7 +71,15 @@ const AdminViewCourseList = () => {
         });
     };
 
-    // --- GROUPING LOGIC (FIXED) ---
+    // Handler cho update thành công
+    const handleUpdateSuccess = useCallback(() => {
+        // Reload data
+        fetchData();
+        // Hiển thị toast thông báo
+        showToast.success("Cập nhật khóa học thành công!");
+    }, [fetchData]);
+
+  
     // 1. Trích xuất mảng category an toàn
     const categoryList = Array.isArray(categories) ? categories : (categories?.data || []);
 
@@ -87,7 +94,6 @@ const AdminViewCourseList = () => {
             c.category?._id === cat._id || c.category === cat._id
         );
 
-
         if (coursesInCat.length > 0) {
             acc.push({
                 category: cat,
@@ -96,7 +102,6 @@ const AdminViewCourseList = () => {
         }
         return acc;
     }, []);
-
 
     const categoryIds = categoryList.map(c => c._id);
     const otherCourses = filteredCourses.filter(c => {
@@ -114,10 +119,14 @@ const AdminViewCourseList = () => {
     // --- RENDER HELPERS ---
     const LevelBadge = ({ level }) => {
         const colors = {
+            'Starter': 'bg-indigo-100 text-indigo-700 border-indigo-200',
             'Beginner': 'bg-green-100 text-green-700 border-green-200',
+            'Pre-Intermediate': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+            'Upper-Intermediate': 'bg-orange-100 text-orange-700 border-orange-200',
+            'Advanced': 'bg-red-100 text-red-700 border-red-200',
             'Elementary': 'bg-teal-100 text-teal-700 border-teal-200',
             'Intermediate': 'bg-blue-100 text-blue-700 border-blue-200',
-            'Advanced': 'bg-purple-100 text-purple-700 border-purple-200',
+            'Expert': 'bg-red-100 text-red-700 border-red-200',
         };
         return (
             <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide border ${colors[level] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
@@ -148,17 +157,18 @@ const AdminViewCourseList = () => {
                 </button>
             </div>
 
-            {/* TOOLBAR */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 sticky top-20 z-10">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                        type="text"
-                        placeholder="Tìm kiếm khóa học..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white"
-                    />
+            <div className="sticky top-0 z-30 bg-gray-50 pb-4 -mx-6 px-6">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                            type="text"
+                            placeholder="Tìm kiếm khóa học..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-gray-50 focus:bg-white"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -212,7 +222,6 @@ const AdminViewCourseList = () => {
                                                 {Number(course.price).toLocaleString()}
                                             </div>
                                         </div>
-
 
                                         {/* Body */}
                                         <div className="p-4 flex-1 flex flex-col">
@@ -275,7 +284,7 @@ const AdminViewCourseList = () => {
                 courseId={selectedCourseId}
                 categories={categories}
                 onClose={() => setOpenDetail(false)}
-                onUpdated={fetchData}
+                onUpdated={handleUpdateSuccess}
             />
         </div>
     );
