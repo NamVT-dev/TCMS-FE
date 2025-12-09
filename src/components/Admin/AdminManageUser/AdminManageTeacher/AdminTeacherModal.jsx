@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../../../utils/api';
-import { Loader2, Save, X, Upload, User, CheckSquare, Phone, Mail, Lock, Check, HelpCircle, Info, ArrowDown, AlertCircle, CheckCircle } from 'lucide-react';
+import { Loader2, Save, X, Upload, User, CheckSquare, Check, HelpCircle, Info, ArrowDown, AlertCircle, CheckCircle, GraduationCap } from 'lucide-react';
 
 const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white";
 const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
 
 const LEVEL_OPTIONS = [
-    "Starter", 
-    "Beginner", 
-    "Elementary", 
-    "Pre-Intermediate", 
-    "Intermediate", 
-    "Upper-Intermediate", 
-    "Advanced", 
+    "Starter",
+    "Beginner",
+    "Elementary",
+    "Pre-Intermediate",
+    "Intermediate",
+    "Upper-Intermediate",
+    "Advanced",
     "Expert"
 ];
 
@@ -70,7 +70,7 @@ function Toast({ message, type = "success", onClose }) {
 
 const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
     const isEditMode = Boolean(teacherId);
-    
+
     const [formData, setFormData] = useState({
         email: '',
         name: '',
@@ -78,11 +78,11 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
         phoneNumber: '',
         gender: 'male',
     });
-    const [skills, setSkills] = useState([]); 
+    const [skills, setSkills] = useState([]);
     const [photoFile, setPhotoFile] = useState(null);
     const [photoPreview, setPhotoPreview] = useState('');
     const [allCategories, setAllCategories] = useState([]);
-    
+
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [toast, setToast] = useState(null);
@@ -103,7 +103,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                     if (isEditMode) {
                         const res = await api.admin.getTeacherDetail(teacherId);
                         const teacher = res.data.data.teacher;
-                        
+
                         setFormData({
                             email: teacher.email,
                             name: teacher.profile.fullname,
@@ -112,11 +112,11 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                             gender: teacher.profile.gender || 'male',
                         });
                         setPhotoPreview(teacher.profile.photo || '');
-                        
+
                         if (teacher.skills?.length > 0) {
                             setSkills(teacher.skills.map(s => ({
                                 category: s.category?._id || s.category,
-                                levels: Array.isArray(s.levels) ? s.levels : [], 
+                                levels: Array.isArray(s.levels) ? s.levels : [],
                                 anyLevel: s.anyLevel || false,
                                 includeLowerLevels: s.includeLowerLevels ?? true,
                             })));
@@ -152,18 +152,25 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
             setPhotoPreview(URL.createObjectURL(file));
         }
     };
+    const getTodayDateString = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
 
+        return `${year}-${month}-${day}`;
+    };
     const toggleCategorySkill = (categoryId) => {
         setSkills(prev => {
             const exists = prev.find(s => s.category === categoryId);
             if (exists) {
                 return prev.filter(s => s.category !== categoryId);
             } else {
-                return [...prev, { 
-                    category: categoryId, 
-                    levels: [], 
-                    anyLevel: false, 
-                    includeLowerLevels: true 
+                return [...prev, {
+                    category: categoryId,
+                    levels: [],
+                    anyLevel: false,
+                    includeLowerLevels: true
                 }];
             }
         });
@@ -171,20 +178,20 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
 
     const getSkillMode = (skill) => {
         if (skill.anyLevel) return 'all';
-        return 'lower'; 
+        return 'lower';
     };
 
     const handleModeChange = (categoryId, mode) => {
         setSkills(prev => prev.map(s => {
             if (s.category !== categoryId) return s;
-            
+
             let updates = { anyLevel: false, includeLowerLevels: true };
-            
+
             if (mode === 'all') {
                 updates.anyLevel = true;
                 updates.includeLowerLevels = false;
             }
-            
+
             return { ...s, ...updates };
         }));
     };
@@ -192,9 +199,9 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
     const toggleLevel = (categoryId, level) => {
         setSkills(prev => prev.map(s => {
             if (s.category !== categoryId) return s;
-            
+
             let currentLevels = [...s.levels];
-            
+
             if (currentLevels.includes(level)) {
                 return { ...s, levels: [] };
             } else {
@@ -211,53 +218,53 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
         return null;
     };
 
-   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-        if (isEditMode) {
-            const fd = new FormData();
-            fd.append('profile[fullname]', formData.name);
-            fd.append('profile[phoneNumber]', formData.phoneNumber);
-            fd.append('profile[dob]', formData.dob);
-            fd.append('profile[gender]', formData.gender);
-            
-            
-            if (photoFile) {
-                fd.append('profile[photo]', photoFile);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            if (isEditMode) {
+                const fd = new FormData();
+                fd.append('profile[fullname]', formData.name);
+                fd.append('profile[phoneNumber]', formData.phoneNumber);
+                fd.append('profile[dob]', formData.dob);
+                fd.append('profile[gender]', formData.gender);
+
+
+                if (photoFile) {
+                    fd.append('profile[photo]', photoFile);
+                }
+
+                skills.forEach((skill, idx) => {
+                    fd.append(`skills[${idx}][category]`, skill.category);
+                    fd.append(`skills[${idx}][anyLevel]`, skill.anyLevel);
+                    fd.append(`skills[${idx}][includeLowerLevels]`, skill.includeLowerLevels);
+
+                    if (skill.levels && skill.levels.length > 0) {
+                        skill.levels.forEach((lvl, lvlIdx) => {
+                            fd.append(`skills[${idx}][levels][${lvlIdx}]`, lvl);
+                        });
+                    } else {
+                        fd.append(`skills[${idx}][levels]`, "");
+                    }
+                });
+
+                await api.admin.updateTeacher(teacherId, fd);
+                showToast("Cập nhật giáo viên thành công!", "success");
+            } else {
+                await api.admin.createTeacher(formData);
+                showToast("Tạo giáo viên mới thành công!", "success");
             }
 
-            skills.forEach((skill, idx) => {
-                fd.append(`skills[${idx}][category]`, skill.category);
-                fd.append(`skills[${idx}][anyLevel]`, skill.anyLevel);
-                fd.append(`skills[${idx}][includeLowerLevels]`, skill.includeLowerLevels);
-                
-                if (skill.levels && skill.levels.length > 0) {
-                    skill.levels.forEach((lvl, lvlIdx) => {
-                        fd.append(`skills[${idx}][levels][${lvlIdx}]`, lvl);
-                    });
-                } else {
-                    fd.append(`skills[${idx}][levels]`, ""); 
-                }
-            });
-            
-            await api.admin.updateTeacher(teacherId, fd);
-            showToast("Cập nhật giáo viên thành công!", "success");
-        } else {
-            await api.admin.createTeacher(formData);
-            showToast("Tạo giáo viên mới thành công!", "success");
+            setTimeout(() => {
+                onSuccess();
+                onClose();
+            }, 1000);
+        } catch (err) {
+            showToast(err.response?.data?.message || "Có lỗi xảy ra!", "error");
+        } finally {
+            setLoading(false);
         }
-        
-        setTimeout(() => {
-            onSuccess();
-            onClose();
-        }, 1000);
-    } catch (err) {
-        showToast(err.response?.data?.message || "Có lỗi xảy ra!", "error");
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     if (!isOpen) return null;
 
@@ -273,7 +280,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
 
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 transition-all duration-300">
                 <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all duration-200 scale-100">
-                    
+
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <div>
                             <h2 className="text-xl font-bold text-gray-800">{isEditMode ? 'Cập nhật hồ sơ giáo viên' : 'Thêm giáo viên mới'}</h2>
@@ -298,8 +305,8 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                                 {photoPreview ? (
                                                     <img src={photoPreview} alt="Avatar" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                        <User size={48} />
+                                                    <div className="w-full h-full flex items-center justify-center text-purple-300">
+                                                        <GraduationCap size={72} />
                                                     </div>
                                                 )}
                                             </div>
@@ -330,7 +337,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                         </div>
                                         <div>
                                             <label className={labelClass}>Ngày sinh <span className="text-red-500">*</span> </label>
-                                            <input type="date" name="dob" value={formData.dob} onChange={handleChange} className={inputClass} />
+                                            <input type="date" name="dob" value={formData.dob}  onChange={handleChange} className={inputClass} required max={new Date().toISOString().split('T')[0]} />
                                         </div>
                                         <div>
                                             <label className={labelClass}>Giới tính <span className="text-red-500">*</span> </label>
@@ -350,18 +357,18 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                                 <HelpCircle className="w-3 h-3 mr-1" /> Chọn môn học và năng lực giảng dạy
                                             </span>
                                         </h3>
-                                        
+
                                         <div className="grid grid-cols-1 gap-4">
                                             {allCategories.map((cat) => {
                                                 const activeSkill = skills.find(s => s.category === cat._id);
                                                 const isChecked = !!activeSkill;
-                                                const mode = activeSkill ? getSkillMode(activeSkill) : 'lower'; 
+                                                const mode = activeSkill ? getSkillMode(activeSkill) : 'lower';
 
                                                 return (
                                                     <div key={cat._id} className={`border rounded-lg transition-all ${isChecked ? 'border-purple-500 bg-purple-50/10 shadow-sm' : 'border-gray-200 hover:border-purple-200'}`}>
-                                                        
-                                                        <div 
-                                                            className="flex items-center p-3 cursor-pointer bg-white/50 rounded-t-lg hover:bg-gray-50 transition-colors" 
+
+                                                        <div
+                                                            className="flex items-center p-3 cursor-pointer bg-white/50 rounded-t-lg hover:bg-gray-50 transition-colors"
                                                             onClick={() => toggleCategorySkill(cat._id)}
                                                         >
                                                             <div className={`w-5 h-5 rounded border flex items-center justify-center mr-3 transition-colors ${isChecked ? 'bg-purple-600 border-purple-600' : 'bg-white border-gray-300'}`}>
@@ -369,28 +376,28 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                                             </div>
                                                             <span className={`font-bold text-base ${isChecked ? 'text-purple-900' : 'text-gray-700'}`}>{cat.name}</span>
                                                         </div>
-                                                        
+
                                                         {isChecked && (
                                                             <div className="p-4 pt-0 pl-11 border-t border-gray-100/50 transition-all duration-200">
-                                                                
+
                                                                 <div className="flex flex-wrap gap-6 mb-4 mt-3">
                                                                     <label className="flex items-center text-sm text-gray-700 cursor-pointer hover:text-purple-700">
-                                                                        <input 
-                                                                            type="radio" 
+                                                                        <input
+                                                                            type="radio"
                                                                             name={`mode_${cat._id}`}
-                                                                            checked={mode === 'lower'} 
+                                                                            checked={mode === 'lower'}
                                                                             onChange={() => handleModeChange(cat._id, 'lower')}
-                                                                            className="mr-2 w-4 h-4 accent-purple-600" 
+                                                                            className="mr-2 w-4 h-4 accent-purple-600"
                                                                         />
                                                                         Từ level này trở xuống (Chọn 1)
                                                                     </label>
                                                                     <label className="flex items-center text-sm text-gray-700 cursor-pointer hover:text-purple-700">
-                                                                        <input 
-                                                                            type="radio" 
+                                                                        <input
+                                                                            type="radio"
                                                                             name={`mode_${cat._id}`}
-                                                                            checked={mode === 'all'} 
+                                                                            checked={mode === 'all'}
                                                                             onChange={() => handleModeChange(cat._id, 'all')}
-                                                                            className="mr-2 w-4 h-4 accent-purple-600" 
+                                                                            className="mr-2 w-4 h-4 accent-purple-600"
                                                                         />
                                                                         Dạy tất cả level
                                                                     </label>
@@ -399,7 +406,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                                                 {mode === 'lower' && (
                                                                     <div>
                                                                         <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide flex items-center">
-                                                                            Chọn Level cao nhất: <ArrowDown className="w-3 h-3 ml-1"/>
+                                                                            Chọn Level cao nhất: <ArrowDown className="w-3 h-3 ml-1" />
                                                                         </p>
                                                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                                                                             {LEVEL_OPTIONS.map((level) => {
@@ -413,8 +420,8 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                                                                         type="button"
                                                                                         onClick={() => toggleLevel(cat._id, level)}
                                                                                         className={`group relative px-3 py-2 rounded-md text-sm font-medium transition-all border text-left flex flex-col
-                                                                                            ${isSelected 
-                                                                                                ? 'bg-purple-600 text-white border-purple-600 shadow-md z-10 ring-2 ring-purple-200 ring-offset-1' 
+                                                                                            ${isSelected
+                                                                                                ? 'bg-purple-600 text-white border-purple-600 shadow-md z-10 ring-2 ring-purple-200 ring-offset-1'
                                                                                                 : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300 hover:bg-purple-50'
                                                                                             }
                                                                                             ${isDimmed ? 'opacity-40 grayscale hover:opacity-100 hover:grayscale-0' : ''}
@@ -448,16 +455,16 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                     </div>
 
                     <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3">
-                        <button 
-                            type="button" 
-                            onClick={onClose} 
+                        <button
+                            type="button"
+                            onClick={onClose}
                             disabled={loading}
                             className="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-white hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Hủy bỏ
                         </button>
-                        <button 
-                            onClick={() => document.getElementById('teacher-form').requestSubmit()} 
+                        <button
+                            onClick={() => document.getElementById('teacher-form').requestSubmit()}
                             disabled={loading || fetching}
                             className="px-6 py-2.5 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                         >
