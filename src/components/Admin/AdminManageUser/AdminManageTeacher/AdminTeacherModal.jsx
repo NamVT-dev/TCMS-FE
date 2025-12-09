@@ -39,7 +39,6 @@ const SCORE_RANGES = {
     }
 };
 
-// Toast Notification Component
 function Toast({ message, type = "success", onClose }) {
     const icons = {
         success: <CheckCircle className="w-5 h-5" />,
@@ -212,49 +211,53 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
         return null;
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            if (isEditMode) {
-                const fd = new FormData();
-                fd.append('profile[fullname]', formData.name);
-                fd.append('profile[phoneNumber]', formData.phoneNumber);
-                fd.append('profile[dob]', formData.dob);
-                fd.append('profile[gender]', formData.gender);
-                if (photoFile) fd.append('profile[photo]', photoFile);
-
-                skills.forEach((skill, idx) => {
-                    fd.append(`skills[${idx}][category]`, skill.category);
-                    fd.append(`skills[${idx}][anyLevel]`, skill.anyLevel);
-                    fd.append(`skills[${idx}][includeLowerLevels]`, skill.includeLowerLevels);
-                    
-                    if (skill.levels && skill.levels.length > 0) {
-                        skill.levels.forEach((lvl, lvlIdx) => {
-                            fd.append(`skills[${idx}][levels][${lvlIdx}]`, lvl);
-                        });
-                    } else {
-                        fd.append(`skills[${idx}][levels]`, ""); 
-                    }
-                });
-                
-                await api.admin.updateTeacher(teacherId, fd);
-                showToast("Cập nhật giáo viên thành công!", "success");
-            } else {
-                await api.admin.createTeacher(formData);
-                showToast("Tạo giáo viên mới thành công!", "success");
-            }
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+        if (isEditMode) {
+            const fd = new FormData();
+            fd.append('profile[fullname]', formData.name);
+            fd.append('profile[phoneNumber]', formData.phoneNumber);
+            fd.append('profile[dob]', formData.dob);
+            fd.append('profile[gender]', formData.gender);
             
-            setTimeout(() => {
-                onSuccess();
-                onClose();
-            }, 1000);
-        } catch (err) {
-            showToast(err.response?.data?.message || "Có lỗi xảy ra!", "error");
-        } finally {
-            setLoading(false);
+            
+            if (photoFile) {
+                fd.append('profile[photo]', photoFile);
+            }
+
+            skills.forEach((skill, idx) => {
+                fd.append(`skills[${idx}][category]`, skill.category);
+                fd.append(`skills[${idx}][anyLevel]`, skill.anyLevel);
+                fd.append(`skills[${idx}][includeLowerLevels]`, skill.includeLowerLevels);
+                
+                if (skill.levels && skill.levels.length > 0) {
+                    skill.levels.forEach((lvl, lvlIdx) => {
+                        fd.append(`skills[${idx}][levels][${lvlIdx}]`, lvl);
+                    });
+                } else {
+                    fd.append(`skills[${idx}][levels]`, ""); 
+                }
+            });
+            
+            await api.admin.updateTeacher(teacherId, fd);
+            showToast("Cập nhật giáo viên thành công!", "success");
+        } else {
+            await api.admin.createTeacher(formData);
+            showToast("Tạo giáo viên mới thành công!", "success");
         }
-    };
+        
+        setTimeout(() => {
+            onSuccess();
+            onClose();
+        }, 1000);
+    } catch (err) {
+        showToast(err.response?.data?.message || "Có lỗi xảy ra!", "error");
+    } finally {
+        setLoading(false);
+    }
+};
 
     if (!isOpen) return null;
 
