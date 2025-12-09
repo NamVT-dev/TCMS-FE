@@ -7,7 +7,7 @@ import {
     Clock,
     ChevronDown,
     ChevronUp,
-    UserPlus,
+    User,
     BarChart3,
     Timer,
 
@@ -64,7 +64,7 @@ const ScheduleResourceOverview = ({ stats, isLoadingStats }) => {
         { id: 'teachers', name: 'Giáo viên Sẵn sàng', icon: Users, count: teachers.length },
         { id: 'rooms', name: 'Phòng học Sẵn sàng', icon: DoorOpen, count: rooms.length },
         { id: 'courses', name: 'Tổng Khóa học', icon: BookOpen, count: courses.length },
-        { id: 'students', name: 'Hàng đợi Học viên', icon: UserPlus, count: pendingStudents.length },
+        { id: 'students', name: 'Hàng đợi Học viên', icon: User, count: pendingStudents.length },
         { id: 'config', name: 'Lịch Trung tâm', icon: Clock, count: null },
     ];
 
