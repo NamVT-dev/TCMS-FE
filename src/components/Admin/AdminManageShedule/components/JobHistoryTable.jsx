@@ -160,9 +160,7 @@ function JobHistoryTable({ jobs, isLoading, onDeleteSuccess }) {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày chạy
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ngày Intake
-                </th>
+                
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tỷ lệ thành công (nháp)
                 </th>
@@ -187,7 +185,7 @@ function JobHistoryTable({ jobs, isLoading, onDeleteSuccess }) {
                   <td colSpan="5" className="p-6 text-center">
                     <List className="w-12 h-12 mx-auto text-gray-400" />
                     <p className="mt-2 text-sm font-medium text-gray-900">Chưa có lịch sử</p>
-                    <p className="text-sm text-gray-500">Hãy tạo một job xếp lịch mới.</p>
+                    <p className="text-sm text-gray-500">Hãy tạo  một bảng xếp lịch mới.</p>
                   </td>
                 </tr>
               )}
@@ -200,9 +198,7 @@ function JobHistoryTable({ jobs, isLoading, onDeleteSuccess }) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {new Date(job.createdAt).toLocaleString("vi-VN")}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {new Date(job.intakeStartDate).toLocaleDateString("vi-VN")}
-                  </td>
+                  
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {job.status === "draft" || job.status === "completed"
                       ? getSuccessRate(job)

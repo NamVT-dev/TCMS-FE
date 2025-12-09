@@ -26,7 +26,7 @@ const getStatusText = (status) => {
     case "draft": return "Cần duyệt (Draft)";
     case "finalizing": return "Đang chốt";
     case "completed": return "Hoàn thành";
-    case "system_error": return "Lỗi hệ thống";
+    case "system_error": return "Không xếp được lịch";
     default: return status;
   }
 }

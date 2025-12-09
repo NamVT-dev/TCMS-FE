@@ -145,7 +145,7 @@ function JobDraftReviewView({ job, onRefetch }) {
   };
 
   const tabs = [
-    { id: "draft", name: "Lịch Tuần Trực Quan", icon: Calendar },
+    { id: "draft", name: "Lịch Học Trực Quan", icon: Calendar },
     { id: "failed", name: "Lớp Thất Bại", icon: ListX, count: report.failedCount || 0 },
     { id: "input", name: "Phân Tích Đầu Vào", icon: TestTube2 },
     { id: "warnings", name: "Cảnh Báo", icon: AlertTriangle, count: report.warnings?.length || 0 },

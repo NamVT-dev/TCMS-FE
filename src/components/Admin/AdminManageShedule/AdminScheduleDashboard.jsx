@@ -99,7 +99,7 @@ function AdminScheduleDashboard() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-900">
-          Dashboard Xếp Lịch
+           Xếp Lịch
         </h1>
         <div className="flex-shrink-0 flex items-center space-x-3">
           <button

@@ -130,7 +130,7 @@ const WeeklyScheduleCard = ({ schedules }) => {
                 })}
                 {(!schedules || schedules.length === 0) && (
                     <div className="col-span-full text-center py-4">
-                        <p className="text-gray-500 italic">Chưa có lịch tuần cố định.</p>
+                        <p className="text-gray-500 italic">Chưa có lịch học cố định.</p>
                     </div>
                 )}
             </div>
