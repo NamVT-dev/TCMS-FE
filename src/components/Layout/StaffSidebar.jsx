@@ -90,12 +90,16 @@ const StaffSidebar = ({ isCollapsed, onToggle }) => {
     // Cấu hình menu dành riêng cho Staff dựa trên hình ảnh thư mục
     const menuItems = [
         {
-            icon: User,
-            title: "Cá nhân",
+            icon: School,
+            title: "Quản lý lớp học",
             items: [
-                { name: "Thông tin cá nhân", path: "/staff/profile", icon: User },
+                { name: "Danh sách lớp", path: "/staff/classes", icon: ListChecks },
+                { name: "Yêu cầu dạy thay", path: "/staff/requests/substitute", icon: ArrowRightLeft },
+                { name: "Thống kê nhu cầu", path: "/staff/requests/dashboard", icon: MessageSquarePlus },
+                { name: "Danh sách yêu cầu", path: "/staff/requests/list", icon: LayoutList }
             ]
         },
+        
         {
             icon: Users,
             title: "Quản lý người dùng",
@@ -106,16 +110,6 @@ const StaffSidebar = ({ isCollapsed, onToggle }) => {
             ]
         },
         {
-            icon: School,
-            title: "Quản lý lớp học",
-            items: [
-                { name: "Danh sách lớp", path: "/staff/classes", icon: ListChecks },
-                { name: "Yêu cầu dạy thay", path: "/staff/requests/substitute", icon: ArrowRightLeft },
-                { name: "Thống kê nhu cầu", path: "/staff/requests/dashboard", icon: MessageSquarePlus },
-                { name: "Danh sách yêu cầu", path: "/staff/requests/list", icon: LayoutList }
-            ]
-        },
-        {
             icon: Building2,
             title: "Quản lý trung tâm",
             items: [
@@ -123,6 +117,13 @@ const StaffSidebar = ({ isCollapsed, onToggle }) => {
                 { name: "Góp ý khiếu nại", path: "/staff/facility/complain", icon: MessageSquareShare },
             ]
         },
+        {
+            icon: User,
+            title: "Cá nhân",
+            items: [
+                { name: "Thông tin cá nhân", path: "/staff/profile", icon: User },
+            ]
+        }
         
     ];
 

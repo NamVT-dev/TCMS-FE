@@ -49,7 +49,14 @@ const StaffViewUpdateProfile = () => {
     }
   };
 
-
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear(); 
+  const month = String(today.getMonth() + 1).padStart(2, '0'); 
+  const day = String(today.getDate()).padStart(2, '0'); 
+  
+  return `${year}-${month}-${day}`;
+};
   const handleSave = async () => {
     setIsEditing(false);
     const toastId = showToast.loading("Đang cập nhật thông tin cá nhân...");
@@ -98,7 +105,7 @@ const StaffViewUpdateProfile = () => {
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 py-10">
-      <div className="bg-white shadow-lg rounded-2xl p-10 w-full max-w-4xl">
+      <div className="bg-white shadow-lg rounded-2xl p-10 w-full max-w-6xl">
 
         {/* Avatar */}
         <div className="flex flex-col items-center mb-8">
@@ -195,6 +202,7 @@ const StaffViewUpdateProfile = () => {
               onChange={handleChange}
               disabled={!isEditing}
               className="w-full border rounded-lg p-2 bg-gray-100"
+              max={getTodayDateString()}
             />
           </div>
 

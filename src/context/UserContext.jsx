@@ -128,7 +128,7 @@ export const UserProvider = ({ children }) => {
                 const roleRoutes = {
                     admin: '/admin/overview',
                     teacher: '/teacher/timetable',
-                    staff: '/staff/overview',
+                    staff: '/staff/classes',
                     member: '/',
                 };
                 

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from '../../components/Layout/Navbar'; // Dùng chung Navbar
-import StaffSidebar from '../../components/Layout/StaffSidebar'; // Nhớ import đúng file StaffSidebar vừa tạo
+import Navbar from '../../components/Layout/Navbar'; 
+import StaffSidebar from '../../components/Layout/StaffSidebar'; 
 
-// --- IMPORT TỪ FOLDER STAFF (Dựa trên hình ảnh) ---
 
 // 1. Staff / AdminManageUser (Student, Teacher, Enrollment)
 import StaffViewStudentList from '../../components/Staff/AdminManageUser/AdminManagerSudent/AdminViewSudentList';
@@ -17,6 +16,7 @@ import StaffViewClassList from '../../components/Staff/AdminManageClass/AdminVie
 import StaffClassDetail from '../../components/Staff/AdminManageClass/AdminClassDetail';
 import StaffClassScheduleForm from '../../components/Staff/AdminManageClass/AdminClassScheduleForm';
 import StaffViewDetailSessionClass from '../../components/Staff/AdminManageClass/AdminViewDetailSessionClass';
+import AdminCreateClassModal from '../../components/Staff/AdminManageClass/AdminCreateClassModal';
 
 // 3. Staff / AdminManageRequest
 import StaffRequestDashboard from '../../components/Staff/AdminManageRequest/AdminManageLearnerRequest/AdminRequestDashboard';
@@ -54,14 +54,14 @@ const StaffDashboard = () => {
         <div className={`flex-1 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-20' : 'ml-72'
           } p-6`}>
           <Routes>
-            
+
 
             <Route path="/users/students" element={<StaffViewStudentList />} />
             <Route path="/users/student/:id" element={<StaffStudentDetail />} />
-            
+
             <Route path="/users/teachers" element={<StaffViewTeacherList />} />
             <Route path="/users/teachers/detail/:id" element={<StaffViewTeacherDetail />} />
-            
+
             <Route path="/users/enrollments" element={<StaffViewEnrollmentList />} />
 
             <Route path="/requests/dashboard" element={<StaffRequestDashboard />} />
@@ -72,6 +72,8 @@ const StaffDashboard = () => {
             <Route path="/classes/detail/:id" element={<StaffClassDetail />} />
             <Route path="/classes/:id/schedule-setup" element={<StaffClassScheduleForm />} />
             <Route path="/classes/:id/sessions" element={<StaffViewDetailSessionClass />} />
+            <Route path="/classes/create" element={< StaffViewClassList />} />
+
 
             <Route path="/facility/rooms" element={<StaffViewRoomList />} />
             <Route path="/facility/complain" element={<StaffViewListComplain />} />
