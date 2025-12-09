@@ -110,7 +110,7 @@ const LearnerRoadmapPage = () => {
                 return;
             }
 
-            setIsFetchingDetail(true); 
+            setIsFetchingDetail(true);
 
             try {
                 const res = await api.user.getLearnerById(selectedStudent);
@@ -119,19 +119,19 @@ const LearnerRoadmapPage = () => {
                 // --- KIỂM TRA ĐÃ TEST HAY CHƯA ---
                 if (data.tested === false) {
                     setIsNotTested(true);
-                    
+
                     setCurrentScore(0);
                     setCurrentLevel('');
                     setExistingTarget(null);
                     setTargetScore('');
                     setDeadline('');
-                    setIsEditing(true); 
+                    setIsEditing(true);
 
                     if (data.category && data.category.length > 0) {
                         setSelectedCategory(data.category[0]._id);
                         setSelectedCategoryName(data.category[0].name);
                     }
-                    return; 
+                    return;
                 } else {
                     setIsNotTested(false);
                 }
@@ -173,7 +173,7 @@ const LearnerRoadmapPage = () => {
                 setExistingTarget(null);
                 setIsEditing(true);
             } finally {
-                setIsFetchingDetail(false); 
+                setIsFetchingDetail(false);
             }
         };
         fetchStudentDetail();
@@ -194,19 +194,47 @@ const LearnerRoadmapPage = () => {
 
     const targetOptions = useMemo(() => {
         if (!selectedCategoryName) return [];
+
         const type = selectedCategoryName.toUpperCase().includes('TOEIC') ? 'TOEIC' : 'IELTS';
         const ranges = LEVEL_RANGES[type] || [];
+
+        // Lấy index của level hiện tại
         const currentLevelIndex = LEVEL_ORDER.indexOf(currentLevel);
 
         return LEVEL_ORDER.map((lvl, index) => {
+
             const rangeInfo = ranges.find(r => r.level === lvl);
             const rangeLabel = rangeInfo ? ` (${rangeInfo.min} - ${rangeInfo.max})` : '';
-            const isDisabled = index <= currentLevelIndex;
+
+            // 1. Level hiện tại
+            const isCurrent = index === currentLevelIndex;
+
+            // 2. Level đã đạt (thấp hơn level hiện tại)
+            const isAchieved = index < currentLevelIndex;
+
+
+            const isDisabled = isAchieved;
+
+            let statusLabel = "";
+            let statusClass = "font-medium";
+
+            if (isCurrent) {
+                // Cho phép chọn level hiện tại, đánh dấu là Đang học/Đang phấn đấu
+                statusLabel = "(Trình độ hiện tại)";
+                statusClass = "text-purple-600 font-bold bg-purple-50";
+            } else if (isAchieved) {
+                // Vô hiệu hóa level đã đạt
+                statusLabel = "(Đã đạt)";
+                statusClass = "text-gray-400 bg-gray-100";
+            }
+            // Level cao hơn không cần status đặc biệt
 
             return {
                 value: lvl,
                 label: `${lvl}${rangeLabel}`,
-                isDisabled: isDisabled
+                isDisabled: isDisabled, // Chỉ disabled level thấp hơn
+                statusLabel: statusLabel,
+                statusClass: statusClass,
             };
         });
     }, [selectedCategoryName, currentLevel]);
@@ -309,7 +337,7 @@ const LearnerRoadmapPage = () => {
                                         className={inputClass}
                                         disabled={isFetchingDetail}
                                     >
-                                        <option value="">-- Chọn hồ sơ --</option> 
+                                        <option value="">-- Chọn hồ sơ --</option>
                                         {myStudents.map(s => (
                                             <option key={s._id} value={s._id}>{s.name}</option>
                                         ))}
@@ -400,7 +428,7 @@ const LearnerRoadmapPage = () => {
                                                 {/* Info Header */}
                                                 <div className="flex flex-col md:flex-row justify-between mb-10 gap-4">
                                                     <div>
-                                                        <p className="text-gray-500 text-sm uppercase font-semibold tracking-wider">Mục tiêu cuối cùng</p> 
+                                                        <p className="text-gray-500 text-sm uppercase font-semibold tracking-wider">Mục tiêu cuối cùng</p>
                                                         <div className="flex items-center gap-2">
                                                             <Target className="w-6 h-6 text-red-500" />
                                                             <p className="text-3xl font-bold text-gray-800">{existingTarget.targetScore}</p>
@@ -477,7 +505,7 @@ const LearnerRoadmapPage = () => {
                                                 <div>
                                                     <label htmlFor="targetScore" className="flex items-center text-sm font-medium text-gray-700 mb-1">
                                                         <Target className="w-4 h-4 mr-2 text-purple-600" />
-                                                        Mục tiêu (Level mong muốn) <span className="text-red-500">*</span>
+                                                        Mục tiêu (Level mong muốn)
                                                     </label>
                                                     <select
                                                         id="targetScore"
@@ -489,8 +517,13 @@ const LearnerRoadmapPage = () => {
                                                     >
                                                         <option value="">-- Chọn level mục tiêu --</option>
                                                         {targetOptions.map((opt, index) => (
-                                                            <option key={index} value={opt.value} disabled={opt.isDisabled} className={opt.isDisabled ? "text-gray-400 bg-gray-100" : "font-medium"}>
-                                                                {opt.label} {opt.isDisabled ? "(Đã đạt)" : ""}
+                                                            <option
+                                                                key={index}
+                                                                value={opt.value}
+                                                                disabled={opt.isDisabled}
+                                                                className={opt.statusClass}
+                                                            >
+                                                                {opt.label} {opt.statusLabel}
                                                             </option>
                                                         ))}
                                                     </select>

@@ -3,7 +3,7 @@ import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import toast from "react-hot-toast";
-import Navbar from "../../components/Layout/Navbar";  
+import Navbar from "../../components/Layout/Navbar";
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -43,7 +43,6 @@ const RegisterForm = () => {
       setError("");
       setMessage("");
 
-      console.log("📤 Data being sent:", formData);
 
       const success = await signup(formData);
 
@@ -56,8 +55,8 @@ const RegisterForm = () => {
         setError("Không thể đăng ký. Vui lòng thử lại sau!");
       }
     } catch (err) {
-      console.error("❌ Error details:", err.response?.data);
-      
+
+
       const msg =
         err?.response?.data?.message || "Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.";
       setError(msg);
@@ -66,7 +65,18 @@ const RegisterForm = () => {
       setLoading(false);
     }
   };
+  // Đặt hàm này ở ngoài component hoặc trong một file utils
+  const getTodayDateString = () => {
+    const today = new Date();
+    // Lấy năm
+    const year = today.getFullYear();
+    // Lấy tháng (cộng 1 vì getMonth trả về từ 0-11), thêm '0' nếu < 10
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    // Lấy ngày, thêm '0' nếu < 10
+    const day = String(today.getDate()).padStart(2, '0');
 
+    return `${year}-${month}-${day}`;
+  };
   return (
     <div className="min-h-screen w-full flex flex-col">
       <Navbar />
@@ -90,67 +100,68 @@ const RegisterForm = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField 
-                  label="Họ và tên" 
-                  icon={<User />} 
-                  name="name" 
+                <InputField
+                  label="Họ và tên"
+                  icon={<User />}
+                  name="name"
                   type="text"
-                  placeholder="Nguyễn Văn A" 
-                  value={formData.name} 
-                  onChange={handleChange} 
-                  required 
+                  placeholder="Nguyễn Văn A"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
                 />
-                <InputField 
-                  label="Email" 
-                  icon={<Mail />} 
-                  name="email" 
+                <InputField
+                  label="Email"
+                  icon={<Mail />}
+                  name="email"
                   type="email"
-                  placeholder="your.email@example.com" 
-                  value={formData.email} 
-                  onChange={handleChange} 
-                  required 
+                  placeholder="your.email@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField 
-                  label="Số điện thoại" 
-                  icon={<Phone />} 
-                  name="phoneNumber" 
+                <InputField
+                  label="Số điện thoại"
+                  icon={<Phone />}
+                  name="phoneNumber"
                   type="tel"
-                  placeholder="0123456789" 
-                  value={formData.phoneNumber} 
-                  onChange={handleChange} 
-                  required 
+                  placeholder="0123456789"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  required
                 />
-                <InputField 
-                  label="Ngày sinh" 
-                  icon={<Calendar />} 
-                  name="dob" 
+                <InputField
+                  label="Ngày sinh"
+                  icon={<Calendar />}
+                  name="dob"
                   type="date"
-                  value={formData.dob} 
-                  onChange={handleChange} 
-                  required 
+                  value={formData.dob}
+                  onChange={handleChange}
+                  required
+                  max={getTodayDateString()}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                <PasswordField 
-                  label="Mật khẩu" 
-                  name="password" 
+                <PasswordField
+                  label="Mật khẩu"
+                  name="password"
                   value={formData.password}
-                  onChange={handleChange} 
-                  show={showPassword} 
-                  setShow={setShowPassword} 
+                  onChange={handleChange}
+                  show={showPassword}
+                  setShow={setShowPassword}
                   required
                 />
-                <PasswordField 
-                  label="Xác nhận mật khẩu" 
-                  name="passwordConfirm" 
+                <PasswordField
+                  label="Xác nhận mật khẩu"
+                  name="passwordConfirm"
                   value={formData.passwordConfirm}
-                  onChange={handleChange} 
-                  show={showConfirmPassword} 
-                  setShow={setShowConfirmPassword} 
+                  onChange={handleChange}
+                  show={showConfirmPassword}
+                  setShow={setShowConfirmPassword}
                   required
                 />
               </div>
@@ -177,10 +188,10 @@ const RegisterForm = () => {
         </div>
 
         <div className="hidden md:block md:w-[45%]">
-          <img 
-            src="/images/banner.png" 
-            alt="Register Illustration" 
-            className="w-full h-full object-cover rounded-l-[32px]" 
+          <img
+            src="/images/banner.png"
+            alt="Register Illustration"
+            className="w-full h-full object-cover rounded-l-[32px]"
           />
         </div>
       </div>
@@ -196,10 +207,10 @@ const InputField = ({ label, icon, required, ...props }) => (
     </label>
     <div className="relative">
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{icon}</div>
-      <input 
+      <input
         {...props}
         required={required}
-        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none" 
+        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
       />
     </div>
   </div>
@@ -222,9 +233,9 @@ const PasswordField = ({ label, name, value, onChange, show, setShow, required }
         className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
         required={required}
       />
-      <button 
-        type="button" 
-        onClick={() => setShow(!show)} 
+      <button
+        type="button"
+        onClick={() => setShow(!show)}
         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
       >
         {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
