@@ -64,21 +64,17 @@ const getWeekSpanForAPI = (date) => {
   return { startDate: f(startDate), endDate: f(endDate) };
 };
 
-
-
 function TeacherViewSchedule() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
 
   const weekDays = useMemo(() => getWeekDays(currentWeek), [currentWeek]);
 
-  
   const fetchSchedule = useCallback(async (week) => {
     setIsLoading(true);
     setError(null);
@@ -145,12 +141,12 @@ function TeacherViewSchedule() {
   const totalSessionsInWeek = Object.values(sessionsByDay).flat().length;
 
   const handleOpenRequestModal = (session) => {
-      setSelectedSession(session);
-      setIsRequestModalOpen(true);
+    setSelectedSession(session);
+    setIsRequestModalOpen(true);
   };
 
   const handleRequestSuccess = () => {
-      fetchSchedule(currentWeek);
+    fetchSchedule(currentWeek);
   };
 
   return (
@@ -207,7 +203,7 @@ function TeacherViewSchedule() {
           </div>
         )}
 
-         <div className="overflow-x-auto">
+        <div className="overflow-x-auto">
           <table className="w-full border-collapse min-w-[900px] table-fixed">
             <thead>
               <tr className="bg-gray-50">
@@ -247,19 +243,21 @@ function TeacherViewSchedule() {
                       <div className="text-base font-bold text-purple-700">
                         {shift.name} 
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5 font-medium ">
+                      <div className="text-xs text-gray-500 mt-0.5 font-medium">
                         {shift.start} - {shift.end}
                       </div>
                     </div>
                   </td>
 
-                  
                   {weekDays.map((day, dayIdx) => {
                     const session = getSessionForShift(day, shift);
                     const isTodayCell = isToday(day);
                     
-                    
-                    const isFutureSession = session && new Date(session.startAt) > new Date();
+                    // Kiểm tra nếu session còn ít nhất 12 tiếng nữa mới bắt đầu
+                    const sessionStartTime = session ? new Date(session.startAt) : null;
+                    const now = new Date();
+                    const hoursUntilSession = sessionStartTime ? (sessionStartTime - now) / (1000 * 60 * 60) : 0;
+                    const canRequestSubstitute = session && hoursUntilSession >= 12;
 
                     return (
                       <td
@@ -291,20 +289,19 @@ function TeacherViewSchedule() {
                               </span>
                             </div>
 
-                           
-                            {isFutureSession && (
-                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity z-10 rounded">
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleOpenRequestModal(session);
-                                        }}
-                                        className="bg-white text-purple-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg hover:scale-105 active:scale-95 transition-transform flex items-center gap-1"
-                                    >
-                                        <RefreshCw className="w-3 h-3" />
-                                        Yêu cầu dạy thay
-                                    </button>
-                                </div>
+                            {canRequestSubstitute && (
+                              <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity z-10 rounded">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenRequestModal(session);
+                                  }}
+                                  className="bg-white text-purple-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg hover:scale-105 active:scale-95 transition-transform flex items-center gap-1"
+                                >
+                                  <RefreshCw className="w-3 h-3" />
+                                  Yêu cầu dạy thay
+                                </button>
+                              </div>
                             )}
                           </div>
                         ) : (
@@ -335,6 +332,9 @@ function TeacherViewSchedule() {
                 <span>Hôm nay</span>
               </div>
             </div>
+          </div>
+          <div className="mt-2 text-xs text-gray-500 italic">
+            <span className="font-semibold">Lưu ý:</span> Chỉ được yêu cầu dạy thay trước 12 tiếng khi ca học bắt đầu
           </div>
         </div>
       </div>
