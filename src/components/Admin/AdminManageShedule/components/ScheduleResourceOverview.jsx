@@ -266,7 +266,7 @@ const ScheduleResourceOverview = ({ stats, isLoadingStats }) => {
                                                 <h3 className="text-2xl font-bold text-blue-800">{studentStats.totalNew}</h3>
                                             </div>
                                             <div className="p-2 bg-white rounded-full shadow-sm">
-                                                <UserPlus className="w-5 h-5 text-blue-500" />
+                                                <User className="w-5 h-5 text-blue-500" />
                                             </div>
                                         </div>
 
