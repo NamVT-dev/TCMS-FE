@@ -79,9 +79,9 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
     setWeekRange({ start: startISO, end: endISO });
   }, [currentWeek]);
 
-  // -------------------------
+  
   // Fetch schedule when week change
-  // -------------------------
+  
   useEffect(() => {
     if (!isOpen || !studentId || !weekRange.start) return;
 
