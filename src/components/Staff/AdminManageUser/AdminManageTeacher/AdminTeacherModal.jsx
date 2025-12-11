@@ -86,6 +86,8 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [toast, setToast] = useState(null);
+    const [oldPhoto, setOldPhoto] = useState("");
+
 
     const showToast = (message, type = "success") => {
         setToast({ message, type });
@@ -112,6 +114,8 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                             gender: teacher.profile.gender || 'male',
                         });
                         setPhotoPreview(teacher.profile.photo || '');
+                        setOldPhoto(teacher.profile.photo || "");
+
 
                         if (teacher.skills?.length > 0) {
                             setSkills(teacher.skills.map(s => ({
@@ -152,7 +156,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
             setPhotoPreview(URL.createObjectURL(file));
         }
     };
-    
+
     const toggleCategorySkill = (categoryId) => {
         setSkills(prev => {
             const exists = prev.find(s => s.category === categoryId);
@@ -220,8 +224,11 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
         fd.append('profile[gender]', formData.gender);
 
         if (photoFile) {
-            fd.append('profile[photo]', photoFile);
+            fd.append('profile[photo]', photoFile);   // ảnh mới
+        } else if (oldPhoto) {
+            fd.append('profile[photo]', oldPhoto);    // ảnh cũ
         }
+
 
         skills.forEach((skill, idx) => {
             fd.append(`skills[${idx}][category]`, skill.category);
@@ -250,19 +257,19 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                 showToast("Cập nhật giáo viên thành công!", "success");
             } else {
                 // --- TRƯỜNG HỢP TẠO MỚI (CHIẾN THUẬT 2 BƯỚC) ---
-                
+
                 // BƯỚC 1: Tạo giáo viên bằng JSON thuần (để tránh lỗi 400 Bad Request)
                 // Backend mong đợi: { name, email, phoneNumber... } chứ không phải FormData
                 const createPayload = {
                     email: formData.email,
-                    name: formData.name, 
+                    name: formData.name,
                     phoneNumber: formData.phoneNumber,
                     dob: formData.dob,
                     gender: formData.gender
                 };
 
                 const res = await api.admin.createTeacher(createPayload);
-                
+
                 // Lấy ID của giáo viên vừa tạo
                 // Cấu trúc response thường là res.data.data._id hoặc res.data.data.teacher._id
                 const newTeacherData = res.data?.data?.teacher || res.data?.data;
@@ -366,7 +373,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                         </div>
                                         <div>
                                             <label className={labelClass}>Ngày sinh <span className="text-red-500">*</span> </label>
-                                            <input type="date" name="dob" value={formData.dob}  onChange={handleChange} className={inputClass} required max={new Date().toISOString().split('T')[0]} />
+                                            <input type="date" name="dob" value={formData.dob} onChange={handleChange} className={inputClass} required max={new Date().toISOString().split('T')[0]} />
                                         </div>
                                         <div>
                                             <label className={labelClass}>Giới tính <span className="text-red-500">*</span> </label>
