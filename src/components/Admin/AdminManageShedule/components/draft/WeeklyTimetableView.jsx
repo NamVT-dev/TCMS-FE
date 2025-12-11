@@ -75,22 +75,25 @@ function WeeklyTimetableView({ draftSchedule }) {
     ];
 
     
-    const allAssignments = draftSchedule.flat();
+    
 
     
-    const uniqueShifts = [...new Set(allAssignments.map(a => a.shiftName))];
-    
-    
-    const shiftNames = uniqueShifts.sort(); 
+    const shiftNames = ["S1", "S2", "S3", "S4", "S5", "S6"];
 
-    
     const gridData = new Map();
-    for (const assignment of allAssignments) {
-      const key = `D${assignment.day}_${assignment.shiftName}`;
-      if (!gridData.has(key)) {
-        gridData.set(key, []);
+
+    // 3. Chỉ map dữ liệu nếu có draftSchedule
+    if (draftSchedule && draftSchedule.length > 0) {
+      const allAssignments = draftSchedule.flat();
+
+      for (const assignment of allAssignments) {
+        // Lưu ý: Đảm bảo assignment.shiftName khớp với S1, S2... 
+        const key = `D${assignment.day}_${assignment.shiftName}`;
+        if (!gridData.has(key)) {
+          gridData.set(key, []);
+        }
+        gridData.get(key).push(assignment);
       }
-      gridData.get(key).push(assignment);
     }
 
     return { days, shiftNames, gridData };
