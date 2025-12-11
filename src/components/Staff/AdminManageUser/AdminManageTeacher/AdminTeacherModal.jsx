@@ -251,15 +251,14 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
         setLoading(true);
         try {
             if (isEditMode) {
-                // --- TRƯỜNG HỢP EDIT ---
+              
                 const fd = createUpdateFormData();
                 await api.admin.updateTeacher(teacherId, fd);
                 showToast("Cập nhật giáo viên thành công!", "success");
             } else {
-                // --- TRƯỜNG HỢP TẠO MỚI (CHIẾN THUẬT 2 BƯỚC) ---
+               
 
-                // BƯỚC 1: Tạo giáo viên bằng JSON thuần (để tránh lỗi 400 Bad Request)
-                // Backend mong đợi: { name, email, phoneNumber... } chứ không phải FormData
+                //  Tạo giáo viên bằng JSON thuần (để tránh lỗi 400 Bad Request)
                 const createPayload = {
                     email: formData.email,
                     name: formData.name,
@@ -280,7 +279,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                     throw new Error("Tạo thành công nhưng không lấy được ID để cập nhật kỹ năng.");
                 }
 
-                // BƯỚC 2: Nếu có Ảnh hoặc Skill, gọi tiếp API Update ngay lập tức
+                //  Nếu có Ảnh hoặc Skill, gọi tiếp API Update ngay lập tức
                 if (photoFile || skills.length > 0) {
                     const fd = createUpdateFormData();
                     // Lưu ý: Update API dùng FormData nên sẽ nhận được ảnh và skills
@@ -426,16 +425,20 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                                                     />
                                                                     Từ level này trở xuống (Chọn 1)
                                                                 </label>
-                                                                <label className="flex items-center text-sm text-gray-700 cursor-pointer hover:text-purple-700">
-                                                                    <input
-                                                                        type="radio"
-                                                                        name={`mode_${cat._id}`}
-                                                                        checked={mode === 'all'}
-                                                                        onChange={() => handleModeChange(cat._id, 'all')}
-                                                                        className="mr-2 w-4 h-4 accent-purple-600"
-                                                                    />
-                                                                    Dạy tất cả level
-                                                                </label>
+                                                                
+                                                                {/* CHỈ HIỂN THỊ KHI ĐANG EDIT */}
+                                                                {isEditMode && (
+                                                                    <label className="flex items-center text-sm text-gray-700 cursor-pointer hover:text-purple-700">
+                                                                        <input
+                                                                            type="radio"
+                                                                            name={`mode_${cat._id}`}
+                                                                            checked={mode === 'all'}
+                                                                            onChange={() => handleModeChange(cat._id, 'all')}
+                                                                            className="mr-2 w-4 h-4 accent-purple-600"
+                                                                        />
+                                                                        Dạy tất cả level
+                                                                    </label>
+                                                                )}
                                                             </div>
 
                                                             {mode === 'lower' && (
