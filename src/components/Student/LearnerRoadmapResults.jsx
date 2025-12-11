@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import api from '../../utils/api';
-import { Loader2, ArrowLeft, BookOpen, Check, Map, Clock, AlertCircle, CheckCircle, X } from 'lucide-react';
+// Thêm icon Lock hoặc Calendar để hiển thị thông báo đang bận học
+import { Loader2, ArrowLeft, BookOpen, Check, Map, Clock, AlertCircle, CheckCircle, X, Calendar, Lock } from 'lucide-react';
 import EnrollmentModal from './EnrollmentModal';
 
 function useQuery() {
@@ -15,6 +16,7 @@ const formatMinutes = (minutes) => {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 };
 
+// ... (Giữ nguyên component Toast và ClassCard như cũ) ...
 function Toast({ message, type = "success", onClose }) {
   const icons = {
     success: <CheckCircle className="w-5 h-5" />,
@@ -89,6 +91,9 @@ const LearnerRoadmapResults = () => {
 
   const [roadmap, setRoadmap] = useState({ stages: [], upcomingClasses: [] });
   const [studentScore, setStudentScore] = useState(0);
+  
+  // 1. Thêm state để check trạng thái đang học
+  const [isStudying, setIsStudying] = useState(false);
 
   const studentId = query.get('student');
   const categoryId = query.get('category');
@@ -109,16 +114,44 @@ const LearnerRoadmapResults = () => {
     }
     setLoading(true);
     try {
-      const [roadmapRes, profileRes] = await Promise.all([
+      // 1. Params truyền vào (Giữ nguyên vì đã đúng)
+      const now = new Date();
+      const threeWeeksLater = new Date(now);
+      threeWeeksLater.setDate(now.getDate() + 21);
+
+      const scheduleParams = {
+        startDate: now.toISOString(),
+        endDate: threeWeeksLater.toISOString()
+      };
+
+      const [roadmapRes, profileRes, scheduleRes] = await Promise.all([
         api.learner.getRoadmap(studentId, categoryId),
-        api.learner.getStudentProfile(studentId)
+        api.learner.getStudentProfile(studentId),
+        // axios sẽ tự động chuyển object scheduleParams thành query string: ?startDate=...&endDate=...
+        api.learner.getMySchedule(studentId, scheduleParams) 
       ]);
 
       setRoadmap(roadmapRes.data.data);
       setStudentScore(profileRes.data.data.testScore || 0);
 
+      // --- SỬA ĐOẠN NÀY ---
+      // Backend trả về: { status: "success", data: { sessions: [...] } }
+      // scheduleRes.data là toàn bộ body response
+      // scheduleRes.data.data là object { sessions: [...] }
+      const responseData = scheduleRes.data.data;
+
+      // Bạn cần chọc sâu vào key 'sessions' để lấy mảng
+      if (responseData && responseData.sessions && responseData.sessions.length > 0) {
+        setIsStudying(true);
+      } else {
+        setIsStudying(false);
+      }
+      // --------------------
+
     } catch (err) {
       console.error(err);
+      // Backend trả về lỗi nếu không có quyền, ta nên xử lý nhẹ nhàng hơn ở đây
+      // Nếu lỗi 403/400 v.v... coi như không có lịch hoặc báo lỗi tùy logic
       showToast(err.response?.data?.message || "Lỗi khi tải dữ liệu.", "error");
     } finally {
       setLoading(false);
@@ -160,8 +193,6 @@ const LearnerRoadmapResults = () => {
 
   const courseId = suitableStage ? suitableStage._id : '';
   const customScheduleUrl = `/learner/custom-schedule?student=${studentId}&category=${categoryId}${courseId ? `&course=${courseId}` : ''}`;
-  
-  
 
   if (loading) {
     return (
@@ -194,6 +225,7 @@ const LearnerRoadmapResults = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 sticky top-24">
+              {/* ... (Phần hiển thị Sidebar lộ trình giữ nguyên) ... */}
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                 <Map className="w-6 h-6 mr-3 text-purple-600" />
                 Lộ Trình Của Bạn
@@ -209,7 +241,6 @@ const LearnerRoadmapResults = () => {
                 <ol className="relative border-l border-purple-300 ml-3">
                   {roadmap.stages.map((stage, index) => {
                     const isCurrent = suitableStage && stage._id === suitableStage._id;
-
                     return (
                       <li key={stage._id} className="mb-6 ml-6">
                         <span className={`absolute flex items-center justify-center w-6 h-6 rounded-full -left-3 transition-colors duration-300 ${isCurrent
@@ -241,39 +272,64 @@ const LearnerRoadmapResults = () => {
               Lớp học phù hợp ({suitableStage ? suitableStage.name : 'Đang tìm lớp...'})
             </h2>
 
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6 flex items-center gap-3">
-              <AlertCircle className="h-6 w-6 text-blue-500 flex-shrink-0" />
-              <p className="text-sm text-blue-700">
-                Không tìm thấy lớp có thời gian học phù hợp?
-                <Link
-                  to={customScheduleUrl}
-                  className="font-semibold underline hover:text-blue-900 ml-1"
-                >
-                  Bấm vào đây để thiết lập lịch tùy chỉnh
-                </Link>
-              </p>
-            </div>
-
-            {filteredClasses.length === 0 ? (
-              <div className="text-center bg-gray-50 rounded-lg border border-gray-200 p-8">
-                <p className="text-gray-600 text-lg mb-2">
-                  {suitableStage
-                    ? "Hiện không có lớp nào sắp mở cho trình độ này."
-                    : "Điểm số của bạn chưa phù hợp với bất kỳ lớp nào trong lộ trình này."}
-                </p>
-                <p className="text-gray-500 text-sm">Vui lòng liên hệ admin hoặc thử xếp lịch tùy chỉnh.</p>
+            {/* 5. Logic hiển thị: Nếu đang học -> Hiện thông báo chặn. Nếu không -> Hiện danh sách lớp */}
+            {isStudying ? (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-8 text-center shadow-sm">
+                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-100 mb-4">
+                    <Calendar className="w-8 h-8 text-orange-600" />
+                 </div>
+                 <h3 className="text-xl font-bold text-orange-800 mb-2">Bạn đang có lịch học</h3>
+                 <p className="text-gray-600 max-w-md mx-auto">
+                    Hệ thống ghi nhận bạn đang có lịch học trong 3 tuần tới. 
+                    Vui lòng hoàn thành khóa học hiện tại trước khi đăng ký lớp mới để đảm bảo chất lượng học tập.
+                 </p>
+                 <div className="mt-6 flex justify-center gap-4">
+                    <Link 
+                        to={`/learner/my-classes?studentId=${studentId}`} 
+                        className="px-4 py-2 bg-white border border-orange-300 text-orange-700 font-medium rounded-lg hover:bg-orange-50 transition"
+                    >
+                        Xem lịch học của tôi
+                    </Link>
+                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredClasses.map(cls => (
-                  <ClassCard
-                    key={cls._id}
-                    cls={cls}
-                    studentId={studentId}
-                    onRegisterClick={handleRegisterClick}
-                  />
-                ))}
-              </div>
+                // Khối code hiển thị danh sách lớp cũ được đưa vào đây
+                <>
+                    <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6 flex items-center gap-3">
+                    <AlertCircle className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                    <p className="text-sm text-blue-700">
+                        Không tìm thấy lớp có thời gian học phù hợp?
+                        <Link
+                        to={customScheduleUrl}
+                        className="font-semibold underline hover:text-blue-900 ml-1"
+                        >
+                        Bấm vào đây để thiết lập lịch tùy chỉnh
+                        </Link>
+                    </p>
+                    </div>
+
+                    {filteredClasses.length === 0 ? (
+                    <div className="text-center bg-gray-50 rounded-lg border border-gray-200 p-8">
+                        <p className="text-gray-600 text-lg mb-2">
+                        {suitableStage
+                            ? "Hiện không có lớp nào sắp mở cho trình độ này."
+                            : "Điểm số của bạn chưa phù hợp với bất kỳ lớp nào trong lộ trình này."}
+                        </p>
+                        <p className="text-gray-500 text-sm">Vui lòng liên hệ admin hoặc thử xếp lịch tùy chỉnh.</p>
+                    </div>
+                    ) : (
+                    <div className="space-y-4">
+                        {filteredClasses.map(cls => (
+                        <ClassCard
+                            key={cls._id}
+                            cls={cls}
+                            studentId={studentId}
+                            onRegisterClick={handleRegisterClick}
+                        />
+                        ))}
+                    </div>
+                    )}
+                </>
             )}
           </div>
         </div>
