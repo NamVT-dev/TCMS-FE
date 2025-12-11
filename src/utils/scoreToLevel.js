@@ -6,9 +6,9 @@ export const LEVEL_RANGES = {
     { level: "Elementary", min: 4.0, max: 4.5 },
     { level: "Pre-Intermediate", min: 4.5, max: 5.0 },
     { level: "Intermediate", min: 5.0, max: 5.5 },
-    { level: "Upper-Intermediate", min: 6.0, max: 6.5 },
-    { level: "Advanced", min: 7.0, max: 7.5 },
-    { level: "Expert", min: 8.0, max: 9.0 },
+    { level: "Upper-Intermediate", min: 5.5, max: 6.5 },
+    { level: "Advanced", min: 6.5, max: 7.5 },
+    { level: "Expert", min: 7.5, max: 9.0 },
   ],
   TOEIC: [
     { level: "Starter", min: 0, max: 250 },
