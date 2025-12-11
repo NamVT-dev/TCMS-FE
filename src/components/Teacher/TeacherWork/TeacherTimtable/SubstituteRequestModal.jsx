@@ -271,7 +271,7 @@ const SubstituteRequestModal = ({ isOpen, onClose, session, onSuccess }) => {
                                         : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                                     }`}
                                 >
-                                    <span>Yêu cầu Admin tìm giúp</span>
+                                    <span>Yêu cầu Admin tìm kiếm </span>
                                     <span className="text-[10px] font-normal opacity-70">(Gửi cho yêu cầu đến Staff/Admin)</span>
                                 </button>
                                 <button
@@ -321,7 +321,7 @@ const SubstituteRequestModal = ({ isOpen, onClose, session, onSuccess }) => {
                                         <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
                                         <div>
                                             <strong>Không tìm thấy ai!</strong><br/>
-                                            Không có giáo viên nào rảnh hoặc đủ trình độ cho ca này. Vui lòng chuyển sang chế độ "Nhờ Admin tìm giúp".
+                                            Không có giáo viên nào rảnh hoặc đủ trình độ cho ca này. Vui lòng chuyển sang chế độ "Nhờ Admin tìm kiếm thay thế".
                                         </div>
                                     </div>
                                 )}
