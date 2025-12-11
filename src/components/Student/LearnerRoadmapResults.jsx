@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import api from '../../utils/api';
-// Thêm icon Lock hoặc Calendar để hiển thị thông báo đang bận học
 import { Loader2, ArrowLeft, BookOpen, Check, Map, Clock, AlertCircle, CheckCircle, X, Calendar, Lock } from 'lucide-react';
 import EnrollmentModal from './EnrollmentModal';
 
@@ -16,7 +15,7 @@ const formatMinutes = (minutes) => {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 };
 
-// ... (Giữ nguyên component Toast và ClassCard như cũ) ...
+// Function component Toast và ClassCard 
 function Toast({ message, type = "success", onClose }) {
   const icons = {
     success: <CheckCircle className="w-5 h-5" />,
@@ -114,7 +113,7 @@ const LearnerRoadmapResults = () => {
     }
     setLoading(true);
     try {
-      // 1. Params truyền vào (Giữ nguyên vì đã đúng)
+      // 1. Params truyền vào 
       const now = new Date();
       const threeWeeksLater = new Date(now);
       threeWeeksLater.setDate(now.getDate() + 21);
@@ -127,17 +126,14 @@ const LearnerRoadmapResults = () => {
       const [roadmapRes, profileRes, scheduleRes] = await Promise.all([
         api.learner.getRoadmap(studentId, categoryId),
         api.learner.getStudentProfile(studentId),
-        // axios sẽ tự động chuyển object scheduleParams thành query string: ?startDate=...&endDate=...
+      
         api.learner.getMySchedule(studentId, scheduleParams) 
       ]);
 
       setRoadmap(roadmapRes.data.data);
       setStudentScore(profileRes.data.data.testScore || 0);
 
-      // --- SỬA ĐOẠN NÀY ---
-      // Backend trả về: { status: "success", data: { sessions: [...] } }
-      // scheduleRes.data là toàn bộ body response
-      // scheduleRes.data.data là object { sessions: [...] }
+      
       const responseData = scheduleRes.data.data;
 
       // Bạn cần chọc sâu vào key 'sessions' để lấy mảng
@@ -150,8 +146,6 @@ const LearnerRoadmapResults = () => {
 
     } catch (err) {
       console.error(err);
-      // Backend trả về lỗi nếu không có quyền, ta nên xử lý nhẹ nhàng hơn ở đây
-      // Nếu lỗi 403/400 v.v... coi như không có lịch hoặc báo lỗi tùy logic
       showToast(err.response?.data?.message || "Lỗi khi tải dữ liệu.", "error");
     } finally {
       setLoading(false);
@@ -225,7 +219,6 @@ const LearnerRoadmapResults = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 sticky top-24">
-              {/* ... (Phần hiển thị Sidebar lộ trình giữ nguyên) ... */}
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                 <Map className="w-6 h-6 mr-3 text-purple-600" />
                 Lộ Trình Của Bạn
@@ -272,7 +265,6 @@ const LearnerRoadmapResults = () => {
               Lớp học phù hợp ({suitableStage ? suitableStage.name : 'Đang tìm lớp...'})
             </h2>
 
-            {/* 5. Logic hiển thị: Nếu đang học -> Hiện thông báo chặn. Nếu không -> Hiện danh sách lớp */}
             {isStudying ? (
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-8 text-center shadow-sm">
                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-100 mb-4">
@@ -293,7 +285,7 @@ const LearnerRoadmapResults = () => {
                  </div>
               </div>
             ) : (
-                // Khối code hiển thị danh sách lớp cũ được đưa vào đây
+                
                 <>
                     <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6 flex items-center gap-3">
                     <AlertCircle className="h-6 w-6 text-blue-500 flex-shrink-0" />
