@@ -145,17 +145,17 @@ export const UserProvider = ({ children }) => {
     };
 
     const signup = async (signupData) => {
-        try {
-            const res = await api.auth.signup(signupData);
-            if (res.data.status === "success") {
-               
-                console.log("✅ Signup successful, user needs to verify email");
-                return true;
-            }
-        } catch (err) {
-            throw new Error(err.response?.data?.message || "Không thể đăng kí");
+    try {
+        const res = await api.auth.signup(signupData);
+        if (res.data.status === "success") {
+            console.log("✅ Signup successful, user needs to verify email");
+            return true;
         }
-    };
+    } catch (err) {
+        // ✅ Throw lại error gốc thay vì tạo Error mới
+        throw err;
+    }
+};
 
     const logout = async () => {
         try {

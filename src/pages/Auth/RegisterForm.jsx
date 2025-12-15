@@ -14,6 +14,16 @@ const RegisterForm = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // State để lưu lỗi validation cho từng field
+  const [fieldErrors, setFieldErrors] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    dob: "",
+    password: "",
+    passwordConfirm: "",
+  });
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,17 +33,119 @@ const RegisterForm = () => {
     passwordConfirm: "",
   });
 
+  // Regex validation
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[0-9]{10,11}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validatePassword = (password) => {
+    return password.length >= 6;
+  };
+
+  // Validate từng field
+  const validateField = (name, value) => {
+    let errorMsg = "";
+
+    switch (name) {
+      case "name":
+        if (!value.trim()) {
+          errorMsg = "Vui lòng nhập họ và tên";
+        }
+        break;
+      case "email":
+        if (!value.trim()) {
+          errorMsg = "Vui lòng nhập email";
+        } else if (!validateEmail(value)) {
+          errorMsg = "Email chưa đúng định dạng";
+        }
+        break;
+      case "phoneNumber":
+        if (!value.trim()) {
+          errorMsg = "Vui lòng nhập số điện thoại";
+        } else if (!validatePhone(value)) {
+          errorMsg = "Số điện thoại phải có 10-11 chữ số";
+        }
+        break;
+      case "dob":
+        if (!value) {
+          errorMsg = "Vui lòng chọn ngày sinh";
+        }
+        break;
+      case "password":
+        if (!value) {
+          errorMsg = "Vui lòng nhập mật khẩu";
+        } else if (!validatePassword(value)) {
+          errorMsg = "Mật khẩu phải có ít nhất 6 ký tự";
+        }
+        break;
+      case "passwordConfirm":
+        if (!value) {
+          errorMsg = "Vui lòng xác nhận mật khẩu";
+        } else if (value !== formData.password) {
+          errorMsg = "Mật khẩu xác nhận không khớp";
+        }
+        break;
+      default:
+        break;
+    }
+
+    setFieldErrors((prev) => ({ ...prev, [name]: errorMsg }));
+    return errorMsg === "";
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setError("");
     setMessage("");
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [name]: value });
+    
+    // Clear error khi user bắt đầu nhập
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    validateField(name, value);
+  };
+
+  // Validate toàn bộ form
+  const validateForm = () => {
+    const errors = {};
+    let isValid = true;
+
+    Object.keys(formData).forEach((key) => {
+      const value = formData[key];
+      if (!validateField(key, value)) {
+        isValid = false;
+      }
+    });
+
+    return isValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate form trước khi submit
+    if (!validateForm()) {
+      toast.error("Vui lòng kiểm tra lại thông tin!");
+      return;
+    }
+
+    // Kiểm tra mật khẩu khớp
     if (formData.password !== formData.passwordConfirm) {
-      setError("Mật khẩu xác nhận không khớp!");
+      setFieldErrors((prev) => ({
+        ...prev,
+        passwordConfirm: "Mật khẩu xác nhận không khớp",
+      }));
       toast.error("Mật khẩu xác nhận không khớp!");
       return;
     }
@@ -42,7 +154,6 @@ const RegisterForm = () => {
       setLoading(true);
       setError("");
       setMessage("");
-
 
       const success = await signup(formData);
 
@@ -55,28 +166,44 @@ const RegisterForm = () => {
         setError("Không thể đăng ký. Vui lòng thử lại sau!");
       }
     } catch (err) {
+      console.error("Registration error:", err);
 
-
-      const msg =
-        err?.response?.data?.message || "Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.";
-      setError(msg);
-      toast.error(msg);
+      // Xử lý lỗi từ BE
+      let errorMessage = "Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.";
+      
+      if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+        
+        // Nếu có nhiều lỗi từ BE, tách ra và hiển thị từng dòng
+        const backendErrors = errorMessage.split(". ").filter(msg => msg.trim());
+        
+        if (backendErrors.length > 1) {
+          // Hiển thị từng lỗi
+          backendErrors.forEach((msg) => {
+            toast.error(msg);
+          });
+          setError(backendErrors.join("\n"));
+        } else {
+          toast.error(errorMessage);
+          setError(errorMessage);
+        }
+      } else {
+        toast.error(errorMessage);
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
   };
-  // Đặt hàm này ở ngoài component hoặc trong một file utils
+
   const getTodayDateString = () => {
     const today = new Date();
-    // Lấy năm
     const year = today.getFullYear();
-    // Lấy tháng (cộng 1 vì getMonth trả về từ 0-11), thêm '0' nếu < 10
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    // Lấy ngày, thêm '0' nếu < 10
-    const day = String(today.getDate()).padStart(2, '0');
-
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
+
   return (
     <div className="min-h-screen w-full flex flex-col">
       <Navbar />
@@ -95,8 +222,17 @@ const RegisterForm = () => {
               <p className="text-gray-500 text-sm">Đăng ký để bắt đầu hành trình học tập</p>
             </div>
 
-            {message && <p className="text-green-600 text-center font-medium">{message}</p>}
-            {error && <p className="text-red-500 text-center font-medium">{error}</p>}
+            {message && (
+              <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                <p className="text-green-600 text-center font-medium">{message}</p>
+              </div>
+            )}
+            
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                <p className="text-red-600 text-center font-medium whitespace-pre-line">{error}</p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -108,6 +244,8 @@ const RegisterForm = () => {
                   placeholder="Nguyễn Văn A"
                   value={formData.name}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={fieldErrors.name}
                   required
                 />
                 <InputField
@@ -118,6 +256,8 @@ const RegisterForm = () => {
                   placeholder="your.email@example.com"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={fieldErrors.email}
                   required
                 />
               </div>
@@ -131,6 +271,8 @@ const RegisterForm = () => {
                   placeholder="0123456789"
                   value={formData.phoneNumber}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={fieldErrors.phoneNumber}
                   required
                 />
                 <InputField
@@ -140,6 +282,8 @@ const RegisterForm = () => {
                   type="date"
                   value={formData.dob}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={fieldErrors.dob}
                   required
                   max={getTodayDateString()}
                 />
@@ -151,6 +295,8 @@ const RegisterForm = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={fieldErrors.password}
                   show={showPassword}
                   setShow={setShowPassword}
                   required
@@ -160,6 +306,8 @@ const RegisterForm = () => {
                   name="passwordConfirm"
                   value={formData.passwordConfirm}
                   onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={fieldErrors.passwordConfirm}
                   show={showConfirmPassword}
                   setShow={setShowConfirmPassword}
                   required
@@ -199,7 +347,7 @@ const RegisterForm = () => {
   );
 };
 
-const InputField = ({ label, icon, required, ...props }) => (
+const InputField = ({ label, icon, error, onBlur, required, ...props }) => (
   <div className="space-y-2">
     <label className="text-sm font-medium text-gray-700 block">
       {label}
@@ -209,14 +357,25 @@ const InputField = ({ label, icon, required, ...props }) => (
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{icon}</div>
       <input
         {...props}
+        onBlur={onBlur}
         required={required}
-        className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+        className={`w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 transition-all outline-none ${
+          error
+            ? "border-red-500 focus:ring-red-500"
+            : "border-gray-300 focus:ring-purple-500 focus:border-transparent"
+        }`}
       />
     </div>
+    {error && (
+      <p className="text-red-600 text-xs mt-1 ml-1 flex items-center">
+        <span className="inline-block w-1 h-1 bg-red-600 rounded-full mr-1.5"></span>
+        {error}
+      </p>
+    )}
   </div>
 );
 
-const PasswordField = ({ label, name, value, onChange, show, setShow, required }) => (
+const PasswordField = ({ label, name, value, onChange, onBlur, error, show, setShow, required }) => (
   <div className="space-y-2">
     <label className="text-sm font-medium text-gray-700 block">
       {label}
@@ -229,8 +388,13 @@ const PasswordField = ({ label, name, value, onChange, show, setShow, required }
         name={name}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         placeholder="••••••••"
-        className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+        className={`w-full pl-11 pr-12 py-3 border rounded-xl focus:ring-2 transition-all outline-none ${
+          error
+            ? "border-red-500 focus:ring-red-500"
+            : "border-gray-300 focus:ring-purple-500 focus:border-transparent"
+        }`}
         required={required}
       />
       <button
@@ -241,6 +405,12 @@ const PasswordField = ({ label, name, value, onChange, show, setShow, required }
         {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
       </button>
     </div>
+    {error && (
+      <p className="text-red-600 text-xs mt-1 ml-1 flex items-center">
+        <span className="inline-block w-1 h-1 bg-red-600 rounded-full mr-1.5"></span>
+        {error}
+      </p>
+    )}
   </div>
 );
 

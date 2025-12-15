@@ -44,18 +44,28 @@ export const useAuth = () => {
     setIsLoading(false);
   };
 
-  const handleSignUp = async (name, email, password, passwordConfirm) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      return await signup(name, email, password, passwordConfirm);
-    } catch (err) {
-      setError(err.message);
-      return false;
-    } finally {
-      setIsLoading(false);
+const handleSignUp = async (formData) => {
+  try {
+    setIsLoading(true);
+    setError(null);
+    const result = await signup(formData);
+    
+    // Nếu signup trả về kết quả với error
+    if (result && !result.success && result.message) {
+      setError(result.message);
+      // Throw error để component có thể catch
+      throw new Error(result.message);
     }
-  };
+    
+    return result;
+  } catch (err) {
+    setError(err.message || err?.response?.data?.message);
+    // Throw lại error để component xử lý
+    throw err;
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleUpdatePassword = async (
     passwordCurrent,
