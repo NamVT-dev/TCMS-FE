@@ -160,7 +160,7 @@ const StudentComplainModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2 flex justify-between">
                                     <span>Chi tiết khiếu nại <span className="text-red-500">*</span></span>
-                                    <span className="text-xs text-gray-400 font-normal">{detail.length}/500 ký tự</span>
+                                    <span className="text-xs text-gray-400 font-normal">{detail.length}/1000 ký tự</span>
                                 </label>
                                 <div className="relative">
                                     <textarea
@@ -168,7 +168,7 @@ const StudentComplainModal = ({ isOpen, onClose, onSuccess }) => {
                                         onChange={(e) => setDetail(e.target.value)}
                                         placeholder="Vui lòng mô tả chi tiết sự việc, thời gian, địa điểm (nếu có)..."
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none min-h-[150px] resize-none shadow-sm text-gray-700"
-                                        maxLength={500}
+                                        maxLength={1000}
                                         required
                                     />
                                     <FileText className="absolute right-3 bottom-3 text-gray-300 w-5 h-5" />
