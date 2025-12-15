@@ -23,7 +23,7 @@ const Toast = ({ message, type = "success", onClose }) => {
   return (
     <div className={`fixed top-4 right-4 ${bg} text-white px-6 py-4 rounded-lg shadow-xl flex items-center gap-3 z-[100] animate-slide-in min-w-[320px] max-w-md`}>
       <Icon className="w-5 h-5 flex-shrink-0" />
-      <span className="font-medium flex-1">{message}</span>
+      <span className="font-medium flex-1 break-words">{message}</span>
       <button onClick={onClose} className="ml-2 hover:bg-white/20 rounded p-1 transition">
         <X className="w-4 h-4" />
       </button>
@@ -175,7 +175,9 @@ const AdminViewTimeWorkingCenter = () => {
 
     } catch (err) {
       console.error("Lỗi khi toggle trạng thái:", err);
-      setToast({ message: "Không thể thay đổi trạng thái. Vui lòng thử lại.", type: "error" });
+      // ✅ CẬP NHẬT: Lấy message từ BE cho Toggle
+      const errorMessage = err.response?.data?.message || "Không thể thay đổi trạng thái. Vui lòng thử lại.";
+      setToast({ message: errorMessage, type: "error" });
     } finally {
       setToggling(false);
     }
@@ -274,7 +276,9 @@ const AdminViewTimeWorkingCenter = () => {
 
     } catch (err) {
       console.error("Lỗi khi lưu:", err.response?.data || err);
-      setToast({ message: "Lưu thất bại, vui lòng thử lại.", type: "error" });
+      // ✅ CẬP NHẬT: Lấy message từ BE cho Save
+      const errorMessage = err.response?.data?.message || "Lưu thất bại, vui lòng thử lại.";
+      setToast({ message: errorMessage, type: "error" });
     } finally {
       setSaving(false);
     }
@@ -350,11 +354,12 @@ const AdminViewTimeWorkingCenter = () => {
         {...getConfirmDialogProps()}
       />
 
-      <div className="p-6 bg-white rounded-lg shadow-sm max-w-7xl mx-auto mt-8 border border-gray-200">
+      {/* ✅ CẬP NHẬT: Responsive padding (p-4 trên mobile, p-6 trên desktop) */}
+      <div className="p-4 md:p-6 bg-white rounded-lg shadow-sm max-w-7xl mx-auto mt-8 border border-gray-200">
           
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-gray-100">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-6 border-b border-gray-100 gap-4">
           <div>
-              <h1 className="text-3xl font-bold text-gray-800">Cấu hình Hệ thống</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Cấu hình Hệ thống</h1>
               <p className="text-gray-500 mt-1">Quản lý thời gian hoạt động và cổng đăng ký</p>
           </div>
 
@@ -362,7 +367,7 @@ const AdminViewTimeWorkingCenter = () => {
               <div className="mr-4">
                   <div className="text-sm font-bold text-gray-700 uppercase mb-1">Đăng ký lịch làm</div>
                   <div className={`text-xs font-semibold ${isAvailabilityOpen ? 'text-green-600' : 'text-red-600'}`}>
-                      {isAvailabilityOpen ? 'ĐANG MỞ (Giáo viên có thể đăng ký)' : 'ĐANG ĐÓNG (Giáo viên không thể đăng ký)'}
+                      {isAvailabilityOpen ? 'ĐANG MỞ' : 'ĐANG ĐÓNG'}
                   </div>
               </div>
               
@@ -419,7 +424,7 @@ const AdminViewTimeWorkingCenter = () => {
               {SHIFT_NAMES.map((shiftName) => (
                 <div
                   key={shiftName}
-                  className="flex items-center justify-between border p-4 rounded-lg hover:bg-gray-50 transition bg-white"
+                  className="flex items-center justify-between border p-4 rounded-lg hover:bg-gray-50 transition bg-white shadow-sm"
                 >
                   <div className="font-bold text-lg text-purple-700 bg-purple-50 w-10 h-10 flex items-center justify-center rounded-full">
                       {shiftName}
@@ -455,46 +460,49 @@ const AdminViewTimeWorkingCenter = () => {
               <h2 className="text-xl font-semibold text-gray-700 mb-3">
                 3. Chọn ca hoạt động cho từng ngày
               </h2>
-              <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                <table className="w-full text-center border-collapse">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="border-b border-gray-200 p-3 w-24 text-sm font-bold text-gray-600 uppercase">Ngày</th>
-                      {SHIFT_NAMES.map((name) => (
-                        <th key={name} className="border-b border-gray-200 p-3 text-sm font-bold text-gray-600">
-                          {name}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dayShifts
-                      .filter((d) => activeDaysOfWeek.includes(d.dayOfWeek))
-                      .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
-                      .map((d) => (
-                        <tr key={d.dayOfWeek} className="even:bg-white odd:bg-gray-50/50 hover:bg-purple-50/30 transition-colors">
-                          <td className="border-r border-gray-200 p-3 font-bold text-gray-800 bg-gray-50">
-                            {dayNames[d.dayOfWeek]}
-                          </td>
-                          {SHIFT_NAMES.map((shiftName) => (
-                            <td key={shiftName} className="border-r border-gray-200 last:border-r-0 p-3">
-                              <div className="flex justify-center">
-                                  <input
-                                  type="checkbox"
-                                  checked={d.shifts.includes(shiftName)}
-                                  onChange={() =>
-                                      toggleShiftForDay(d.dayOfWeek, shiftName)
-                                  }
-                                  disabled={!isEditing}
-                                  className="w-5 h-5 accent-purple-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transform transition-transform hover:scale-110"
-                                  />
-                              </div>
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
+              {/* ✅ CẬP NHẬT: Xử lý responsive cho bảng */}
+              <div className="border border-gray-200 rounded-lg shadow-sm bg-white overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-center border-collapse min-w-[800px]">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="border-b border-gray-200 p-3 w-24 text-sm font-bold text-gray-600 uppercase sticky left-0 bg-gray-50 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Ngày</th>
+                                {SHIFT_NAMES.map((name) => (
+                                    <th key={name} className="border-b border-gray-200 p-3 text-sm font-bold text-gray-600">
+                                        {name}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dayShifts
+                            .filter((d) => activeDaysOfWeek.includes(d.dayOfWeek))
+                            .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
+                            .map((d) => (
+                                <tr key={d.dayOfWeek} className="even:bg-white odd:bg-gray-50/50 hover:bg-purple-50/30 transition-colors">
+                                    <td className="border-r border-gray-200 p-3 font-bold text-gray-800 bg-gray-50 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                        {dayNames[d.dayOfWeek]}
+                                    </td>
+                                    {SHIFT_NAMES.map((shiftName) => (
+                                        <td key={shiftName} className="border-r border-gray-200 last:border-r-0 p-3">
+                                            <div className="flex justify-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={d.shifts.includes(shiftName)}
+                                                    onChange={() =>
+                                                        toggleShiftForDay(d.dayOfWeek, shiftName)
+                                                    }
+                                                    disabled={!isEditing}
+                                                    className="w-5 h-5 accent-purple-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transform transition-transform hover:scale-110"
+                                                />
+                                            </div>
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
               </div>
             </div>
           )}
@@ -502,11 +510,11 @@ const AdminViewTimeWorkingCenter = () => {
 
         <div className="text-right mt-8 border-t pt-6">
           {isEditing ? (
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
               <button
                 onClick={handleCancel}
                 disabled={saving}
-                className="inline-flex items-center px-6 py-2.5 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition disabled:bg-gray-200 shadow-sm"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition disabled:bg-gray-200 shadow-sm"
               >
                 <X className="w-5 h-5 mr-2" />
                 Hủy
@@ -514,7 +522,7 @@ const AdminViewTimeWorkingCenter = () => {
               <button
                 onClick={handleSaveClick}
                 disabled={saving}
-                className="inline-flex items-center px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition disabled:bg-gray-400 shadow-md hover:shadow-lg"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition disabled:bg-gray-400 shadow-md hover:shadow-lg"
               >
                 {saving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
                 {saving ? "Đang lưu..." : "Lưu cấu hình"}
@@ -523,7 +531,7 @@ const AdminViewTimeWorkingCenter = () => {
           ) : (
             <button
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition shadow-md hover:shadow-lg"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition shadow-md hover:shadow-lg"
             >
               Cập nhật cấu hình
             </button>
