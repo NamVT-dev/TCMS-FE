@@ -15,10 +15,19 @@ const SHIFTS = [
 
 const getWeekDays = (date) => {
   const curr = new Date(date);
-  const first = curr.getDate() - curr.getDay() + 1; 
+  // Xác định thứ 2 của tuần hiện tại
+  // Nếu là Chủ nhật (0) thì lùi 6 ngày, các thứ khác lùi (thứ - 1) ngày
+  const dayOfWeek = curr.getDay();
+  const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  
+  const monday = new Date(curr);
+  monday.setDate(curr.getDate() - diff);
+
   const days = [];
   for (let i = 0; i < 7; i++) {
-    const day = new Date(curr.setDate(first + i));
+    // Tạo bản sao mới từ ngày thứ 2 (monday) để không bị lỗi cộng dồn
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + i);
     days.push(day);
   }
   return days;
@@ -54,13 +63,23 @@ const isToday = (date) => {
 
 const getWeekSpanForAPI = (date) => {
   const curr = new Date(date);
-  const first = curr.getDate() - curr.getDay() + 1; 
-  const last = first + 6; 
+  const dayOfWeek = curr.getDay();
+  const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
 
-  const startDate = new Date(curr.setDate(first));
-  const endDate = new Date(curr.setDate(last));
+  // Tính ngày bắt đầu (Thứ 2)
+  const startDate = new Date(curr);
+  startDate.setDate(curr.getDate() - diff);
 
-  const f = (d) => d.toISOString().split('T')[0]; 
+  // Tính ngày kết thúc (Chủ nhật = Thứ 2 + 6 ngày)
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 6);
+
+  const f = (d) => {
+    // Xử lý múi giờ cục bộ để tránh lệch ngày khi toISOString chuyển về UTC
+    const offset = d.getTimezoneOffset() * 60000; 
+    return new Date(d.getTime() - offset).toISOString().split('T')[0];
+  };
+
   return { startDate: f(startDate), endDate: f(endDate) };
 };
 

@@ -36,16 +36,28 @@ const Toast = ({ message, type = "warning", onClose }) => {
   );
 };
 
+// --- ĐÃ SỬA LẠI HÀM NÀY ĐỂ KHÔNG BỊ LỖI NHẢY THÁNG ---
 const getWeekDays = (date) => {
   const curr = new Date(date);
-  const first = curr.getDate() - curr.getDay() + 1; 
+  const dayOfWeek = curr.getDay(); // 0 là Chủ nhật, 1 là Thứ 2...
+  
+  // Tính khoảng cách để lùi về ngày Thứ 2 đầu tuần
+  // Nếu là Chủ nhật (0) thì lùi 6 ngày, các thứ khác lùi (thứ - 1)
+  const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+  const monday = new Date(curr);
+  monday.setDate(curr.getDate() - diff);
+
   const days = [];
   for (let i = 0; i < 7; i++) {
-    const day = new Date(curr.setDate(first + i));
+    // Tạo bản sao từ ngày monday để đảm bảo tính toán đúng
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + i);
     days.push(day);
   }
   return days;
 };
+// -----------------------------------------------------
 
 const formatDate = (date) => {
   return new Intl.DateTimeFormat('vi-VN', {
