@@ -1,4 +1,3 @@
-// File: StudentScheduleModal.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../utils/api';
 import Loading from '../UI/Loading';
@@ -7,9 +6,7 @@ import {
   ChevronLeft, ChevronRight
 } from 'lucide-react';
 
-// ========================
-// CONSTANTS
-// ========================
+
 
 const SHIFTS = [
   { name: "S1", start: "08:00", end: "09:50" },
@@ -20,9 +17,6 @@ const SHIFTS = [
   { name: "S6", start: "20:00", end: "21:50" },
 ];
 
-// ========================
-// UTILITIES
-// ========================
 
 const formatDate = (date) =>
   new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' }).format(date);
@@ -42,33 +36,34 @@ const isToday = (date) => isSameDay(date, new Date());
 
 const getWeekDays = (currDate) => {
   const current = new Date(currDate);
-  const first = current.getDate() - current.getDay() + 1; // Monday
+  const dayOfWeek = current.getDay(); 
+  
+  
+  const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+  const monday = new Date(current);
+  monday.setDate(current.getDate() - diff);
+
   const days = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(current);
-    d.setDate(first + i);
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
     days.push(d);
   }
   return days;
 };
 
-// ========================
-// MAIN COMPONENT
-// ========================
 
 const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // week calculation states
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [weekDays, setWeekDays] = useState([]);
   const [weekRange, setWeekRange] = useState({ start: "", end: "" });
 
-  // -------------------------
-  // Calculate week days & range
-  // -------------------------
+  
   useEffect(() => {
     const days = getWeekDays(currentWeek);
 
@@ -80,7 +75,6 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
   }, [currentWeek]);
 
   
-  // Fetch schedule when week change
   
   useEffect(() => {
     if (!isOpen || !studentId || !weekRange.start) return;
@@ -106,9 +100,7 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
     fetchSchedule();
   }, [isOpen, studentId, weekRange.start, weekRange.end]);
 
-  // -------------------------
-  // Pre-group sessions by day
-  // -------------------------
+  
   const sessionsByDay = useMemo(() => {
     const map = {};
     sessions.forEach(s => {
@@ -130,9 +122,7 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
 
   const totalSessionsInWeek = sessions.length;
 
-  // -------------------------
-  // Week navigation handlers
-  // -------------------------
+  
 
   const goPrev = () => {
     const d = new Date(currentWeek);
@@ -148,9 +138,7 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
 
   const goToToday = () => setCurrentWeek(new Date());
 
-  // -------------------------
-  // UI RENDER
-  // -------------------------
+  
 
   if (!isOpen) return null;
 
@@ -203,7 +191,6 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
           </div>
         </div>
 
-        {/* CONTENT */}
         <div className="flex-1 overflow-auto p-4">
           {error && (
             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
@@ -212,7 +199,6 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
             </div>
           )}
 
-          {/* TABLE */}
           <div className="overflow-x-auto">
             <table className="w-full border-collapse table-fixed min-w-[950px]">
               <thead>
@@ -246,7 +232,6 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
               <tbody>
                 {SHIFTS.map((shift, sIndex) => (
                   <tr key={sIndex} className="hover:bg-gray-50/40">
-                    {/* Shift Column */}
                     <td className="w-28 p-3 border-r border-b border-gray-200 bg-gray-50">
 
                       <div className="text-right pr-2">
@@ -308,7 +293,6 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
           </div>
         </div>
 
-        {/* FOOTER */}
         <div className="bg-gray-50 px-4 py-3 border-t rounded-b-xl">
           <div className="flex items-center justify-between text-sm text-gray-600">
             <div>
