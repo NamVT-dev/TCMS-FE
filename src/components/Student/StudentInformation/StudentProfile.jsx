@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../utils/api";
+import moment from "moment"; 
 
 const StudentProfile = () => {
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
   const [selectedFile, setSelectedFile] = useState(null);
+  
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -16,9 +19,8 @@ const StudentProfile = () => {
         setProfile({
           name: user.profile.fullname,
           email: user.email,
-          // title: user.role === "member" ? "Học viên" : user.role,
           gender: user.profile.gender === "male" ? "Nam" : "Nữ",
-          dob: user.profile.dob.split("T")[0],
+          dob: user.profile.dob ? user.profile.dob.split("T")[0] : "",
           phone: user.profile.phoneNumber,
           avatar: user.profile.photo,
         });
@@ -30,17 +32,58 @@ const StudentProfile = () => {
     fetchProfile();
   }, []);
 
+  const validateForm = () => {
+    const newErrors = {};
+    const { name, phone, dob } = profile;
+
+    if (!name || !name.trim()) {
+      newErrors.name = "Họ và tên không được để trống.";
+    }
+
+    if (!phone) {
+      newErrors.phone = "Số điện thoại không được để trống.";
+    } else {
+      const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/g; 
+      if (!phoneRegex.test(phone)) {
+        newErrors.phone = "Số điện thoại không hợp lệ.";
+      }
+    }
+
+    if (!dob) {
+      newErrors.dob = "Vui lòng chọn ngày sinh.";
+    } else {
+      const selectedDate = moment(dob);
+      const today = moment().startOf("day");
+      if (selectedDate.isAfter(today)) {
+        newErrors.dob = "Ngày sinh không được ở tương lai.";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (isEditing && profile) {
       setProfile({ ...profile, [name]: value });
+
+      if (errors[name]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
+      }
     }
   };
 
   const handleUpdate = () => {
     if (isEditing) {
       setIsEditing(false);
+      setErrors({});
       setMessage({ text: "", type: "" });
+      
     } else {
       setIsEditing(true);
       setMessage({ text: "", type: "" });
@@ -48,6 +91,11 @@ const StudentProfile = () => {
   };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+        setMessage({ text: "Vui lòng kiểm tra lại thông tin.", type: "error" });
+        return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("profile[fullname]", profile.name);
@@ -58,8 +106,6 @@ const StudentProfile = () => {
         profile.gender === "Nam" ? "male" : "female"
       );
 
-      // ✅ Nếu có file mới thì gửi file
-      // ✅ Nếu không có file mới thì gửi lại avatar cũ để giữ nguyên ảnh
       if (selectedFile) {
         formData.append("profile[photo]", selectedFile);
       } else if (profile.avatar) {
@@ -79,6 +125,7 @@ const StudentProfile = () => {
           avatar: updated.photo,
         });
         setMessage({ text: "Cập nhật hồ sơ thành công!", type: "success" });
+        setIsEditing(false); 
       } else {
         setMessage({
           text: res.data.message || "Cập nhật thất bại!",
@@ -91,7 +138,6 @@ const StudentProfile = () => {
         type: "error",
       });
     } finally {
-      setIsEditing(false);
       setSelectedFile(null);
       setTimeout(() => setMessage({ text: "", type: "" }), 4000);
     }
@@ -105,10 +151,23 @@ const StudentProfile = () => {
     );
   }
 
+  const getInputClass = (fieldName) => {
+    let baseClass = "w-full border rounded-lg p-2 focus:outline-none transition-all ";
+    
+    if (errors[fieldName]) {
+        return baseClass + "bg-white border-red-500 focus:ring-2 focus:ring-red-200";
+    }
+
+    if (isEditing) {
+        return baseClass + "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400";
+    }
+
+    return baseClass + "bg-gray-100 border-gray-300 text-gray-700";
+  };
+
   return (
     <div className="flex flex-col items-center justify-start min-h-screen bg-gray-50 py-10">
       <div className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-8xl mx-auto">
-        {/* Avatar */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
             <img
@@ -148,21 +207,20 @@ const StudentProfile = () => {
           </h2>
         </div>
 
-        {/* Form */}
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block text-gray-700 mb-2">Họ và tên</label>
+            <label className="block text-gray-700 mb-2">Họ và tên <span className="text-red-500">*</span></label>
             <input
               type="text"
               name="name"
               value={profile.name}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${isEditing
-                  ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
-                  : "bg-gray-100 border-gray-300 text-gray-700"
-                }`}
+              className={getInputClass("name")}
             />
+            {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -172,20 +230,9 @@ const StudentProfile = () => {
               name="email"
               value={profile.email}
               disabled
-              className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 text-gray-700"
+              className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 text-gray-700 cursor-not-allowed"
             />
           </div>
-          {/* 
-          <div>
-            <label className="block text-gray-700 mb-2">Chức danh</label>
-            <input
-              type="text"
-              name="title"
-              value={profile.title}
-              disabled
-              className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 text-gray-700"
-            />
-          </div> */}
 
           <div>
             <label className="block text-gray-700 mb-2">Giới tính</label>
@@ -194,10 +241,7 @@ const StudentProfile = () => {
               value={profile.gender}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${isEditing
-                  ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
-                  : "bg-gray-100 border-gray-300 text-gray-700"
-                }`}
+              className={getInputClass("gender")}
             >
               <option>Nam</option>
               <option>Nữ</option>
@@ -205,37 +249,37 @@ const StudentProfile = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">Ngày sinh</label>
+            <label className="block text-gray-700 mb-2">Ngày sinh <span className="text-red-500">*</span></label>
             <input
               type="date"
               name="dob"
               value={profile.dob}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${isEditing
-                  ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
-                  : "bg-gray-100 border-gray-300 text-gray-700"
-                }`}
+              max={moment().format("YYYY-MM-DD")}
+              className={getInputClass("dob")}
             />
+            {errors.dob && (
+                <p className="text-red-500 text-xs mt-1">{errors.dob}</p>
+            )}
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">Điện thoại</label>
+            <label className="block text-gray-700 mb-2">Điện thoại <span className="text-red-500">*</span></label>
             <input
               type="text"
               name="phone"
               value={profile.phone}
               onChange={handleChange}
               disabled={!isEditing}
-              className={`w-full border rounded-lg p-2 focus:outline-none ${isEditing
-                  ? "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400"
-                  : "bg-gray-100 border-gray-300 text-gray-700" 
-                }`}
+              className={getInputClass("phone")}
             />
+            {errors.phone && (
+                <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+            )}
           </div>
         </div>
 
-        {/* Buttons */}
         <div className="flex justify-end mt-10 gap-4 flex-col items-end">
           <div className="flex gap-4">
             <button

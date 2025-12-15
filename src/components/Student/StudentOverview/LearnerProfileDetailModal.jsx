@@ -4,32 +4,32 @@ import { Loader2, Save, X, User, BookOpen, Target, Trophy, Pencil, Image as Imag
 import showToast from "../../../utils/showToast";
 import moment from 'moment';
 
-const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white";
+const baseInputClass = "w-full px-3 py-2 border rounded-lg outline-none transition-all bg-white";
 const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
 
 const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) => {
 
-    // Form State (Editable)
     const [formData, setFormData] = useState({
         name: '',
         dob: '',
         gender: 'male',
-        photo: null,       // 👈 THÊM PHOTO VÀO STATE
+        photo: null,
     });
 
-    // Read-only Data (Academic Info)
+    const [errors, setErrors] = useState({});
+
     const [learnerData, setLearnerData] = useState(null);
 
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
 
-    // Preview ảnh
     const [photoPreview, setPhotoPreview] = useState(null);
 
     useEffect(() => {
         if (isOpen && learnerId) {
             const fetchDetail = async () => {
                 setFetching(true);
+                setErrors({}); 
                 try {
                     const res = await api.user.getLearnerById(learnerId);
                     const data = res.data.data;
@@ -39,10 +39,10 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                         name: data.name || '',
                         dob: data.dob ? data.dob.split('T')[0] : '',
                         gender: data.gender || 'male',
-                        photo: null, // reset file khi mở modal
+                        photo: null, 
                     });
 
-                    setPhotoPreview(data.photo || null);  // preview ảnh cũ
+                    setPhotoPreview(data.photo || null);  
                 } catch (err) {
                     console.error("Lỗi tải thông tin học viên:", err);
                     showToast.error("Không thể tải thông tin học viên");
@@ -54,16 +54,44 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
         }
     }, [isOpen, learnerId]);
 
+   
+    const validateForm = () => {
+        const newErrors = {};
+        const { name, dob } = formData;
 
-    /** ---------------------
-     *  HANDLE INPUT CHANGES
-     ----------------------*/
+        if (!name || !name.trim()) {
+            newErrors.name = "Vui lòng nhập họ và tên.";
+        }
+
+        if (!dob) {
+            newErrors.dob = "Vui lòng chọn ngày sinh.";
+        } else {
+            const selectedDate = moment(dob);
+            const today = moment().startOf('day'); 
+
+            if (selectedDate.isAfter(today)) {
+                newErrors.dob = "Ngày sinh không được lớn hơn ngày hiện tại.";
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+
+        if (errors[name]) {
+            setErrors(prev => {
+                const newErrs = { ...prev };
+                delete newErrs[name];
+                return newErrs;
+            });
+        }
     };
 
-    // 👇 Handle upload ảnh
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
         setFormData(prev => ({ ...prev, photo: file }));
@@ -75,11 +103,14 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
     };
 
 
-    /** ---------------------
-     *  HANDLE SUBMIT FORM
-     ----------------------*/
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
         setLoading(true);
         const toastId = showToast.loading("Đang cập nhật...");
 
@@ -90,7 +121,7 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
             fd.append("gender", formData.gender);
 
             if (formData.photo) {
-                fd.append("photo", formData.photo); // 👈 Append file
+                fd.append("photo", formData.photo); 
             }
 
             await api.user.updateLearnerById(learnerId, fd, {
@@ -107,15 +138,20 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
         }
     };
 
+    const getInputClass = (fieldName) => {
+        return `${baseInputClass} ${
+            errors[fieldName] 
+            ? "border-red-500 focus:ring-2 focus:ring-red-200" 
+            : "border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        }`;
+    };
+
     if (!isOpen) return null;
 
-
-    
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
 
-                {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                     <div>
                         <h2 className="text-xl font-bold text-gray-800">Hồ sơ Học viên</h2>
@@ -126,7 +162,6 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
                     {fetching ? (
                         <div className="h-64 flex items-center justify-center">
@@ -135,7 +170,6 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-                            {/* LEFT: Editable Personal Info */}
                             <div className="space-y-6">
                                 <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
                                     <User className="w-5 h-5 text-purple-600" />
@@ -144,7 +178,6 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
 
                                 <form id="learner-form" onSubmit={handleSubmit} className="space-y-4">
 
-                                    {/* Ảnh đại diện */}
                                     <div>
                                         <label className={labelClass}>Ảnh đại diện</label>
 
@@ -176,27 +209,36 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
 
                                     </div>
 
-                                    {/* Name */}
                                     <div>
-                                        <label className={labelClass}>Họ và tên</label>
+                                        <label className={labelClass}>Họ và tên <span className="text-red-500">*</span></label>
                                         <input
-                                            type="text" name="name"
-                                            value={formData.name} onChange={handleChange}
-                                            className={inputClass} required
+                                            type="text" 
+                                            name="name"
+                                            value={formData.name} 
+                                            onChange={handleChange}
+                                            className={getInputClass('name')}
+                                            placeholder="Nhập họ và tên"
                                         />
+                                        {errors.name && (
+                                            <p className="text-red-500 text-xs mt-1 font-medium">{errors.name}</p>
+                                        )}
                                     </div>
 
-                                    {/* DOB */}
                                     <div>
-                                        <label className={labelClass}>Ngày sinh</label>
+                                        <label className={labelClass}>Ngày sinh <span className="text-red-500">*</span></label>
                                         <input
-                                            type="date" name="dob"
-                                            value={formData.dob} onChange={handleChange}
-                                            className={inputClass}
+                                            type="date" 
+                                            name="dob"
+                                            value={formData.dob} 
+                                            onChange={handleChange}
+                                            max={moment().format("YYYY-MM-DD")}
+                                            className={getInputClass('dob')}
                                         />
+                                        {errors.dob && (
+                                            <p className="text-red-500 text-xs mt-1 font-medium">{errors.dob}</p>
+                                        )}
                                     </div>
 
-                                    {/* Gender */}
                                     <div>
                                         <label className={labelClass}>Giới tính</label>
                                         <div className="flex gap-6 mt-2">
@@ -206,7 +248,7 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                                                         type="radio" name="gender" value={g}
                                                         checked={formData.gender === g}
                                                         onChange={handleChange}
-                                                        className="w-4 h-4 text-purple-600"
+                                                        className="w-4 h-4 text-purple-600 focus:ring-purple-500"
                                                     />
                                                     <span className="ml-2 text-gray-700 capitalize">
                                                         {g === 'male' ? 'Nam' : 'Nữ'}
@@ -218,7 +260,6 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                                 </form>
                             </div>
 
-                            {/* RIGHT: Read-only Academic Info */}
                             <div className="space-y-6">
                                 <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
                                     <BookOpen className="w-5 h-5 text-blue-600" />
@@ -228,7 +269,6 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                                 {learnerData ? (
                                     <div className="bg-gray-50 rounded-xl p-4 space-y-4 border border-gray-200">
 
-                                        {/* Category */}
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
@@ -254,7 +294,6 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                                             </div>
                                         </div>
 
-                                        {/* Learning Goal */}
                                         {learnerData.learningGoal && (
                                             <div className="pt-3 border-t border-gray-200">
                                                 <p className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center">
@@ -272,7 +311,6 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                                             </div>
                                         )}
 
-                                        {/* Classes */}
                                         <div className="pt-3 border-t border-gray-200">
                                             <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Lớp học hiện tại</p>
 
@@ -290,7 +328,6 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
 
                                         </div>
 
-                                        {/* Status */}
                                         <div className="pt-3 border-t border-gray-200">
                                             <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Trạng thái nhập học</p>
                                             <span
@@ -309,7 +346,6 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3">
                     <button
                         onClick={onClose}

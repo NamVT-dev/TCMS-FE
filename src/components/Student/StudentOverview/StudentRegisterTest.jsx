@@ -11,12 +11,25 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  
+  // State lưu lỗi validation
+  const [validationErrors, setValidationErrors] = useState({});
 
-  //  State mới để lưu số lượng học sinh hiện có của user
+  // State mới để lưu số lượng học sinh hiện có của user
   const [existingStudentCount, setExistingStudentCount] = useState(0);
   const MAX_STUDENTS = 3;
 
-  //  Lấy danh sách category khi modal mở
+  // Lấy ngày hiện tại theo format YYYY-MM-DD để làm giới hạn max
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  const maxDate = getCurrentDate();
+
+  // Lấy danh sách category khi modal mở
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -32,7 +45,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  //  Lấy profile và check số lượng student
+  // Lấy profile và check số lượng student
   useEffect(() => {
     const fetchProfile = async () => {
       if (isOpen) {
@@ -40,7 +53,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
           const res = await api.user.getMe();
           const userData = res.data?.data?.data;
 
-          //  Cập nhật số lượng học sinh đã có từ mảng student
+          // Cập nhật số lượng học sinh đã có từ mảng student
           if (userData && Array.isArray(userData.student)) {
             setExistingStudentCount(userData.student.length);
           }
@@ -57,6 +70,8 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
             // Reset form khi chuyển sang đăng ký cho người khác
             setStudents([{ name: "", dob: "", categoryId: "" }]);
           }
+          // Reset lỗi khi load lại form
+          setValidationErrors({});
         } catch (err) {
           console.error("Lỗi khi lấy thông tin người dùng:", err);
         }
@@ -66,7 +81,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
     fetchProfile();
   }, [isForSelf, isOpen]);
 
-  //  Update URL khi modal mở
+  // Update URL khi modal mở
   useEffect(() => {
     if (isOpen && location.pathname !== "/register-first-test") {
       navigate("/register-first-test", { replace: true });
@@ -76,15 +91,26 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
   const handleToggle = () => {
     setIsForSelf(!isForSelf);
     setMessage("");
+    setValidationErrors({});
   };
 
   const handleChange = (index, e) => {
+    const { name, value } = e.target;
     const updated = [...students];
-    updated[index][e.target.name] = e.target.value;
+    updated[index][name] = value;
     setStudents(updated);
+
+    // Xóa lỗi validation của trường đang nhập (nếu có)
+    if (validationErrors[`${name}_${index}`]) {
+        setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[`${name}_${index}`];
+            return newErrors;
+        });
+    }
   };
 
-  //  Logic thêm học sinh có validate giới hạn
+  // Logic thêm học sinh có validate giới hạn
   const handleAddStudent = () => {
     if (existingStudentCount + students.length < MAX_STUDENTS) {
       setStudents([...students, { name: "", dob: "", categoryId: "" }]);
@@ -95,20 +121,65 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
     const updated = [...students];
     updated.splice(index, 1);
     setStudents(updated);
+    
+    // Reset lỗi khi xóa dòng để tránh index bị lệch
+    setValidationErrors({});
   };
 
   const handleClose = () => {
     onClose();
     setMessage("");
+    setValidationErrors({});
     if (location.pathname === "/register-first-test") {
       navigate("/", { replace: true });
     }
   };
 
+  // --- Hàm Validate Form ---
+  const validateForm = () => {
+    let isValid = true;
+    const errors = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    students.forEach((student, index) => {
+        // 1. Validate Tên
+        if (!student.name || student.name.trim() === "") {
+            errors[`name_${index}`] = "Họ và tên không được để trống.";
+            isValid = false;
+        }
+
+        // 2. Validate Ngày sinh
+        if (!student.dob) {
+            errors[`dob_${index}`] = "Vui lòng chọn ngày sinh.";
+            isValid = false;
+        } else {
+            const dobDate = new Date(student.dob);
+            if (dobDate > today) {
+                errors[`dob_${index}`] = "Ngày sinh không được ở tương lai.";
+                isValid = false;
+            }
+        }
+
+        // 3. Validate Category
+        if (!student.categoryId) {
+            errors[`categoryId_${index}`] = "Vui lòng chọn khóa học.";
+            isValid = false;
+        }
+    });
+
+    setValidationErrors(errors);
+    return isValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate lần cuối trước khi submit
+    if (!validateForm()) {
+        setMessage("Vui lòng kiểm tra lại thông tin nhập liệu.");
+        return;
+    }
+
     if (!isForSelf && (existingStudentCount + students.length > MAX_STUDENTS)) {
       setMessage(`Bạn đã vượt quá giới hạn đăng ký. Tài khoản chỉ được phép có tối đa ${MAX_STUDENTS} học sinh.`);
       return;
@@ -128,14 +199,13 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
         for (const s of students) {
           await api.user.registerTest(s);
         }
-        // Update lại số lượng sau khi đăng ký thành công để UI đồng bộ
         setExistingStudentCount(prev => prev + students.length);
         responseMessage = "Đã đăng ký thành công cho tất cả học sinh! Kiểm tra email để biết thông tin test.";
       }
 
       setMessage(responseMessage);
-      // Reset form nhưng giữ lại object đầu tiên trống
       if (!isForSelf) setStudents([{ name: "", dob: "", categoryId: "" }]);
+      setValidationErrors({});
 
       setTimeout(() => {
         handleClose();
@@ -151,9 +221,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  //  Tính toán số slot còn lại
   const remainingSlots = MAX_STUDENTS - existingStudentCount;
-  // Kiểm tra xem có thể thêm người nữa không (tính cả những người đang nhập trong form)
   const canAddMore = (existingStudentCount + students.length) < MAX_STUDENTS;
 
   return (
@@ -245,6 +313,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+                  {/* --- Input Name --- */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4 text-purple-600" />
@@ -255,14 +324,19 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                       name="name"
                       value={student.name}
                       onChange={(e) => handleChange(index, e)}
-                      required
                       disabled={isForSelf || (remainingSlots <= 0 && index >= remainingSlots)}
-                      className={`w-full border-2 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all ${isForSelf ? "bg-gray-100 cursor-not-allowed" : "bg-white"
-                        }`}
+                      className={`w-full border-2 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all 
+                        ${isForSelf ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
+                        ${validationErrors[`name_${index}`] ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                      `}
                       placeholder="Nhập họ tên"
                     />
+                    {validationErrors[`name_${index}`] && (
+                        <p className="text-red-500 text-xs mt-1 font-medium">{validationErrors[`name_${index}`]}</p>
+                    )}
                   </div>
 
+                  {/* --- Input DOB --- */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-purple-600" />
@@ -271,15 +345,21 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                     <input
                       type="date"
                       name="dob"
+                      max={maxDate} // Disable ngày tương lai
                       value={student.dob}
                       onChange={(e) => handleChange(index, e)}
-                      required
                       disabled={isForSelf}
-                      className={`w-full border-2 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all ${isForSelf ? "bg-gray-100 cursor-not-allowed" : "bg-white"
-                        }`}
+                      className={`w-full border-2 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all 
+                        ${isForSelf ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
+                        ${validationErrors[`dob_${index}`] ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                      `}
                     />
+                    {validationErrors[`dob_${index}`] && (
+                        <p className="text-red-500 text-xs mt-1 font-medium">{validationErrors[`dob_${index}`]}</p>
+                    )}
                   </div>
 
+                  {/* --- Input Category --- */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-purple-600" />
@@ -289,8 +369,9 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                       name="categoryId"
                       value={student.categoryId}
                       onChange={(e) => handleChange(index, e)}
-                      required
-                      className="w-full border-2 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all"
+                      className={`w-full border-2 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all
+                         ${validationErrors[`categoryId_${index}`] ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                      `}
                     >
                       <option value="">-- Chọn khóa học --</option>
                       {categories.map((c) => (
@@ -299,6 +380,9 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                         </option>
                       ))}
                     </select>
+                    {validationErrors[`categoryId_${index}`] && (
+                        <p className="text-red-500 text-xs mt-1 font-medium">{validationErrors[`categoryId_${index}`]}</p>
+                    )}
                   </div>
                 </div>
 
@@ -323,7 +407,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                   disabled={!canAddMore}
                   className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform flex items-center gap-2 shadow-lg ${canAddMore
                       ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:scale-105"
-                      : "bg-gray-200 text-gray-500 cursor-not-allowed shadow-none" 
+                      : "bg-gray-200 text-gray-500 cursor-not-allowed shadow-none"
                     }`}
                 >
                   
@@ -347,7 +431,6 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
             {/* Submit button */}
             <button
               type="submit"
-              // Disable nút gửi nếu là đăng ký hộ mà đã hết slot (và chưa nhập ai) hoặc đang loading
               disabled={loading || (!isForSelf && remainingSlots <= 0 && students.length > 0 && students[0].name === "")}
               className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-[1.02] shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
@@ -384,7 +467,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      {/* Giữ nguyên phần style css animation ở cuối file */}
+      {/* Style css animation */}
       <style dangerouslySetInnerHTML={{
         __html: `
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
