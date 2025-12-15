@@ -50,17 +50,15 @@ const handleSignUp = async (formData) => {
     setError(null);
     const result = await signup(formData);
     
-    // Nếu signup trả về kết quả với error
+  
     if (result && !result.success && result.message) {
       setError(result.message);
-      // Throw error để component có thể catch
       throw new Error(result.message);
     }
     
     return result;
   } catch (err) {
     setError(err.message || err?.response?.data?.message);
-    // Throw lại error để component xử lý
     throw err;
   } finally {
     setIsLoading(false);
@@ -85,16 +83,16 @@ const handleSignUp = async (formData) => {
 
   const handleForgotPassword = async (email) => {
     try {
-      setIsLoading(true);
-      setError(null);
-      return await forgotPassword(email);
+        setIsLoading(true);
+        setError(null);
+        return await forgotPassword(email);
     } catch (err) {
-      setError(err.message);
-      return false;
+        setError(err?.response?.data?.message || err.message);
+        throw err;
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
 
   const handleResetPassword = async (email, token, password, passwordConfirm) => {
     try {

@@ -13,9 +13,9 @@ const isPublicRoute = (path, publicRoutes) => {
 
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); 
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const location = useLocation(); 
+    const location = useLocation();
 
     const publicRoutes = [
         "/",
@@ -33,7 +33,7 @@ export const UserProvider = ({ children }) => {
     useEffect(() => {
         const token = localStorage.getItem("token");
         const savedUser = localStorage.getItem("user");
-        const currentPath = location.pathname; 
+        const currentPath = location.pathname;
 
         async function fetchUserAndSetup() {
             if (!token) {
@@ -53,18 +53,18 @@ export const UserProvider = ({ children }) => {
             try {
                 const localUser = savedUser ? JSON.parse(savedUser) : null;
                 if (localUser) {
-                    setUser(localUser); 
+                    setUser(localUser);
                 }
-                
+
                 const res = await api.user.getMe();
                 const userData = res.data.data.data;
-                
+
                 if (userData) {
                     setUser(userData);
                     localStorage.setItem('user', JSON.stringify(userData));
-                    
+
                     // CHỈ redirect khi đang ở trang login/register/verify-otp và ĐÃ CÓ TOKEN
-                    if (["/login", "/register", "/verify-otp"].includes(currentPath)) { 
+                    if (["/login", "/register", "/verify-otp"].includes(currentPath)) {
                         const { role } = userData;
                         const roleRoutes = {
                             admin: "/admin/overview",
@@ -81,7 +81,7 @@ export const UserProvider = ({ children }) => {
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
                 setUser(null);
-                
+
                 if (!isPublicRoute(currentPath, publicRoutes)) {
                     console.log(`❌ Auth failed, redirecting from ${currentPath} to /`);
                     navigate("/", { replace: true });
@@ -90,9 +90,9 @@ export const UserProvider = ({ children }) => {
                 setLoading(false);
             }
         }
-        
+
         fetchUserAndSetup();
-    }, [navigate, location]); 
+    }, [navigate, location]);
 
     const login = async (email, password) => {
         try {
@@ -101,24 +101,24 @@ export const UserProvider = ({ children }) => {
                 const userData = response.data.data.user;
 
                 if (userData.active === false) {
-                    
+
                     if (userData.confirmPinExpires || userData.confirmPin) {
-                       
-                        return { 
-                            success: true, 
-                            needVerify: true, 
-                            user: userData 
+
+                        return {
+                            success: true,
+                            needVerify: true,
+                            user: userData
                         };
-                    } 
-                    
-                   
-                    return { 
-                        success: false, 
-                        message: "Tài khoản bị vô hiệu hóa. Vui lòng liên hệ với Admin để mở khóa" 
+                    }
+
+
+                    return {
+                        success: false,
+                        message: "Tài khoản bị vô hiệu hóa. Vui lòng liên hệ với Admin để mở khóa"
                     };
                 }
 
-                
+
                 const token = response.data.token;
                 const { role } = userData;
 
@@ -131,7 +131,7 @@ export const UserProvider = ({ children }) => {
                     staff: '/staff/classes',
                     member: '/',
                 };
-                
+
                 navigate(roleRoutes[role] || '/', { replace: true });
                 return { success: true, data: response };
             }
@@ -145,17 +145,17 @@ export const UserProvider = ({ children }) => {
     };
 
     const signup = async (signupData) => {
-    try {
-        const res = await api.auth.signup(signupData);
-        if (res.data.status === "success") {
-            console.log("✅ Signup successful, user needs to verify email");
-            return true;
+        try {
+            const res = await api.auth.signup(signupData);
+            if (res.data.status === "success") {
+                console.log("✅ Signup successful, user needs to verify email");
+                return true;
+            }
+        } catch (err) {
+           
+            throw err;
         }
-    } catch (err) {
-        // ✅ Throw lại error gốc thay vì tạo Error mới
-        throw err;
-    }
-};
+    };
 
     const logout = async () => {
         try {
@@ -188,7 +188,8 @@ export const UserProvider = ({ children }) => {
             const res = await api.user.forgotPassword(email);
             return res.data.status === "success";
         } catch (err) {
-            throw new Error(err.response?.data?.message || "Có lỗi xảy ra");
+            
+            throw err;
         }
     };
 
