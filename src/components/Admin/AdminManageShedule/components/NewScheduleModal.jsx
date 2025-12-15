@@ -7,7 +7,6 @@ import { X, Loader2 } from "lucide-react";
 function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  // ⬇️ THÊM STATE MỚI
   const [classStartAnchor, setClassStartAnchor] = useState(""); 
   const [threshold, setThreshold] = useState(0.7);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,7 +18,6 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // ⬇️ SỬA LẠI VALIDATION
     if (!startDate || !endDate || !classStartAnchor) {
       setError("Vui lòng điền đầy đủ 3 trường ngày.");
       return;
@@ -29,17 +27,16 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
     setError(null);
     
     try {
-      // ⬇️ SỬA LẠI PAYLOAD
       const res = await api.admin.schedule.runScheduler({
         intakeStartDate: startDate,
         intakeEndDate: endDate,
-        classStartAnchor: classStartAnchor, // ⬅️ Gửi ngày khai giảng
+        classStartAnchor: classStartAnchor, //  Gửi ngày khai giảng
         threshold: Number(threshold),
       });
       onJobCreated(res.data.data.jobId);
     } catch (err) {
       setError(err.response?.data?.message || "Không thể chạy thuật toán");
-      setIsSubmitting(false); // ⬅️ Thêm dòng này để dừng loading nếu lỗi
+      setIsSubmitting(false); 
     }
     // Không cần 'finally' nữa
   };
@@ -50,12 +47,10 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.6)]"
       onClick={onClose}
     >
-      {/* Modal Content */}
       <div
         className="relative w-full max-w-lg p-6 bg-white rounded-lg shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900">Tạo Lịch Xếp Mới</h2>
           <button
@@ -66,13 +61,11 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
           </button>
         </div>
 
-        {/* Body */}
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <p className="text-sm text-gray-600">
             Chọn khoảng thời gian lấy học sinh và ngày khai giảng dự kiến.
           </p>
           
-          {/* ⬇️ SỬA LẠI LAYOUT INPUT */}
           <div>
             <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
               Lấy học sinh từ ngày <span className="text-red-500 ml-1">*</span>
@@ -101,7 +94,6 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
             />
           </div>
 
-          {/* ⬇️ THÊM TRƯỜNG MỚI */}
           <div>
             <label htmlFor="classStartAnchor" className="block text-sm font-medium text-gray-700">
               Ngày Khai Giảng (Dự kiến) <span className="text-red-500 ml-1">*</span>
@@ -115,7 +107,6 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
               required
             />
           </div>
-          {/* ⬆️ KẾT THÚC THÊM */}
 
           <div>
             <label htmlFor="threshold" className="block text-sm font-medium text-gray-700">
@@ -134,9 +125,7 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
           
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          {/* Footer / Actions */}
           <div className="flex justify-end pt-4 space-x-3 border-t border-gray-200">
-            {/* ... (Nút Hủy) ... */}
             <button 
               type="submit" 
               disabled={isSubmitting}

@@ -10,10 +10,22 @@ import ScheduleResourceOverview from "./components/ScheduleResourceOverview";
 function AdminScheduleDashboard() {
   const [jobs, setJobs] = useState([]);
   const [isScheduling, setIsScheduling] = useState(false);
+  
+  // Loading tổng cho trang
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  
+  // Loading riêng cho phần filter học viên
+  const [isStudentLoading, setIsStudentLoading] = useState(false);
+
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // State quản lý Filter Date: Mặc định 1 tuần trước đến hiện tại
+  const [studentFilter, setStudentFilter] = useState({
+    startDate: moment().subtract(7, 'days').format('YYYY-MM-DD'),
+    endDate: moment().format('YYYY-MM-DD')
+  });
 
   const [stats, setStats] = useState({
     teachers: [],
@@ -25,14 +37,42 @@ function AdminScheduleDashboard() {
 
   const navigate = useNavigate();
 
-  // Hàm fetchData được bọc useCallback để có thể truyền xuống dưới làm callback
+  // Hàm riêng để fetch dữ liệu học viên, dùng cho cả load ban đầu và khi filter
+  const fetchStudentDemand = async (start, end) => {
+    setIsStudentLoading(true);
+    try {
+      // Gọi API với params date
+      const studentRes = await api.admin.enrollment.getStudentDemand({ 
+        startDate: start, 
+        endDate: end 
+      });
+
+      let allPending = [];
+      if (studentRes.data && studentRes.data.data) {
+        const data = studentRes.data.data;
+        const newLeads = data.newLeads?.students || [];
+        const waiting = data.waitingStudents?.students || [];
+        allPending = [...newLeads, ...waiting];
+      }
+
+      // Cập nhật lại list pendingStudents trong stats
+      setStats(prev => ({
+        ...prev,
+        pendingStudents: allPending
+      }));
+    } catch (err) {
+      console.error("Lỗi khi tải dữ liệu học viên:", err);
+      // Có thể hiển thị toast lỗi ở đây nếu cần
+    } finally {
+      setIsStudentLoading(false);
+    }
+  };
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setIsLoadingStats(true);
     try {
-      const startDate = moment().subtract(6, 'months').format('YYYY-MM-DD');
-      const endDate = moment().add(6, 'months').format('YYYY-MM-DD');
-
+      // 1. Load các dữ liệu tĩnh (Giáo viên, Phòng, Khóa học, Cấu hình, Jobs)
       const [
         statusRes,
         jobsRes,
@@ -40,7 +80,6 @@ function AdminScheduleDashboard() {
         roomRes,
         courseRes,
         configRes,
-        studentRes
       ] = await Promise.allSettled([
         api.admin.schedule.getStatus(),
         api.admin.schedule.getAllJobs(),
@@ -48,7 +87,6 @@ function AdminScheduleDashboard() {
         api.admin.getRooms({ status: 'active', limit: 200 }),
         api.admin.getCourse({ limit: 200 }),
         api.admin.center.getConfig(),
-        api.admin.enrollment.getStudentDemand({ startDate, endDate })
       ]);
 
       if (statusRes.status === 'fulfilled') {
@@ -58,21 +96,18 @@ function AdminScheduleDashboard() {
         setJobs(jobsRes.value.data.data);
       }
 
-      let allPending = [];
-      if (studentRes.status === 'fulfilled') {
-        const data = studentRes.value.data.data;
-        const newLeads = data.newLeads?.students || [];
-        const waiting = data.waitingStudents?.students || [];
-        allPending = [...newLeads, ...waiting];
-      }
-
-      setStats({
+      // 2. Set dữ liệu tĩnh vào state
+      const newStats = {
         teachers: teacherRes.status === 'fulfilled' ? teacherRes.value.data.data.teachers : [],
         rooms: roomRes.status === 'fulfilled' ? roomRes.value.data.data.rooms : [],
         courses: courseRes.status === 'fulfilled' ? courseRes.value.data.data.courses : [],
         config: configRes.status === 'fulfilled' ? configRes.value.data.data.config : null,
-        pendingStudents: allPending
-      });
+        pendingStudents: [] // Sẽ được update bởi fetchStudentDemand ngay sau đây
+      };
+      setStats(newStats);
+
+      // 3. Gọi API lấy học viên theo filter mặc định
+      await fetchStudentDemand(studentFilter.startDate, studentFilter.endDate);
 
       setError(null);
     } catch (err) {
@@ -82,11 +117,18 @@ function AdminScheduleDashboard() {
       setIsLoading(false);
       setIsLoadingStats(false);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Chỉ chạy 1 lần khi mount, studentFilter dùng giá trị khởi tạo
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Handler khi người dùng bấm nút Filter ở component con
+  const handleFilterStudents = (start, end) => {
+    setStudentFilter({ startDate: start, endDate: end });
+    fetchStudentDemand(start, end);
+  };
 
   const handleJobCreated = (newJobId) => {
     setIsModalOpen(false);
@@ -99,7 +141,7 @@ function AdminScheduleDashboard() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-900">
-           Xếp Lịch
+            Xếp Lịch
         </h1>
         <div className="flex-shrink-0 flex items-center space-x-3">
           <button
@@ -166,9 +208,13 @@ function AdminScheduleDashboard() {
       <ScheduleResourceOverview
         stats={stats}
         isLoadingStats={isLoadingStats}
+        
+        // Truyền props mới xuống con
+        studentFilter={studentFilter}
+        onFilterStudents={handleFilterStudents}
+        isStudentLoading={isStudentLoading}
       />
 
-      
       <JobHistoryTable 
         jobs={jobs} 
         isLoading={isLoading} 
