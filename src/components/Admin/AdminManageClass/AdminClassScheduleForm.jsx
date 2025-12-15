@@ -5,6 +5,7 @@ import { Loader2, Save, ArrowLeft, Plus, X, Calendar, Clock, Info, CheckCircle2,
 import moment from 'moment-timezone';
 
 const inputClass = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm";
+const disabledInputClass = "mt-1 block w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed sm:text-sm"; // Style cho input bị disable
 const TIMEZONE = "Asia/Ho_Chi_Minh";
 
 const ALL_DAYS = [
@@ -17,7 +18,6 @@ const ALL_DAYS = [
     { id: 0, label: "Chủ Nhật" },
 ];
 
-// Toast Component
 const Toast = ({ message, type = "success", onClose }) => {
     useEffect(() => {
         const timer = setTimeout(onClose, 4000);
@@ -44,7 +44,6 @@ const Toast = ({ message, type = "success", onClose }) => {
     );
 };
 
-// Confirmation Dialog Component
 const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText = "Xác nhận", cancelText = "Hủy bỏ" }) => {
     if (!isOpen) return null;
 
@@ -85,30 +84,36 @@ const calculateScheduleDates = (startDateStr, weeklySlots, totalSessions) => {
     if (!startDateStr || !weeklySlots.length || !totalSessions) return { dates: [], endDate: null };
 
     const anchorDate = moment.tz(startDateStr, TIMEZONE).startOf('day');
-    const slots = [...weeklySlots].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+    const slots = [...weeklySlots].sort((a, b) => {
+        
+        return a.dayOfWeek - b.dayOfWeek;
+    });
+
     const sessions = [];
     let currentSession = 0;
+    let weekOffset = 0;
 
-    for (let weekOffset = 0; currentSession < totalSessions && weekOffset < 260; weekOffset++) {
+    while (currentSession < totalSessions && weekOffset < 260) {
         for (const slot of slots) {
             if (currentSession >= totalSessions) break;
 
-            let sessionMoment = anchorDate.clone().day(slot.dayOfWeek).startOf('day');
-            if (weekOffset === 0 && sessionMoment.isBefore(anchorDate, 'day')) {
-                sessionMoment.add(1, 'week');
-            }
-            if (weekOffset > 0) {
-                sessionMoment.add(weekOffset, 'weeks');
-            }
+           
+            const dayDiff = (Number(slot.dayOfWeek) - anchorDate.day() + 7) % 7;
+            
+            const daysToAdd = dayDiff + (weekOffset * 7);
+            
+            const sessionDate = anchorDate.clone().add(daysToAdd, 'days');
 
             sessions.push({
                 sessionNo: currentSession + 1,
-                date: sessionMoment,
+                date: sessionDate,
                 slot: slot
             });
             currentSession++;
         }
+        weekOffset++;
     }
+    
     const lastSession = sessions[sessions.length - 1];
     return { dates: sessions, endDate: lastSession ? lastSession.date.toDate() : null };
 };
@@ -135,7 +140,6 @@ const AdminClassScheduleForm = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    // Toast & Confirm states
     const [toast, setToast] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, onConfirm: null, title: '', message: '' });
 
@@ -167,7 +171,7 @@ const AdminClassScheduleForm = () => {
                             ...s,
                             shiftName: shift ? shift.name : '',
                             room: s.room?._id || s.room,
-                            teacher: s.teacher?._id || s.teacher
+                            teacher: s.teacher?._id || s.teacher 
                         };
                     }));
                 } else {
@@ -186,7 +190,7 @@ const AdminClassScheduleForm = () => {
                             startMinute: firstShift.startMinute,
                             endMinute: firstShift.endMinute,
                             room: '',
-                            teacher: cls.preferredTeacher || ''
+                            teacher: cls.preferredTeacher || '' // Mặc định lấy preferredTeacher
                         }]);
                     }
                 }
@@ -257,7 +261,7 @@ const AdminClassScheduleForm = () => {
                 startMinute: defaultShift?.startMinute,
                 endMinute: defaultShift?.endMinute,
                 room: '',
-                teacher: classInfo.preferredTeacher || ''
+                teacher: classInfo.preferredTeacher || '' 
             }
         ]);
     };
@@ -267,6 +271,28 @@ const AdminClassScheduleForm = () => {
     };
 
     const handleSubmitClick = () => {
+        
+        const seenSlots = new Set();
+        
+        for (let i = 0; i < weeklySchedules.length; i++) {
+            const slot = weeklySchedules[i];
+            
+            if (slot.dayOfWeek !== null && slot.shiftName) {
+                const key = `${slot.dayOfWeek}-${slot.shiftName}`;
+                
+                if (seenSlots.has(key)) {
+                    const dayLabel = ALL_DAYS.find(d => d.id === Number(slot.dayOfWeek))?.label || "Ngày này";
+                    
+                    setToast({ 
+                        message: `LỖI: ${dayLabel} đang bị trùng ca học (${slot.shiftName}) ở nhiều dòng cấu hình. Vui lòng kiểm tra và xóa bớt!`, 
+                        type: "error" 
+                    });
+                    return; 
+                }
+                seenSlots.add(key);
+            }
+        }
+
         if (calculatedSessions.length === 0) {
             setToast({ message: "Vui lòng điền đầy đủ thông tin lịch học để tạo danh sách.", type: "warning" });
             return;
@@ -417,7 +443,12 @@ const AdminClassScheduleForm = () => {
 
                                         <div>
                                             <label className="text-xs text-gray-500">Giáo viên</label>
-                                            <select value={slot.teacher} onChange={e => handleScheduleChange(idx, 'teacher', e.target.value)} className={inputClass} required>
+                                            <select 
+                                                value={classInfo?.preferredTeacher || ''} 
+                                                disabled 
+                                                className={disabledInputClass} 
+                                                title="Giáo viên được lấy từ GV Phụ trách lớp"
+                                            >
                                                 <option value="">-- Chọn GV --</option>
                                                 {teachers.map(t => <option key={t._id} value={t._id}>{t.profile?.fullname || t.username}</option>)}
                                             </select>
