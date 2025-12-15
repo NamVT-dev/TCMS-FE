@@ -30,23 +30,20 @@ const Toast = ({ message, type = "success", onClose }) => {
 };
 
 // Final Confirmation Dialog
-const FinalConfirmDialog = ({ isOpen, onClose, onConfirm, teacherName, sessionsCount, hasConflicts, updatePreferred }) => {
+// Đã loại bỏ logic hiển thị xung đột ở đây vì Modal cha đã chặn rồi
+const FinalConfirmDialog = ({ isOpen, onClose, onConfirm, teacherName, sessionsCount, updatePreferred }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg animate-scale-in">
         <div className="p-6">
-          <div className={`flex items-center justify-center w-14 h-14 rounded-full mx-auto mb-4 ${hasConflicts ? 'bg-orange-100' : 'bg-purple-100'}`}>
-            {hasConflicts ? (
-              <AlertTriangle className="w-7 h-7 text-orange-600" />
-            ) : (
-              <CheckCircle className="w-7 h-7 text-purple-600" />
-            )}
+          <div className="flex items-center justify-center w-14 h-14 rounded-full mx-auto mb-4 bg-purple-100">
+            <CheckCircle className="w-7 h-7 text-purple-600" />
           </div>
           
           <h3 className="text-xl font-bold text-gray-800 text-center mb-3">
-            {hasConflicts ? "Xác nhận bỏ qua xung đột?" : "Xác nhận thay đổi giáo viên"}
+            Xác nhận thay đổi giáo viên
           </h3>
           
           <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-2 text-sm">
@@ -66,15 +63,6 @@ const FinalConfirmDialog = ({ isOpen, onClose, onConfirm, teacherName, sessionsC
             </div>
           </div>
 
-          {hasConflicts && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
-              <p className="text-sm text-orange-800 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>Giáo viên có xung đột lịch. Hệ thống sẽ vẫn gán lịch cho giáo viên này.</span>
-              </p>
-            </div>
-          )}
-
           <p className="text-center text-gray-600 text-sm mb-6">
             Bạn có chắc chắn muốn thực hiện thay đổi này?
           </p>
@@ -89,11 +77,7 @@ const FinalConfirmDialog = ({ isOpen, onClose, onConfirm, teacherName, sessionsC
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 px-4 py-2.5 font-medium rounded-lg transition shadow-sm ${
-              hasConflicts 
-                ? 'bg-orange-600 hover:bg-orange-700 text-white' 
-                : 'bg-purple-600 hover:bg-purple-700 text-white'
-            }`}
+            className="flex-1 px-4 py-2.5 font-medium rounded-lg transition shadow-sm bg-purple-600 hover:bg-purple-700 text-white"
           >
             <span className="flex items-center justify-center gap-2">
               <Check className="w-4 h-4" />
@@ -128,7 +112,6 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
   
   const [preview, setPreview] = useState(null);
   const [appliedScope, setAppliedScope] = useState({}); 
-  const [confirmAllowBlocked, setConfirmAllowBlocked] = useState(false);
 
   // Toast & Confirm states
   const [toast, setToast] = useState(null);
@@ -160,7 +143,6 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
       setPreview(null);
       setError(null);
       setSearchTerm("");
-      setConfirmAllowBlocked(false);
       setAppliedScope({});
       setToast(null);
       setShowFinalConfirm(false);
@@ -176,7 +158,6 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
     setLoading(true);
     setError(null);
     setPreview(null);
-    setConfirmAllowBlocked(false);
 
     let scope = { onlyStatus: ["scheduled"] }; 
     const firstUpcomingNo = getFirstUpcomingSessionNo(sessions);
@@ -207,9 +188,9 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
   };
 
   const handleApplyClick = () => {
-    const selectedTeacher = teachers.find(t => t._id === newTeacherId);
-    const teacherName = selectedTeacher?.profile?.fullname || selectedTeacher?.username || "Giáo viên";
-    
+    // Kiểm tra lần cuối, nếu có block thì return luôn
+    if (preview?.summary?.blocked > 0) return;
+
     setShowFinalConfirm(true);
   };
 
@@ -223,7 +204,7 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
       scope: appliedScope, 
       check: { skill: true, conflict: true },
       updatePreferred: updatePreferred, 
-      allowBlocked: confirmAllowBlocked, 
+      allowBlocked: false, // Luôn luôn là false
     };
     
     try {
@@ -241,9 +222,10 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
     }
   };
 
-  const hasSkillError = preview?.blocked?.some(b => b.reason === "NO_SKILL_GLOBAL");
-  const hasConflictError = preview?.blocked?.some(b => b.reason === "TEACHER_BUSY");
-  const isApplyDisabled = loading || hasSkillError || (hasConflictError && !confirmAllowBlocked);
+  // --- LOGIC CHẶN LƯU ---
+  // Nếu có bất kỳ buổi nào bị block (xung đột hoặc skill), disable nút Lưu ngay lập tức
+  const hasError = preview?.summary?.blocked > 0;
+  const isApplyDisabled = loading || hasError;
 
   if (!isOpen) return null;
 
@@ -284,7 +266,6 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
         onConfirm={handleApply}
         teacherName={selectedTeacherName}
         sessionsCount={preview?.summary?.toUpdate || 0}
-        hasConflicts={confirmAllowBlocked}
         updatePreferred={updatePreferred}
       />
 
@@ -381,7 +362,7 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
                       />
                     </div>
                     <div className="ml-3 text-sm">
-                      <span className="font-bold text-gray-900 group-hover:text-purple-700">Cập nhật làm Giáo viên phụ trách</span>
+                      <span className="font-bold text-gray-900 group-hover:text-purple-700">Cập nhật làm Giáo viên Chính (Phụ trách)</span>
                       <p className="text-gray-600 text-xs mt-1">
                         Nếu chọn: Giáo viên này sẽ thay thế giáo viên cũ trong hồ sơ lớp. <br/>
                         Nếu không chọn: Chỉ dạy thay các buổi trong lịch (Hồ sơ lớp giữ nguyên GV cũ).
@@ -413,48 +394,32 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
                       {preview.summary.blocked}
                     </p>
                     <p className={`text-sm font-medium uppercase tracking-wide mt-1 ${preview.summary.blocked > 0 ? 'text-red-800' : 'text-gray-500'}`}>
-                      Xung đột
+                      Lỗi / Trùng lịch
                     </p>
                   </div>
                 </div>
 
                 {preview.summary.blocked > 0 && (
-                  <div className={`p-4 rounded-lg border text-sm ${hasSkillError ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'}`}>
+                  <div className="p-4 rounded-lg border text-sm bg-red-50 border-red-200">
                     <div className="flex items-start gap-3">
-                      {hasSkillError ? <AlertOctagon className="w-5 h-5 text-red-600 shrink-0" /> : <AlertTriangle className="w-5 h-5 text-orange-600 shrink-0" />}
+                      <AlertOctagon className="w-5 h-5 text-red-600 shrink-0" />
                       <div>
-                        <p className={`font-bold mb-2 ${hasSkillError ? 'text-red-800' : 'text-orange-800'}`}>
-                          Phát hiện {preview.summary.blocked} vấn đề:
+                        {/* Thay đổi text để nhấn mạnh việc chặn */}
+                        <p className="font-bold mb-2 text-red-800">
+                           Không thể thực hiện do có {preview.summary.blocked} lỗi sau:
                         </p>
                         <ul className="list-disc pl-4 space-y-1.5 text-gray-700">
-                          {hasSkillError && (
+                          {preview.blocked.some(b => b.reason === "NO_SKILL_GLOBAL") && (
                             <li className="text-red-700 font-medium">
                               Giáo viên không đủ kỹ năng chuyên môn (Lỗi: NO_SKILL_GLOBAL).
                             </li>
                           )}
-                          {hasConflictError && (
-                            <li>
-                              Giáo viên bị trùng lịch dạy tại các buổi số: <span className="font-semibold">{preview.blocked.filter(b => b.reason === "TEACHER_BUSY").map(b => b.sessionNo).join(", ")}</span>.
+                          {preview.blocked.some(b => b.reason === "TEACHER_BUSY") && (
+                            <li className="text-red-700 font-medium">
+                              Giáo viên bị trùng lịch dạy tại các buổi số: <span className="font-bold">{preview.blocked.filter(b => b.reason === "TEACHER_BUSY").map(b => b.sessionNo).join(", ")}</span>.
                             </li>
                           )}
                         </ul>
-
-                        {hasConflictError && !hasSkillError && (
-                          <div className="mt-4 pt-3 border-t border-orange-200">
-                            <label className="flex items-start cursor-pointer">
-                              <input 
-                                type="checkbox" 
-                                checked={confirmAllowBlocked}
-                                onChange={(e) => setConfirmAllowBlocked(e.target.checked)}
-                                className="mt-1 h-4 w-4 accent-orange-600 text-orange-600 rounded focus:ring-orange-500"
-                              />
-                              <div className="ml-2">
-                                <span className="font-bold text-gray-900 block">Tiếp tục đổi bất chấp trùng lịch</span>
-                                <span className="text-xs text-gray-500">Hệ thống sẽ vẫn gán lịch cho giáo viên này.</span>
-                              </div>
-                            </label>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -500,13 +465,11 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
                 className={`inline-flex items-center px-6 py-2.5 font-medium rounded-lg transition shadow-md
                   ${isApplyDisabled 
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                    : confirmAllowBlocked 
-                      ? 'bg-orange-600 text-white hover:bg-orange-700 hover:shadow-lg' 
-                      : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg' 
+                    : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg' 
                   }`}
               >
                 {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <CheckCircle className="w-5 h-5 mr-2" />}
-                {confirmAllowBlocked ? "Xác nhận (Bỏ qua lỗi)" : "Xác nhận & Lưu"}
+                Xác nhận & Lưu
               </button>
             )}
           </div>
