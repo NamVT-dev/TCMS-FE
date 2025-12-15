@@ -379,7 +379,7 @@ const AdminClassScheduleForm = () => {
                         <div>
                             <p>Khóa học: <strong>{classInfo?.course?.name}</strong> ({classInfo?.course?.session} buổi).</p>
                             <p>Ngày khai giảng: {moment(classInfo?.startAt).format('DD/MM/YYYY')}</p>
-                            <p>GV Chủ nhiệm: <strong>{teachers.find(t => t._id === classInfo?.preferredTeacher)?.profile?.fullname || 'Chưa gán'}</strong></p>
+                            <p>GV Phụ trách: <strong>{teachers.find(t => t._id === classInfo?.preferredTeacher)?.profile?.fullname || 'Chưa gán'}</strong></p>
                         </div>
                     </div>
 

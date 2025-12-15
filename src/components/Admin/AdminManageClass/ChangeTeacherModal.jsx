@@ -59,7 +59,7 @@ const FinalConfirmDialog = ({ isOpen, onClose, onConfirm, teacherName, sessionsC
               <span className="font-semibold text-purple-600">{sessionsCount} buổi</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Làm GV chủ nhiệm:</span>
+              <span className="text-gray-600">Làm GV phụ trách:</span>
               <span className={`font-semibold ${updatePreferred ? 'text-green-600' : 'text-gray-500'}`}>
                 {updatePreferred ? "Có" : "Không"}
               </span>
@@ -381,7 +381,7 @@ const ChangeTeacherModal = ({ isOpen, onClose, classData, sessions, onTeacherCha
                       />
                     </div>
                     <div className="ml-3 text-sm">
-                      <span className="font-bold text-gray-900 group-hover:text-purple-700">Cập nhật làm Giáo viên Chính (Chủ nhiệm)</span>
+                      <span className="font-bold text-gray-900 group-hover:text-purple-700">Cập nhật làm Giáo viên Chính (Phụ trách)</span>
                       <p className="text-gray-600 text-xs mt-1">
                         Nếu chọn: Giáo viên này sẽ thay thế giáo viên cũ trong hồ sơ lớp. <br/>
                         Nếu không chọn: Chỉ dạy thay các buổi trong lịch (Hồ sơ lớp giữ nguyên GV cũ).
