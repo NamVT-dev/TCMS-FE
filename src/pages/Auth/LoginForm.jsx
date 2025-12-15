@@ -9,24 +9,52 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
   const { login, error, isLoading } = useAuth();
+
+  // Regex để validate email
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Handle thay đổi email
+  const handleEmailChange = (e) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    
+    // Clear error khi user bắt đầu nhập
+    if (emailError && newEmail) {
+      setEmailError("");
+    }
+  };
+
+  // Validate email khi blur (rời khỏi input)
+  const handleEmailBlur = () => {
+    if (email && !validateEmail(email)) {
+      setEmailError("Email chưa đúng định dạng");
+    } else {
+      setEmailError("");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate email trước khi submit
+    if (!validateEmail(email)) {
+      setEmailError("Email chưa đúng định dạng");
+      return;
+    }
     
     const res = await login(email, password);
 
     if (res && res.success) {
       if (res.needVerify) {
         localStorage.setItem("pendingEmail", res.user.email);
-        
         navigate("/verify-otp");
       }
-      
-      
     }
-    
-    
   };
 
   return (
@@ -71,13 +99,24 @@ const LoginForm = () => {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
+                    onBlur={handleEmailBlur}
                     placeholder="your.email@example.com"
-                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className={`w-full pl-11 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                      emailError
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-purple-500 focus:border-transparent"
+                    }`}
                     required
                     disabled={isLoading}
                   />
                 </div>
+                {emailError && (
+                  <p className="text-red-600 text-xs mt-1 ml-1 flex items-center">
+                    <span className="inline-block w-1 h-1 bg-red-600 rounded-full mr-1.5"></span>
+                    {emailError}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
