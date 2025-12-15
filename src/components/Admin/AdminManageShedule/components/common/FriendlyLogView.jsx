@@ -47,7 +47,7 @@ function FriendlyLogView({ logs }) {
   return (
     <div
       ref={logContainerRef}
-      className="bg-gray-50 border border-gray-200 p-4 rounded-lg h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300"
+      className="bg-gray-50 border border-gray-200 p-4 rounded-lg h-160 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300"
     >
       <div className="font-sans text-sm">
         {logs.map((log, index) => {
