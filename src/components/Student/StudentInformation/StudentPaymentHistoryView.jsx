@@ -227,7 +227,7 @@ const StudentPaymentHistoryView = () => {
                   {filteredPayments.map((payment) => (
                     <tr key={payment._id} className="hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => handleViewDetail(payment._id)}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">
-                        #{payment._id.slice(-6).toUpperCase()}
+                        {payment._id.slice(-6).toUpperCase()}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900 line-clamp-1 max-w-xs" title={payment.description}>

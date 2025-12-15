@@ -283,7 +283,7 @@ export default function TeacherRegisterSchedule() {
                       </div>
                       <div className="text-sm text-gray-500">
                         {s.effective?.start || s.effective?.end
-                          ? `${s.effective?.start || "?"} → ${s.effective?.end || "?"}`
+                          ? `${s.effective?.start || "?"} → ${s.effective?.end || "Không giới hạn"}`
                           : "Không giới hạn"}
                       </div>
                     </div>
