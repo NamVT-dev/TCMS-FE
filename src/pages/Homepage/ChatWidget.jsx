@@ -40,8 +40,11 @@ const ChatWidget = () => {
         const deltaX = startPos.current.x - e.clientX;
         const deltaY = startPos.current.y - e.clientY;
 
+        // Tính toán chiều cao tối đa = 2/3 màn hình
+        const maxHeight = Math.floor(window.innerHeight * 2 / 3);
+
         const newWidth = Math.max(300, Math.min(startSize.current.w + deltaX, 800));
-        const newHeight = Math.max(400, Math.min(startSize.current.h + deltaY, 900));
+        const newHeight = Math.max(400, Math.min(startSize.current.h + deltaY, maxHeight));
 
         // Cập nhật trực tiếp DOM thay vì qua state để tránh re-render
         chatBoxRef.current.style.width = `${newWidth}px`;
