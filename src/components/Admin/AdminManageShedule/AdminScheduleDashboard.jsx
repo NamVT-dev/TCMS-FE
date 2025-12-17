@@ -83,7 +83,7 @@ function AdminScheduleDashboard() {
       ] = await Promise.allSettled([
         api.admin.schedule.getStatus(),
         api.admin.schedule.getAllJobs(),
-        api.admin.getTeachers({ active: true, limit: 200 }),
+        api.admin.getTeachers({status: 'active', limit: 200 }),
         api.admin.getRooms({ status: 'active', limit: 200 }),
         api.admin.getCourse({ limit: 200 }),
         api.admin.center.getConfig(),
