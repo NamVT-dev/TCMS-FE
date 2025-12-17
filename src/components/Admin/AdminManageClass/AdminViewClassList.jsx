@@ -32,12 +32,7 @@ const Pagination = ({ page, totalPages, onPageChange }) => {
   );
 };
 
-const getCurrentMonth = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  return `${year}-${month}`;
-};
+
 
 const AdminViewClassList = () => {
   const navigate = useNavigate();
@@ -58,7 +53,7 @@ const AdminViewClassList = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+  const [selectedMonth, setSelectedMonth] = useState("");
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -93,19 +88,17 @@ const AdminViewClassList = () => {
         ]);
         let fetchedCourses = courseRes.data.data.courses || [];
 
-        // --- BẮT ĐẦU LOGIC SẮP XẾP ---
         fetchedCourses.sort((a, b) => {
           // 1. Ưu tiên sắp xếp theo Tên Khóa học (IELTS gom vào 1 chỗ, TOEIC gom vào 1 chỗ)
-          // Nếu bạn chỉ muốn sort thuần Level thì bỏ đoạn if này đi
+          
           const nameA = a.name || "";
           const nameB = b.name || "";
           
-          // Kiểm tra xem là IELTS hay TOEIC để gom nhóm (Tuỳ chọn, nhưng nên dùng cho dropdown đẹp)
           if (nameA.includes("IELTS") && !nameB.includes("IELTS")) return -1;
           if (!nameA.includes("IELTS") && nameB.includes("IELTS")) return 1;
 
           // 2. Sắp xếp theo Level từ bé đến lớn
-          const levelA = LEVEL_PRIORITY[a.level] || 99; // 99 là giá trị mặc định nếu level không nằm trong list
+          const levelA = LEVEL_PRIORITY[a.level] || 99; 
           const levelB = LEVEL_PRIORITY[b.level] || 99;
 
           return levelA - levelB;
@@ -323,7 +316,9 @@ const AdminViewClassList = () => {
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => { setSelectedMonth(e.target.value); setPage(1); }}
-                  placeholder="Chọn tháng mở lớp"
+                  
+                  placeholder="--Tìm theo tháng mở--" 
+                  
                   className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm text-gray-700"
                 />
               </div>

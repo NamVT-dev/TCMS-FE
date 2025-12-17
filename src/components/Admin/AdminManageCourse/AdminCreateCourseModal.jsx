@@ -281,19 +281,19 @@ const AdminCreateCourseModal = ({ open, onClose, onSuccess, categories }) => {
                                 </Col>
                                 <Col span={12}>
                                     <Form.Item
-                                        label={<span className="font-semibold">Giá (VND)</span>}
+                                        label={("Giá (VND)")}
                                         name="price"
                                         rules={[
-                                            { required: true, message: "Vui lòng nhập giá" }, 
+                                            { required: true, message: "Vui lòng nhập giá" },
                                             { type: 'number', min: 0, message: "Giá không được âm" } 
                                         ]}
                                     >
                                         <InputNumber
                                             min={0} 
                                             style={{ width: "100%" }}
-                                            size="large"
                                             formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                                             parser={(v) => v.replace(/,/g, "")}
+                                            placeholder="0"
                                         />
                                     </Form.Item>
                                 </Col>
