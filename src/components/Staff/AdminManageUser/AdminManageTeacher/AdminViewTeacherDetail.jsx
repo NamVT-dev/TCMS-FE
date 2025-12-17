@@ -190,7 +190,7 @@ const AdminViewTeacherDetail = () => {
                                 Thông tin liên hệ
                             </h3>
                             <div className="space-y-3">
-                                <InfoItem icon={Mail} label="Email" value={email} isLink />
+                                <InfoItem icon={Mail} label="Email" value={email} />
                                 <InfoItem icon={Phone} label="Điện thoại" value={profile.phoneNumber} />
                                 <InfoItem icon={Calendar} label="Ngày sinh" value={profile.dob ? new Date(profile.dob).toLocaleDateString('vi-VN') : null} />
                                 <InfoItem icon={UserIcon} label="Giới tính" value={profile.gender === 'male' ? 'Nam' : profile.gender === 'female' ? 'Nữ' : profile.gender} />
