@@ -276,7 +276,7 @@ function TeacherViewSchedule() {
                     const sessionStartTime = session ? new Date(session.startAt) : null;
                     const now = new Date();
                     const hoursUntilSession = sessionStartTime ? (sessionStartTime - now) / (1000 * 60 * 60) : 0;
-                    const canRequestSubstitute = session && hoursUntilSession >= 12;
+                    const canRequestSubstitute = session && hoursUntilSession >= 24;
 
                     return (
                       <td
@@ -353,7 +353,7 @@ function TeacherViewSchedule() {
             </div>
           </div>
           <div className="mt-2 text-xs text-gray-500 italic">
-            <span className="font-semibold">Lưu ý:</span> Chỉ được yêu cầu dạy thay trước 12 tiếng khi ca học bắt đầu
+            <span className="font-semibold">Lưu ý:</span> Chỉ được yêu cầu dạy thay trước 24 tiếng khi ca học bắt đầu
           </div>
         </div>
       </div>
