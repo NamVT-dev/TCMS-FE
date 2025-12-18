@@ -709,7 +709,7 @@ const AdminViewEnrollmentList = () => {
                         {formatCurrency(item.amount)}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {['removed', 'hold', 'waitlisted'].includes(item.status) && item.student && (
+                      {['removed', 'waitlisted'].includes(item.status) && item.student && (
                           <button
                             onClick={() => handleEnrollClick(item)}
                             className={`inline-flex items-center px-3 py-1.5 border text-xs font-medium rounded-lg transition shadow-sm
@@ -723,7 +723,7 @@ const AdminViewEnrollmentList = () => {
                           </button>
                       )}
                       
-                      {(!['removed', 'hold', 'waitlisted'].includes(item.status) || !item.student) && (
+                      {(!['removed', 'waitlisted'].includes(item.status) || !item.student) && (
                           <span className="text-gray-300">-</span>
                       )}
                     </td>
