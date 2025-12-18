@@ -10,8 +10,7 @@ import {
   XMarkIcon
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
-import { toast } from "react-hot-toast"; 
-
+import { toast } from "react-toastify";
 import api from "../../../utils/api";
 import Loading from "../../UI/Loading";
 import AdminPaymentDetailModal from "./AdminPaymentDetailModal";
@@ -36,7 +35,7 @@ const RefundConfirmModal = ({ isOpen, onClose, onConfirm, isProcessing }) => {
               <h3 className="text-lg font-bold text-gray-900">Xác nhận hoàn tiền?</h3>
               <div className="mt-2">
                 <p className="text-sm text-gray-500">
-                  Bạn có chắc chắn muốn hoàn tiền cho giao dịch này không? 
+                  Bạn có chắc chắn muốn hoàn tiền cho giao dịch này không?
                 </p>
                 <ul className="mt-3 text-sm text-red-600 bg-red-50 p-3 rounded-lg list-disc list-inside border border-red-100">
                   <li>Hành động này <span className="font-bold">không thể hoàn tác</span>.</li>
@@ -63,7 +62,7 @@ const RefundConfirmModal = ({ isOpen, onClose, onConfirm, isProcessing }) => {
             disabled={isProcessing}
           >
             {isProcessing ? (
-               <ArrowPathIcon className="w-5 h-5 animate-spin" />
+              <ArrowPathIcon className="w-5 h-5 animate-spin" />
             ) : (
               "Hoàn tiền"
             )}
@@ -79,17 +78,17 @@ const StaffPaymentManagement = () => {
   // --- State ---
   const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Pagination & Filter
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
-  const [statusFilter, setStatusFilter] = useState(""); 
-  
+  const [statusFilter, setStatusFilter] = useState("");
+
   // Search State
-  const [searchTerm, setSearchTerm] = useState(""); 
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(""); 
-  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
   // Detail Modal
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -99,26 +98,26 @@ const StaffPaymentManagement = () => {
   const [refundPaymentId, setRefundPaymentId] = useState(null);
   const [isRefunding, setIsRefunding] = useState(false);
 
-  
+
   const fetchPayments = async () => {
     setIsLoading(true);
     try {
       const params = {
         page,
-        limit: 10, 
-        sort: "-createdAt", 
+        limit: 10,
+        sort: "-createdAt",
       };
 
       if (statusFilter) {
         params.status = statusFilter;
       }
-      
+
       if (debouncedSearchTerm) {
         params.search = debouncedSearchTerm;
       }
 
       const res = await api.admin.payment.getAllSystemPayments(params);
-      
+
       setPayments(res.data.data.data || []);
       setTotalPages(res.data.totalPages || 1);
       setTotalResults(res.data.results || 0);
@@ -133,16 +132,16 @@ const StaffPaymentManagement = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-        if (searchTerm !== debouncedSearchTerm) {
-            setPage(1); 
-            setDebouncedSearchTerm(searchTerm);
-        }
+      if (searchTerm !== debouncedSearchTerm) {
+        setPage(1);
+        setDebouncedSearchTerm(searchTerm);
+      }
     }, 800);
 
     return () => clearTimeout(timer);
   }, [searchTerm, debouncedSearchTerm]);
 
-  
+
   useEffect(() => {
     fetchPayments();
   }, [page, statusFilter, debouncedSearchTerm]);
@@ -154,28 +153,46 @@ const StaffPaymentManagement = () => {
   }
 
   // --- Actions: Thực hiện Refund ---
+  // --- Actions: Thực hiện Refund (Sửa lại) ---
   const handleConfirmRefund = async () => {
     if (!refundPaymentId) return;
 
+    // 1. Tạo toast loading (React-Toastify trả về ID)
+    const toastId = toast.loading("Đang xử lý hoàn tiền...");
     setIsRefunding(true);
-    // Sử dụng toast.promise để hiển thị trạng thái đẹp hơn
-    const promise = api.admin.payment.refundPayment(refundPaymentId);
-
-    toast.promise(promise, {
-       loading: 'Đang xử lý hoàn tiền...',
-       success: 'Hoàn tiền thành công!',
-       error: (err) => err.response?.data?.message || "Lỗi khi hoàn tiền"
-    });
 
     try {
-      await promise;
-      // Thành công
+      await api.admin.payment.refundPayment(refundPaymentId);
+
+      // 2. CẬP NHẬT THÀNH CÔNG
+      // Cú pháp của react-toastify là toast.update()
+      toast.update(toastId, {
+        render: "Hoàn tiền thành công!",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000, // Tự đóng sau 3s
+        closeButton: true
+      });
+
       setIsRefundModalOpen(false);
       setRefundPaymentId(null);
-      fetchPayments(); // Refresh data
+      fetchPayments();
+
     } catch (err) {
-      console.error(err);
-      // Lỗi đã được toast handle ở trên, không cần làm gì thêm
+      console.error("Lỗi:", err);
+
+      // Lấy message lỗi từ backend
+      const errorMessage = err.response?.data?.message || err.message || "Có lỗi xảy ra";
+
+      // 3. CẬP NHẬT THẤT BẠI
+      toast.update(toastId, {
+        render: errorMessage, // Hiển thị đúng câu lỗi tiếng Việt
+        type: "error",
+        isLoading: false,
+        autoClose: 4000,
+        closeButton: true
+      });
+
     } finally {
       setIsRefunding(false);
     }
@@ -202,7 +219,7 @@ const StaffPaymentManagement = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen font-sans">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
@@ -212,19 +229,19 @@ const StaffPaymentManagement = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button 
-                onClick={fetchPayments} 
-                className="p-2 bg-white border border-gray-300 rounded-lg text-gray-500 hover:text-purple-600 hover:border-purple-300 transition-colors"
-                title="Làm mới"
+            <button
+              onClick={fetchPayments}
+              className="p-2 bg-white border border-gray-300 rounded-lg text-gray-500 hover:text-purple-600 hover:border-purple-300 transition-colors"
+              title="Làm mới"
             >
-                <ArrowPathIcon className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+              <ArrowPathIcon className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
 
         {/* Filters & Search */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row gap-4 justify-between">
-          
+
           {/* Status Tabs */}
           <div className="flex p-1 bg-gray-100 rounded-lg self-start">
             {[
@@ -235,11 +252,10 @@ const StaffPaymentManagement = () => {
               <button
                 key={tab.value}
                 onClick={() => { setStatusFilter(tab.value); setPage(1); }}
-                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                  statusFilter === tab.value
-                    ? 'bg-white text-purple-600 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${statusFilter === tab.value
+                  ? 'bg-white text-purple-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 {tab.label}
               </button>
@@ -278,12 +294,12 @@ const StaffPaymentManagement = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {isLoading ? (
-                   <tr>
-                     <td colSpan="7" className="px-6 py-10 text-center">
-                        <Loading />
-                        <p className="mt-2 text-gray-500 text-sm">Đang tải dữ liệu...</p>
-                     </td>
-                   </tr>
+                  <tr>
+                    <td colSpan="7" className="px-6 py-10 text-center">
+                      <Loading />
+                      <p className="mt-2 text-gray-500 text-sm">Đang tải dữ liệu...</p>
+                    </td>
+                  </tr>
                 ) : payments.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="px-6 py-10 text-center text-gray-500">
@@ -295,21 +311,21 @@ const StaffPaymentManagement = () => {
                     <tr key={payment._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-xs font-mono font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            #{payment._id.slice(-6).toUpperCase()}
+                          #{payment._id.slice(-6).toUpperCase()}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-xs overflow-hidden shrink-0">
-                             {payment.user?.profile?.photo ? (
-                                 <img src={payment.user.profile.photo} alt="" className="w-full h-full object-cover" />
-                             ) : (
-                                 (payment.user?.profile?.fullname || "U").charAt(0).toUpperCase()
-                             )}
+                            {payment.user?.profile?.photo ? (
+                              <img src={payment.user.profile.photo} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              (payment.user?.profile?.fullname || "U").charAt(0).toUpperCase()
+                            )}
                           </div>
                           <div className="ml-3">
                             <div className="text-sm font-medium text-gray-900">
-                                {payment.user?.profile?.fullname || "Unknown User"}
+                              {payment.user?.profile?.fullname || "Unknown User"}
                             </div>
                             <div className="text-xs text-gray-500">{payment.user?.email}</div>
                           </div>
@@ -321,7 +337,7 @@ const StaffPaymentManagement = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900 line-clamp-2 max-w-xs" title={payment.description}>
-                            {payment.description}
+                          {payment.description}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -332,24 +348,24 @@ const StaffPaymentManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-3">
-                            {/* Nút Xem chi tiết */}
-                            <button 
-                                onClick={() => { setSelectedPaymentId(payment._id); setIsDetailModalOpen(true); }}
-                                className="text-gray-400 hover:text-purple-600 transition-colors" 
-                                title="Xem chi tiết"
-                            >
-                                <EyeIcon className="w-5 h-5" />
-                            </button>
+                          {/* Nút Xem chi tiết */}
+                          <button
+                            onClick={() => { setSelectedPaymentId(payment._id); setIsDetailModalOpen(true); }}
+                            className="text-gray-400 hover:text-purple-600 transition-colors"
+                            title="Xem chi tiết"
+                          >
+                            <EyeIcon className="w-5 h-5" />
+                          </button>
 
-                            {payment.status === 'succeeded' && (
-                                <button 
-                                    onClick={() => openRefundModal(payment._id)}
-                                    className="text-gray-400 hover:text-red-600 transition-colors"
-                                    title="Hoàn tiền & Hủy lớp"
-                                >
-                                    <ArrowUturnLeftIcon className="w-5 h-5" />
-                                </button>
-                            )}
+                          {payment.status === 'succeeded' && (
+                            <button
+                              onClick={() => openRefundModal(payment._id)}
+                              className="text-gray-400 hover:text-red-600 transition-colors"
+                              title="Hoàn tiền & Hủy lớp"
+                            >
+                              <ArrowUturnLeftIcon className="w-5 h-5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -358,37 +374,37 @@ const StaffPaymentManagement = () => {
               </tbody>
             </table>
           </div>
-          
+
           {/* Footer Pagination */}
           {!isLoading && payments.length > 0 && (
             <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                    <div>
-                        <p className="text-sm text-gray-700">
-                            Trang <span className="font-medium">{page}</span> trên <span className="font-medium">{totalPages}</span>
-                        </p>
-                    </div>
-                    <div>
-                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                            <button
-                                onClick={() => setPage(curr => Math.max(curr - 1, 1))}
-                                disabled={page === 1}
-                                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-300"
-                            >
-                                <span className="sr-only">Previous</span>
-                                <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                            </button>
-                            <button
-                                onClick={() => setPage(curr => Math.min(curr + 1, totalPages))}
-                                disabled={page === totalPages}
-                                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-300"
-                            >
-                                <span className="sr-only">Next</span>
-                                <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                            </button>
-                        </nav>
-                    </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Trang <span className="font-medium">{page}</span> trên <span className="font-medium">{totalPages}</span>
+                  </p>
                 </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => setPage(curr => Math.max(curr - 1, 1))}
+                      disabled={page === 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-300"
+                    >
+                      <span className="sr-only">Previous</span>
+                      <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    <button
+                      onClick={() => setPage(curr => Math.min(curr + 1, totalPages))}
+                      disabled={page === totalPages}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-300"
+                    >
+                      <span className="sr-only">Next</span>
+                      <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -402,7 +418,7 @@ const StaffPaymentManagement = () => {
       />
 
       {/* Refund Confirm Modal */}
-      <RefundConfirmModal 
+      <RefundConfirmModal
         isOpen={isRefundModalOpen}
         onClose={() => setIsRefundModalOpen(false)}
         onConfirm={handleConfirmRefund}
