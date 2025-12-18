@@ -14,6 +14,15 @@ const formatMinutes = (minutes) => {
   const m = minutes % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 };
+const formatDate = (dateString) => {
+  if (!dateString) return 'Chưa cập nhật';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN', { 
+    day: '2-digit', 
+    month: '2-digit', 
+    year: 'numeric' 
+  });
+};
 
 // Function component Toast và ClassCard 
 function Toast({ message, type = "success", onClose }) {
@@ -46,7 +55,7 @@ function Toast({ message, type = "success", onClose }) {
 }
 
 const ClassCard = ({ cls, studentId, onRegisterClick }) => {
-  const { course, weeklySchedules, maxStudent } = cls;
+  const { course, weeklySchedules, maxStudent, startAt } = cls;
   const currentSize = cls.currentSize || cls.student?.length || 0;
 
   return (
@@ -54,6 +63,14 @@ const ClassCard = ({ cls, studentId, onRegisterClick }) => {
       <div className="p-5">
         <h3 className="text-lg font-bold text-purple-700">{cls.name}</h3>
         <p className="text-sm text-gray-600 mb-4">{course.name}</p>
+        <div className="space-y-3 mb-6 flex-grow">
+          <div className="flex items-center text-sm text-gray-700">
+             {/* Dùng màu tím cho icon để tạo điểm nhấn nhẹ */}
+            <Calendar className="w-4 h-4 mr-2 text-purple-600 flex-shrink-0" />
+            <span className="font-semibold mr-1">Khai giảng:</span>
+            <span className="text-gray-900">{formatDate(startAt)}</span>
+          </div>
+        </div>
 
         <div className="space-y-2 mb-4">
           {weeklySchedules.map((slot, index) => (
