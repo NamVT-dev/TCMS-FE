@@ -134,7 +134,7 @@ const AdminOverview = () => {
         />
 
         <StatCard
-          title="Tổng Học viên"
+          title="Tổng người dùng"
           value={stats?.totalMembers || 0}
           subValue={stats ? `+${stats.newMembersThisMonth}` : 0}
           icon={UserCircle}
@@ -197,7 +197,7 @@ const AdminOverview = () => {
             </div>
           </div>
           <div className="mt-4 text-center">
-            <Link to="/admin/users/students" className="text-sm text-gray-500 hover:text-gray-700 underline">Xem danh sách yêu cầu</Link>
+            <Link to="/admin/facility/complain" className="text-sm text-gray-500 hover:text-gray-700 underline">Xem danh sách yêu cầu</Link>
           </div>
         </div>
 

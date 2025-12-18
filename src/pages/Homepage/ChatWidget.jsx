@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Grip } from 'lucide-react';
 import api from '../../utils/api';
 
-const ChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const ChatWidget = ({ isOpen, setIsOpen }) => {
+  
   const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);

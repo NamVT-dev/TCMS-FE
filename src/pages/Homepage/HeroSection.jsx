@@ -1,16 +1,15 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
-import { useNavigate } from "react-router-dom"; // <-- THÊM DÒNG NÀY
+import { useNavigate } from "react-router-dom";
 
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-// Thêm prop showLoginMessage
-export default function HeroSection({ onOpenModal, showLoginMessage }) {
-    const navigate = useNavigate(); // <-- KHỞI TẠO HOOK
+export default function HeroSection({ onOpenModal, showLoginMessage, isLoggedIn, onOpenChat }) {
+    const navigate = useNavigate();
 
     const carouselImages = [
         {
@@ -33,6 +32,15 @@ export default function HeroSection({ onOpenModal, showLoginMessage }) {
         }
     ];
 
+    const handleStartLearning = () => {
+        if (isLoggedIn) {
+            navigate('/learner/my-classes');
+        } else {
+            // Hiển thị thông báo yêu cầu đăng nhập
+            navigate('/login?redirect=/learner/my-classes');
+        }
+    };
+
     return (
         <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-purple-200 via-white to-purple-200">
             {/* Decorative background */}
@@ -46,26 +54,36 @@ export default function HeroSection({ onOpenModal, showLoginMessage }) {
                     {/* Left content */}
                     <div className="md:w-5/12 space-y-6 relative z-10">
 
-                        {/* KHỐI THÔNG BÁO VÀ CHUYỂN HƯỚNG BẰNG CLICK */}
+                        {/* THÔNG BÁO ĐĂNG NHẬP */}
                         {showLoginMessage && (
                             <div className="p-3 bg-yellow-100 text-yellow-800 rounded-lg text-sm font-semibold border border-yellow-300 animate-slideDown flex items-center gap-2">
-                                ⚠️ Vui lòng 
-                                <span 
-                                    onClick={() => navigate('/login?redirect=/register-first-test')} // <-- CHUYỂN HƯỚNG
+                                ⚠️ Vui lòng
+                                <span
+                                    onClick={() => navigate('/login?redirect=/register-first-test')}
                                     className="underline cursor-pointer text-yellow-900 hover:text-yellow-700 transition-colors"
                                 >
                                     đăng nhập
-                                </span> 
+                                </span>
                                 để đăng ký kiểm tra.
                             </div>
                         )}
-                        
-                        <button 
+
+                        <button
                             onClick={onOpenModal}
-                            disabled={showLoginMessage} // Vô hiệu hóa khi thông báo đang hiển thị
-                            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-semibold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
+                            disabled={showLoginMessage}
+                            className="group relative overflow-hidden rounded-full bg-gradient-to-r from-purple-700 via-violet-700 to-indigo-700 px-8 py-3 text-white shadow-[0_4px_15px_rgba(109,40,217,0.4)] transition-all duration-300 hover:scale-105 hover:shadow-[0_6px_20px_rgba(109,40,217,0.6)] disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            ✨ Kiểm tra đầu vào miễn phí
+                            {/* Hiệu ứng nền background di chuyển nhẹ khi hover   */}
+                            <div className="absolute inset-0 bg-black/10 group-hover:opacity-0 transition-opacity" />
+
+                            {/* Hiệu ứng luồng sáng (Shine) - Đã giảm độ gắt từ white/50 xuống white/20 */}
+                            <div className="absolute top-0 -left-[100%] h-full w-full -skew-x-[20deg] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shine" />
+
+                            {/* Nội dung nút */}
+                            <span className="relative flex items-center gap-2 text-sm font-bold uppercase tracking-wider">
+                                <span className="text-xl">✨</span>
+                                Kiểm tra đầu vào miễn phí
+                            </span>
                         </button>
 
                         <h1 className="text-5xl md:text-5xl font-extrabold text-gray-900 leading-tight">
@@ -82,11 +100,36 @@ export default function HeroSection({ onOpenModal, showLoginMessage }) {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                            <button className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-4 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
-                                Bắt đầu học ngay →
+                            {/* BUTTON BẮT ĐẦU HỌC NGAY */}
+                            <button
+                                onClick={handleStartLearning}
+                                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-4 rounded-full font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group relative"
+                            >
+                                {isLoggedIn ? (
+                                    <>
+                                        Bắt đầu học ngay →
+                                    </>
+                                ) : (
+                                    <span className="flex items-center justify-center gap-2">
+                                        Đăng nhập để học
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                        </svg>
+                                    </span>
+                                )}
                             </button>
-                            <button className="bg-white hover:bg-gray-50 text-purple-700 px-8 py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-purple-200">
-                                Tư vấn miễn phí
+
+                            {/* BUTTON TƯ VẤN MIỄN PHÍ - MỞ CHATBOT */}
+                            <button
+                                onClick={onOpenChat}
+                                className="bg-white hover:bg-gray-50 text-purple-700 px-8 py-4 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-purple-200 group"
+                            >
+                                <span className="flex items-center justify-center gap-2">
+                                    Tư vấn miễn phí
+                                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                </span>
                             </button>
                         </div>
 
@@ -146,7 +189,7 @@ export default function HeroSection({ onOpenModal, showLoginMessage }) {
                 </div>
             </div>
 
-            <style >{`
+            <style>{`
                 :global(.swiper-button-next),
                 :global(.swiper-button-prev) {
                     color: rgb(147, 51, 234);
@@ -185,6 +228,21 @@ export default function HeroSection({ onOpenModal, showLoginMessage }) {
                 .animate-slideDown {
                     animation: slideDown 0.3s ease-out;
                 }
+                    @keyframes shine {
+        0% {
+            left: -100%;
+        }
+        20% {
+            left: 100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+
+    .animate-shine {
+        animation: shine 3s infinite linear;
+    }
             `}</style>
         </section>
     );
