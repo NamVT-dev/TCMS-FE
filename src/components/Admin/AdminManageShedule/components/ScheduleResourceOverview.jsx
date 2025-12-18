@@ -29,6 +29,10 @@ const ScheduleResourceOverview = ({
         endDate: ''
     });
 
+    // --- SỬA ĐỔI: Lấy ngày hiện tại để làm giới hạn max ---
+    const maxDate = new Date().toISOString().split("T")[0];
+    // -----------------------------------------------------
+
     // Sync state cục bộ với props khi mới load
     useEffect(() => {
         if (studentFilter) {
@@ -42,8 +46,8 @@ const ScheduleResourceOverview = ({
     const { teachers, rooms, courses, config, pendingStudents } = stats;
 
     const studentStats = useMemo(() => {
-        const newLeads = pendingStudents.filter(s => s.testScore !== undefined); // Giả sử có testScore là New Lead
-        const waiting = pendingStudents.filter(s => !s.testScore); // Không có testScore (có learningGoal) là Waiting
+        const newLeads = pendingStudents.filter(s => s.testScore !== undefined); 
+        const waiting = pendingStudents.filter(s => !s.testScore); 
 
         const countByCategory = (list) => {
             return list.reduce((acc, s) => {
@@ -113,7 +117,7 @@ const ScheduleResourceOverview = ({
                                     <span className={`ml-2 py-0.5 px-2 rounded-full text-xs font-medium ${activeTab === tab.id
                                             ? "bg-purple-100 text-purple-600"
                                             : "bg-gray-100 text-gray-600"
-                                        }`}
+                                    }`}
                                     >
                                         {tab.count}
                                     </span>
@@ -137,6 +141,7 @@ const ScheduleResourceOverview = ({
                                     </div>
                                     <input
                                         type="date"
+                                        max={maxDate} /* --- SỬA ĐỔI: Chặn ngày tương lai --- */
                                         value={localFilter.startDate}
                                         onChange={(e) => setLocalFilter({ ...localFilter, startDate: e.target.value })}
                                         className="pl-9 block w-full md:w-40 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm border py-2"
@@ -152,6 +157,7 @@ const ScheduleResourceOverview = ({
                                     </div>
                                     <input
                                         type="date"
+                                        max={maxDate} /* --- SỬA ĐỔI: Chặn ngày tương lai --- */
                                         value={localFilter.endDate}
                                         onChange={(e) => setLocalFilter({ ...localFilter, endDate: e.target.value })}
                                         className="pl-9 block w-full md:w-40 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm border py-2"
@@ -245,7 +251,6 @@ const ScheduleResourceOverview = ({
                             )}
 
                             {activeTab === 'students' && (
-                                // Nếu đang filter thì hiện loading đè lên hoặc thay thế
                                 isStudentLoading ? (
                                     <div className="flex flex-col justify-center items-center h-48 bg-white/50">
                                         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
