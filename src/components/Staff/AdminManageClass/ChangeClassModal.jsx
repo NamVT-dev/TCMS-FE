@@ -3,7 +3,6 @@ import {
     X, Search, Calendar, Clock, ArrowRight, CheckCircle2, Loader2, AlertCircle 
 } from "lucide-react";
 import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import api from "../../../utils/api"; 
 
 // Toast Component
@@ -107,18 +106,38 @@ const ChangeClassModal = ({ isOpen, onClose, student, currentClass, onSuccess })
                     const res = await api.admin.class.listClasses({ limit: 100, status: 'approved' });
                     const allClasses = res.data.data.classes || [];
 
+                    const now = new Date(); 
+                    
                     const filtered = allClasses.filter(c => 
                         c.course?._id === currentClass.course?._id && 
                         c._id !== currentClass._id &&
-                        c.status === 'approved'
+                        c.status === 'approved' &&
+                        new Date(c.startAt) > now 
                     );
                     
-                    const classesWithSessions = filtered.map(c => ({
-                        ...c,
-                        sessionsPassed: calculateSessionsPassed(c)
+                    const classesWithDetails = await Promise.all(filtered.map(async (cls) => {
+                        try {
+                            const detailRes = await api.admin.class.getClassDetail(cls._id); 
+                            
+                            const data = detailRes.data.data;
+                            const studentsList = data.student || data.students || (data.class && data.class.student) || [];
+
+                            return {
+                                ...cls, 
+                                student: studentsList, 
+                                sessionsPassed: calculateSessionsPassed(cls)
+                            };
+                        } catch (err) {
+                            console.warn(`Lỗi lấy chi tiết lớp ${cls.name}`, err);
+                            return {
+                                ...cls,
+                                student: [], 
+                                sessionsPassed: calculateSessionsPassed(cls)
+                            };
+                        }
                     }));
 
-                    setAvailableClasses(classesWithSessions);
+                    setAvailableClasses(classesWithDetails);
                 } catch (err) {
                     console.error(err);
                     setError("Không thể tải danh sách lớp học.");
@@ -242,7 +261,9 @@ const ChangeClassModal = ({ isOpen, onClose, student, currentClass, onSuccess })
                         ) : (
                             <div className="grid gap-3">
                                 {displayClasses.map((cls) => {
-                                    const isFull = cls.student?.length >= cls.maxStudent;
+                                    // cls.student bây giờ đã có dữ liệu từ api detail
+                                    const currentStudents = cls.student || [];
+                                    const isFull = currentStudents.length >= cls.maxStudent;
                                     const isSelected = selectedClass?._id === cls._id;
 
                                     return (
@@ -273,8 +294,8 @@ const ChangeClassModal = ({ isOpen, onClose, student, currentClass, onSuccess })
                                                         <Clock className="w-4 h-4 mr-1" />
                                                         Đã học: {cls.sessionsPassed} buổi
                                                     </span>
-                                                    <span>
-                                                        Sĩ số: {cls.student?.length || 0}/{cls.maxStudent}
+                                                    <span className="flex items-center">
+                                                        Sĩ số: <strong className="ml-1">{currentStudents.length}</strong>/{cls.maxStudent}
                                                     </span>
                                                 </div>
                                                 
