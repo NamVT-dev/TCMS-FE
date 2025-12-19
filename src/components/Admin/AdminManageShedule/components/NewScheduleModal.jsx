@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 import api from "../../../../utils/api";
 import { X, Loader2 } from "lucide-react";
@@ -11,6 +9,10 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
   const [threshold, setThreshold] = useState(0.7);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  // Lấy ngày hiện tại theo giờ địa phương và format thành YYYY-MM-DD
+  // Sử dụng 'en-CA' để đảm bảo format ra YYYY-MM-DD chuẩn cho input date
+  const today = new Date().toLocaleDateString('en-CA');
 
   if (!isOpen) {
     return null;
@@ -30,7 +32,7 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
       const res = await api.admin.schedule.runScheduler({
         intakeStartDate: startDate,
         intakeEndDate: endDate,
-        classStartAnchor: classStartAnchor, //  Gửi ngày khai giảng
+        classStartAnchor: classStartAnchor,
         threshold: Number(threshold),
       });
       onJobCreated(res.data.data.jobId);
@@ -38,11 +40,9 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
       setError(err.response?.data?.message || "Không thể chạy thuật toán");
       setIsSubmitting(false); 
     }
-    // Không cần 'finally' nữa
   };
 
   return (
-    // Overlay
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.6)]"
       onClick={onClose}
@@ -74,6 +74,7 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
               type="date"
               id="startDate"
               value={startDate}
+              max={today} // Chặn chọn ngày tương lai
               onChange={(e) => setStartDate(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
               required
@@ -88,6 +89,8 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
               type="date"
               id="endDate"
               value={endDate}
+              max={today} // Chặn chọn ngày tương lai
+              min={startDate} // UX: Ngày kết thúc không được nhỏ hơn ngày bắt đầu
               onChange={(e) => setEndDate(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
               required
@@ -102,6 +105,9 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
               type="date"
               id="classStartAnchor"
               value={classStartAnchor}
+              // Thường ngày khai giảng sẽ là tương lai nên tôi để min={today}. 
+              // Nếu bạn muốn chặn tương lai cho ô này luôn thì đổi thành max={today}
+              min={today} 
               onChange={(e) => setClassStartAnchor(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
               required

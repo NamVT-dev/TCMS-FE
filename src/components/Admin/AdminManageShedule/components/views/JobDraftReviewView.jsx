@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import để chuyển trang
 import api from "../../../../../utils/api";
-import { Check, Loader2, PieChart, AlertTriangle, ListX, TestTube2, Calendar, X, CheckCircle, AlertCircle } from "lucide-react";
+import { Check, Loader2, PieChart, AlertTriangle, ListX, TestTube2, Calendar, X, CheckCircle, AlertCircle, Trash2 } from "lucide-react";
 
 import WeeklyTimetableView from "../draft/WeeklyTimetableView";
 import FailedClassesTable from "../draft/FailedClassesTable";
@@ -34,7 +35,7 @@ const Toast = ({ message, type = "success", onClose }) => {
   );
 };
 
-// Confirmation Dialog Component
+// Confirmation Finalize Dialog Component
 const ConfirmFinalizeDialog = ({ isOpen, onClose, onConfirm, stats }) => {
   if (!isOpen) return null;
 
@@ -121,14 +122,57 @@ const ConfirmFinalizeDialog = ({ isOpen, onClose, onConfirm, stats }) => {
   );
 };
 
+// Confirmation Delete Dialog Component (Mới)
+const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md animate-scale-in">
+        <div className="p-6">
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mx-auto mb-4">
+            <Trash2 className="w-6 h-6 text-red-600" />
+          </div>
+          
+          <h3 className="text-xl font-bold text-gray-800 text-center mb-2">
+            Xóa bản nháp này?
+          </h3>
+          
+          <p className="text-center text-gray-600 text-sm mb-6">
+            Hành động này <strong>không thể hoàn tác</strong>. Toàn bộ dữ liệu tính toán và lịch dự kiến của lần chạy này sẽ bị xóa vĩnh viễn.
+          </p>
+        
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition"
+            >
+              Giữ lại
+            </button>
+            <button
+              onClick={onConfirm}
+              className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition shadow-sm"
+            >
+              Xóa vĩnh viễn
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function JobDraftReviewView({ job, onRefetch }) {
+  const navigate = useNavigate(); // Hook chuyển trang
   const [activeTab, setActiveTab] = useState("draft");
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false); // State loading khi xóa
   const [error, setError] = useState(null);
   
   // Toast & Dialog states
   const [toast, setToast] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // State dialog xóa
 
   const report = job.resultReport || {};
   
@@ -152,6 +196,7 @@ function JobDraftReviewView({ job, onRefetch }) {
     { id: "logs", name: "Logs Chi Tiết", icon: PieChart },
   ];
 
+  // Xử lý Chốt lịch
   const handleFinalizeClick = () => {
     setShowConfirm(true);
   };
@@ -181,6 +226,37 @@ function JobDraftReviewView({ job, onRefetch }) {
     }
   };
 
+  // Xử lý Xóa lịch
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDelete = async () => {
+    setShowDeleteConfirm(false);
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      await api.admin.schedule.deleteJob(job._id);
+      
+      setToast({ 
+        message: "Đã xóa bản nháp thành công!", 
+        type: "success" 
+      });
+      
+      // Chuyển hướng về trang danh sách sau 1s
+      setTimeout(() => {
+        navigate("/admin/scheduler/dashboard"); // Điều chỉnh đường dẫn này theo router của bạn
+      }, 1000);
+
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "Lỗi khi xóa bản nháp.";
+      setError(errorMsg);
+      setToast({ message: errorMsg, type: "error" });
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <>
       <style>{`
@@ -204,11 +280,19 @@ function JobDraftReviewView({ job, onRefetch }) {
         />
       )}
 
+      {/* Dialog chốt lịch */}
       <ConfirmFinalizeDialog
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={handleFinalize}
         stats={stats}
+      />
+
+      {/* Dialog xóa lịch (Mới) */}
+      <ConfirmDeleteDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
       />
 
       <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -221,10 +305,33 @@ function JobDraftReviewView({ job, onRefetch }) {
               Đã chạy xong. Vui lòng xem lại và chốt lịch.
             </p>
           </div>
-          <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-end sm:space-x-3 ">
+          
+          {/* Khu vực nút bấm */}
+          <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-end space-y-3 sm:space-y-0 sm:space-x-3">
+            
+            {/* Nút Hủy bản nháp (Mới) */}
+            <button
+              onClick={handleDeleteClick}
+              disabled={isDeleting || isFinalizing}
+              className={`flex items-center justify-center font-bold py-3 px-4 rounded-lg border transition-colors duration-200 h-[42px] w-full sm:w-auto
+              ${
+                isDeleting 
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200" 
+                : "bg-white text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+              }`}
+            >
+               {isDeleting ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Trash2 className="h-5 w-5" />
+              )}
+              <span className="ml-2">{isDeleting ? "Đang xóa..." : "Hủy bản nháp"}</span>
+            </button>
+
+            {/* Nút Chốt lịch */}
             <button
               onClick={handleFinalizeClick}
-              disabled={isFinalizing}
+              disabled={isFinalizing || isDeleting}
               className={`flex items-center justify-center font-bold py-3 px-6 rounded-lg text-white transition-colors duration-200 h-[42px] w-full sm:w-auto
               ${
                 isFinalizing 

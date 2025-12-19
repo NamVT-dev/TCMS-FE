@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import ScheduleStatusTag from "./common/ScheduleStatusTag";
-import { Loader2, List, Trash2, Eye, X, AlertCircle, CheckCircle, AlertTriangle } from "lucide-react";
-import api from "../../../../utils/api";
+import { Loader2, List, Eye, X, AlertCircle, CheckCircle, AlertTriangle } from "lucide-react";
 
-// Toast Notification Component
 function Toast({ message, type = "success", onClose }) {
   const icons = {
     success: <CheckCircle className="w-5 h-5" />,
@@ -34,51 +32,11 @@ function Toast({ message, type = "success", onClose }) {
   );
 }
 
-// Confirmation Dialog Component
-function ConfirmDialog({ isOpen, onClose, onConfirm, title, message }) {
-  if (!isOpen) return null;
+// Đã xóa Component ConfirmDialog
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm transition-opacity duration-200">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full transform transition-all duration-200 scale-100">
-        <div className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-red-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {title}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {message}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gray-50 px-6 py-4 rounded-b-xl flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Hủy bỏ
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Xóa
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function JobHistoryTable({ jobs, isLoading, onDeleteSuccess }) {
+function JobHistoryTable({ jobs, isLoading }) {
+  // Đã xóa state confirmDialog
   const [toast, setToast] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, jobId: null });
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -99,36 +57,10 @@ function JobHistoryTable({ jobs, isLoading, onDeleteSuccess }) {
     return formatPercent(successfulCount / total);
   };
 
-  const handleDeleteClick = (jobId) => {
-    setConfirmDialog({ isOpen: true, jobId });
-  };
-
-  const handleDeleteConfirm = async () => {
-    const jobId = confirmDialog.jobId;
-    setConfirmDialog({ isOpen: false, jobId: null });
-
-    try {
-      await api.admin.schedule.deleteJob(jobId);
-      
-      showToast("Xóa lịch chạy thành công!", "success");
-      
-      if (onDeleteSuccess) {
-        onDeleteSuccess();
-      }
-    } catch (error) {
-      console.error("Lỗi khi xóa job:", error);
-      showToast(error.response?.data?.message || "Lỗi khi xóa job. Vui lòng thử lại.", "error");
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setConfirmDialog({ isOpen: false, jobId: null });
-  };
+  // Đã xóa các hàm handleDelete...
 
   return (
     <>
-
-
       {toast && (
         <Toast
           message={toast.message}
@@ -137,13 +69,7 @@ function JobHistoryTable({ jobs, isLoading, onDeleteSuccess }) {
         />
       )}
 
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
-        title="Xác nhận xóa lịch chạy"
-        message="Bạn có chắc chắn muốn xóa lịch chạy này không? Hành động này không thể hoàn tác."
-      />
+      {/* Đã xóa <ConfirmDialog /> */}
 
       <div className="mt-8 bg-white shadow-lg rounded-lg border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900 p-6 border-b border-gray-200">
@@ -185,7 +111,7 @@ function JobHistoryTable({ jobs, isLoading, onDeleteSuccess }) {
                   <td colSpan="5" className="p-6 text-center">
                     <List className="w-12 h-12 mx-auto text-gray-400" />
                     <p className="mt-2 text-sm font-medium text-gray-900">Chưa có lịch sử</p>
-                    <p className="text-sm text-gray-500">Hãy tạo  một bảng xếp lịch mới.</p>
+                    <p className="text-sm text-gray-500">Hãy tạo một bảng xếp lịch mới.</p>
                   </td>
                 </tr>
               )}
@@ -213,14 +139,6 @@ function JobHistoryTable({ jobs, isLoading, onDeleteSuccess }) {
                       >
                         <Eye className="w-4 h-4 mr-1" /> Xem
                       </Link>
-                      
-                      <button
-                        onClick={() => handleDeleteClick(job._id)}
-                        className="text-red-500 hover:text-red-700 flex items-center px-2 py-1 rounded hover:bg-red-50 transition-colors opacity-70 group-hover:opacity-100"
-                        title="Xóa lịch chạy này"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" /> Xóa
-                      </button>
                     </div>
                   </td>
                 </tr>
