@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, Trash2, Loader2 } from "lucide-react"; // Import thêm Loader2
+import { Search, Trash2, Loader2 } from "lucide-react";
 import api from "../../../utils/api";
 import AdminCreateRoomModal from "./AdminCreateRoomModal";
-import { Switch, Modal, Tooltip, Spin } from "antd"; // Import Spin từ antd (hoặc dùng Loader2)
+import { Switch, Modal, Tooltip, Spin } from "antd";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import showToast from "../../../utils/showToast";
 
@@ -51,7 +51,6 @@ const AdminViewRoomList = () => {
   }, [currentPage, searchTerm]);
 
   useEffect(() => {
-    // Debounce việc gọi API khi search để tránh spam request
     const debounce = setTimeout(() => {
         fetchRooms();
     }, 500);
@@ -64,6 +63,13 @@ const AdminViewRoomList = () => {
     return "bg-gray-100 text-gray-800";
   };
 
+  // Chuyển đổi text hiển thị trạng thái
+  const getStatusLabel = (status) => {
+    if (status === "active") return "Hoạt động";
+    if (status === "closed") return "Đã đóng";
+    return "N/A";
+  };
+
   const updateStatus = async (roomId, status) => {
     const toastId = showToast.loading("Đang cập nhật trạng thái...");
     try {
@@ -74,7 +80,7 @@ const AdminViewRoomList = () => {
       );
       showToast.updateSuccess(
         toastId,
-        status === "closed" ? "Đã đóng lớp học!" : "Đã mở lớp học!"
+        status === "closed" ? "Đã đóng phòng học!" : "Đã mở phòng học!"
       );
     } catch (err) {
       console.error(err);
@@ -92,9 +98,9 @@ const AdminViewRoomList = () => {
       modal.confirm({
         title: "Bạn có muốn đóng phòng học này?",
         icon: <ExclamationCircleFilled />,
-        content: "Thao tác này sẽ chuyển trạng thái về 'closed'.",
-        okText: "OK",
-        cancelText: "Cancel",
+        content: "Thao tác này sẽ chuyển trạng thái về 'Đã đóng'.",
+        okText: "Đồng ý",
+        cancelText: "Hủy bỏ",
         okType: "danger",
         getContainer: false,
         zIndex: 2000,
@@ -106,10 +112,10 @@ const AdminViewRoomList = () => {
     if (room.status === "closed" && checked) {
       modal.confirm({
         title: "Bạn có muốn mở lại phòng học này?",
-        content: "Thao tác này sẽ chuyển trạng thái về 'active'.",
+        content: "Thao tác này sẽ chuyển trạng thái về 'Hoạt động'.",
         icon: <ExclamationCircleFilled />,
-        okText: "OK",
-        cancelText: "Cancel",
+        okText: "Đồng ý",
+        cancelText: "Hủy bỏ",
         getContainer: false,
         zIndex: 2000,
         onOk: () => updateStatus(room._id, "active"),
@@ -149,14 +155,11 @@ const AdminViewRoomList = () => {
     });
   };
 
-  // --- XÓA ĐOẠN IF LOADING RETURN Ở ĐÂY ---
-  // Chỉ return lỗi nếu có lỗi chết người, còn loading thì xử lý bên dưới
   if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {contextHolder}
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Danh sách phòng học
@@ -164,11 +167,9 @@ const AdminViewRoomList = () => {
         <p className="text-gray-600">Quản lý phòng học và tình trạng sử dụng</p>
       </div>
 
-      {/* Search + Create Button */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            {/* Nếu đang loading thì hiện spinner, không thì hiện icon search */}
             {loading ? (
                 <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-500 w-5 h-5 animate-spin" />
             ) : (
@@ -181,7 +182,7 @@ const AdminViewRoomList = () => {
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setCurrentPage(1); // Reset về trang 1 khi search
+                setCurrentPage(1);
               }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
             />
@@ -196,8 +197,7 @@ const AdminViewRoomList = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden min-h-[400px]"> {/* Thêm min-h để tránh giật layout */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden min-h-[400px]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[600px]">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -220,7 +220,6 @@ const AdminViewRoomList = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {/* LOGIC HIỂN THỊ LOADING TRONG TABLE */}
               {loading ? (
                 <tr>
                   <td colSpan="5" className="px-6 py-12 text-center">
@@ -247,13 +246,13 @@ const AdminViewRoomList = () => {
                           room.status
                         )}`}
                       >
-                        {room.status}
+                        {getStatusLabel(room.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-3">
                         <Tooltip
-                          placement="topLeft"
+                          placement="top"
                           title={"Đóng/Mở phòng học"}
                         >
                           <Switch
@@ -262,17 +261,16 @@ const AdminViewRoomList = () => {
                             onChange={(checked) =>
                               handleToggleSwitch(room, checked)
                             }
-                            checkedChildren="Active"
-                            unCheckedChildren="Close"
+                            checkedChildren="Mở"
+                            unCheckedChildren="Đóng"
                           />
                         </Tooltip>
-                        <Tooltip placement="topLeft" title={"Xóa phòng học"}>
+                        <Tooltip placement="top" title={"Xóa phòng học"}>
                           <button
                             onClick={() => handleDelete(room._id)}
                             className="text-red-600 hover:text-red-800"
-                            title="Xóa"
                           >
-                            <Trash2 className="text-red-600 hover:text-red-800 w-5 h-5" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </Tooltip>
                       </div>
@@ -293,7 +291,6 @@ const AdminViewRoomList = () => {
           </table>
         </div>
 
-        {/* Pagination bar - Ẩn khi không có dữ liệu để nhìn đỡ trống */}
         {!loading && rooms.length > 0 && (
           <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
             <div className="text-sm text-gray-700">

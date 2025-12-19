@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, Trash2, Loader2, Info } from "lucide-react"; // Import thêm icon Info
+import { Search, Trash2, Loader2 } from "lucide-react";
 import api from "../../../utils/api";
 import AdminCreateRoomModal from "./AdminCreateRoomModal";
 import { Switch, Modal, Tooltip, Spin } from "antd";
@@ -52,7 +52,7 @@ const AdminViewRoomList = () => {
 
   useEffect(() => {
     const debounce = setTimeout(() => {
-      fetchRooms();
+        fetchRooms();
     }, 500);
     return () => clearTimeout(debounce);
   }, [fetchRooms]);
@@ -61,6 +61,13 @@ const AdminViewRoomList = () => {
     if (status === "active") return "bg-green-100 text-green-800";
     if (status === "closed") return "bg-red-100 text-red-800";
     return "bg-gray-100 text-gray-800";
+  };
+
+  // Chuyển đổi text hiển thị trạng thái
+  const getStatusLabel = (status) => {
+    if (status === "active") return "Hoạt động";
+    if (status === "closed") return "Đã đóng";
+    return "N/A";
   };
 
   const updateStatus = async (roomId, status) => {
@@ -73,7 +80,7 @@ const AdminViewRoomList = () => {
       );
       showToast.updateSuccess(
         toastId,
-        status === "closed" ? "Đã đóng lớp học!" : "Đã mở lớp học!"
+        status === "closed" ? "Đã đóng phòng học!" : "Đã mở phòng học!"
       );
     } catch (err) {
       console.error(err);
@@ -91,9 +98,9 @@ const AdminViewRoomList = () => {
       modal.confirm({
         title: "Bạn có muốn đóng phòng học này?",
         icon: <ExclamationCircleFilled />,
-        content: "Thao tác này sẽ chuyển trạng thái về 'closed'.",
-        okText: "OK",
-        cancelText: "Cancel",
+        content: "Thao tác này sẽ chuyển trạng thái về 'Đã đóng'.",
+        okText: "Đồng ý",
+        cancelText: "Hủy bỏ",
         okType: "danger",
         getContainer: false,
         zIndex: 2000,
@@ -105,10 +112,10 @@ const AdminViewRoomList = () => {
     if (room.status === "closed" && checked) {
       modal.confirm({
         title: "Bạn có muốn mở lại phòng học này?",
-        content: "Thao tác này sẽ chuyển trạng thái về 'active'.",
+        content: "Thao tác này sẽ chuyển trạng thái về 'Hoạt động'.",
         icon: <ExclamationCircleFilled />,
-        okText: "OK",
-        cancelText: "Cancel",
+        okText: "Đồng ý",
+        cancelText: "Hủy bỏ",
         getContainer: false,
         zIndex: 2000,
         onOk: () => updateStatus(room._id, "active"),
@@ -151,9 +158,8 @@ const AdminViewRoomList = () => {
   if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen font-sans">
+    <div className="p-6 bg-gray-50 min-h-screen">
       {contextHolder}
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Danh sách phòng học
@@ -161,15 +167,15 @@ const AdminViewRoomList = () => {
         <p className="text-gray-600">Quản lý phòng học và tình trạng sử dụng</p>
       </div>
 
-      {/* Search + Create Button */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             {loading ? (
-              <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-500 w-5 h-5 animate-spin" />
+                <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-500 w-5 h-5 animate-spin" />
             ) : (
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             )}
+            
             <input
               type="text"
               placeholder="Tìm kiếm theo tên phòng hoặc chỗ học..."
@@ -184,16 +190,14 @@ const AdminViewRoomList = () => {
 
           <button
             onClick={() => setOpenCreate(true)}
-            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-md hover:shadow-lg whitespace-nowrap"
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             + Tạo phòng
           </button>
         </div>
       </div>
 
-      {/* Table Container */}
-      {/* UPDATE 1: Bỏ min-h-[400px], dùng h-auto hoặc min-h-0 để không bị khoảng trắng thừa */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden min-h-[400px]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[600px]">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -220,86 +224,59 @@ const AdminViewRoomList = () => {
                 <tr>
                   <td colSpan="5" className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
-                      <Spin size="large" />
-                      <span className="mt-2 text-gray-500">
-                        Đang tải dữ liệu...
-                      </span>
+                        <Spin size="large" />
+                        <span className="mt-2 text-gray-500">Đang tải dữ liệu...</span>
                     </div>
                   </td>
                 </tr>
               ) : rooms.length > 0 ? (
-                rooms.map((room, index) => {
-                  // UPDATE 2: Check điều kiện xóa
-                  const canDelete = room.status === "closed";
-                  
-                  return (
-                    <tr
-                      key={room._id}
-                      className="hover:bg-gray-50 transition-colors duration-150"
-                    >
-                      <td className="px-6 py-4 font-medium text-gray-800">
-                        {(currentPage - 1) * PAGE_SIZE + index + 1}
-                      </td>
-                      <td className="px-6 py-4">{room.name}</td>
-                      <td className="px-6 py-4">{room.capacity}</td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                            room.status
-                          )}`}
+                rooms.map((room, index) => (
+                  <tr
+                    key={room._id}
+                    className="hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-800">
+                      {(currentPage - 1) * PAGE_SIZE + index + 1}
+                    </td>
+                    <td className="px-6 py-4">{room.name}</td>
+                    <td className="px-6 py-4">{room.capacity}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                          room.status
+                        )}`}
+                      >
+                        {getStatusLabel(room.status)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-3">
+                        <Tooltip
+                          placement="top"
+                          title={"Đóng/Mở phòng học"}
                         >
-                          {room.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-3">
-                          {/* Nút Switch */}
-                          <Tooltip
-                            placement="top"
-                            title={
-                              room.status === "active"
-                                ? "Đóng phòng học"
-                                : "Mở phòng học"
+                          <Switch
+                            checked={room.status === "active"}
+                            loading={togglingId === room._id}
+                            onChange={(checked) =>
+                              handleToggleSwitch(room, checked)
                             }
+                            checkedChildren="Mở"
+                            unCheckedChildren="Đóng"
+                          />
+                        </Tooltip>
+                        <Tooltip placement="top" title={"Xóa phòng học"}>
+                          <button
+                            onClick={() => handleDelete(room._id)}
+                            className="text-red-600 hover:text-red-800"
                           >
-                            <Switch
-                              checked={room.status === "active"}
-                              loading={togglingId === room._id}
-                              onChange={(checked) =>
-                                handleToggleSwitch(room, checked)
-                              }
-                              checkedChildren="Active"
-                              unCheckedChildren="Close"
-                            />
-                          </Tooltip>
-                          
-                          {/* Nút Delete có điều kiện */}
-                          <Tooltip
-                            placement="top"
-                            // UPDATE 3: Đổi nội dung tooltip dựa trên trạng thái
-                            title={
-                              canDelete
-                                ? "Xóa phòng học"
-                                : "Phải chuyển sang Closed mới được xóa"
-                            }
-                          >
-                            <button
-                              onClick={() => canDelete && handleDelete(room._id)}
-                              disabled={!canDelete}
-                              className={`transition-colors p-1 rounded-md ${
-                                canDelete
-                                  ? "text-red-600 hover:text-red-800 hover:bg-red-50"
-                                  : "text-gray-300 cursor-not-allowed"
-                              }`}
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </Tooltip>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </Tooltip>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td
@@ -314,50 +291,37 @@ const AdminViewRoomList = () => {
           </table>
         </div>
 
-        {/* Footer: Pagination + Note */}
         {!loading && rooms.length > 0 && (
-          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-            
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              {/* Pagination Info */}
-              <div className="text-sm text-gray-700">
-                 Hiển thị <span className="font-medium">{pagination.results}</span>{" "}
-                trong tổng số{" "}
-                <span className="font-medium">{pagination.total}</span> phòng học
-              </div>
-
-               {/* Pagination Buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-white hover:text-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  Trước
-                </button>
-
-                <span className="px-3 py-1 text-sm font-medium bg-white border border-gray-200 rounded-md">
-                  {pagination.page} / {pagination.totalPages}
-                </span>
-
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))
-                  }
-                  disabled={currentPage === pagination.totalPages}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-white hover:text-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  Sau
-                </button>
-              </div>
+          <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+            <div className="text-sm text-gray-700">
+              Hiển thị <span className="font-medium">{pagination.results}</span>{" "}
+              trong tổng số{" "}
+              <span className="font-medium">{pagination.total}</span> phòng học
             </div>
 
-            {/* UPDATE 4: Dòng text bé bé chú thích về việc xóa phòng */}
-            <div className="mt-4 pt-3 border-t border-gray-200 flex items-center gap-2 text-xs text-gray-500 italic">
-               <Info className="w-4 h-4" />
-               <span>Lưu ý: Bạn chỉ có thể xóa các phòng học đang ở trạng thái <strong className="text-gray-700">Closed (Không hoạt động)</strong>.</span>
-            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Trước
+              </button>
 
+              <span className="px-3 py-1 text-sm">
+                Trang {pagination.page} / {pagination.totalPages}
+              </span>
+
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))
+                }
+                disabled={currentPage === pagination.totalPages}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Sau
+              </button>
+            </div>
           </div>
         )}
       </div>
