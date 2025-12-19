@@ -652,20 +652,26 @@ const AdminViewEnrollmentList = () => {
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="p-12 text-center text-gray-500">
-                    <Loader2 className="w-10 h-10 mx-auto animate-spin mb-3 text-purple-600" />
-                    <p>Đang đồng bộ dữ liệu enrollment...</p>
+                  <td colSpan="6" className="p-12">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                        <Loader2 className="w-10 h-10 animate-spin mb-3 text-purple-600" />
+                        <p>Đang đồng bộ dữ liệu enrollment...</p>
+                    </div>
                   </td>
                 </tr>
               ) : paginatedList.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="p-12 text-center text-gray-500 italic flex flex-col items-center">
-                    <UserX className="w-12 h-12 text-gray-300 mb-2" />
-                    Không tìm thấy dữ liệu phù hợp.
+                  <td colSpan="6" className="p-12">
+                    {/* SỬA LỖI Ở ĐÂY: Bọc nội dung trong div để căn giữa chính xác */}
+                    <div className="flex flex-col items-center justify-center text-center text-gray-500 italic">
+                        <UserX className="w-12 h-12 text-gray-300 mb-2" />
+                        <span className="text-base">Không tìm thấy dữ liệu phù hợp.</span>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 paginatedList.map((item) => (
+                  // ... (Phần render row giữ nguyên như cũ)
                   <tr key={item._id} className="hover:bg-purple-50/50 transition-colors group">
                     <td className="px-6 py-4">
                         {item.student ? (
