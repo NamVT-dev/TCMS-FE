@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, UserPlus, Calendar, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react';
 import api from '../../../../utils/api';
-import { getLevelFromScore } from '../../../../utils/scoreToLevel';
+import { getLevelFromScore } from '../../../../utils/scoreToLevel'; 
 import moment from 'moment';
 
 // Toast Notification Component
@@ -55,7 +55,7 @@ function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, isLoading }
             </div>
           </div>
         </div>
-
+        
         <div className="bg-gray-50 px-6 py-4 rounded-b-xl flex justify-end gap-3">
           <button
             onClick={onClose}
@@ -84,10 +84,10 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
   const [targetLevel, setTargetLevel] = useState(null);
   const [processingClassId, setProcessingClassId] = useState(null);
   const [toast, setToast] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({
-    isOpen: false,
-    classId: null,
-    className: ''
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    classId: null, 
+    className: '' 
   });
 
   const showToast = (message, type = "success") => {
@@ -112,20 +112,47 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
       const level = getLevelFromScore(categoryName, score);
       setTargetLevel(level);
 
-      const res = await api.admin.class.listClasses({
-        limit: 100,
+      // 1. Lấy danh sách sơ bộ
+      const res = await api.admin.class.listClasses({ 
+        limit: 100, 
         status: 'approved',
       });
-
       const allClasses = res.data.data.classes || [];
-
-      const suitableClasses = allClasses.filter(cls => {
+      
+      // 2. Lọc sơ bộ (Category + Level + Status)
+      // ĐÃ BỎ ĐIỀU KIỆN LỌC NGÀY TƯƠNG LAI
+      const candidates = allClasses.filter(cls => {
         const isSameCategory = cls.course?.category === categoryId || cls.course?.category?._id === categoryId;
         const isSameLevel = level ? cls.course?.level === level : true;
-        const isNotFull = (cls.currentSize || 0) < cls.maxStudent;
         const isActive = cls.status === 'approved';
+        
+        // Không check startAt > now nữa
+        return isSameCategory && isSameLevel && isActive;
+      });
 
-        return isSameCategory && isSameLevel && isActive && isNotFull;
+      // 3. Gọi API chi tiết cho từng lớp để lấy sĩ số chính xác
+      const classesWithDetails = await Promise.all(candidates.map(async (cls) => {
+          try {
+              const detailRes = await api.admin.class.getClassDetail(cls._id);
+              const data = detailRes.data.data;
+              // Xử lý các trường hợp trả về của API
+              const studentsList = data.student || data.students || (data.class && data.class.student) || [];
+
+              return {
+                  ...cls,
+                  student: studentsList // Gán danh sách học viên chính xác
+              };
+          } catch (err) {
+              console.warn("Lỗi lấy chi tiết lớp:", cls.name);
+              // Nếu lỗi thì trả về mảng rỗng để không bị crash
+              return { ...cls, student: [] };
+          }
+      }));
+
+      // 4. Lọc bỏ các lớp đã đầy (Sĩ số thực tế < Max)
+      const suitableClasses = classesWithDetails.filter(cls => {
+          const currentCount = cls.student ? cls.student.length : 0;
+          return currentCount < cls.maxStudent;
       });
 
       setClasses(suitableClasses);
@@ -139,29 +166,29 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
   };
 
   const handleAddToClassClick = (classId, className) => {
-    setConfirmDialog({
-      isOpen: true,
-      classId,
-      className
+    setConfirmDialog({ 
+      isOpen: true, 
+      classId, 
+      className 
     });
   };
 
   const handleAddToClassConfirm = async () => {
     const { classId } = confirmDialog;
     setProcessingClassId(classId);
-
+    
     try {
       const payload = {
         studentId: student._id
       };
 
       await api.admin.class.addStudentToClass(classId, payload);
-
+      
       setConfirmDialog({ isOpen: false, classId: null, className: '' });
       showToast("Xếp lớp thành công!", "success");
-
+      
       setTimeout(() => {
-        onSuccess();
+        onSuccess(); 
         onClose();
       }, 1000);
     } catch (err) {
@@ -199,7 +226,7 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
 
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
         <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-
+          
           <div className="flex justify-between items-center p-5 border-b border-gray-200">
             <div>
               <h2 className="text-xl font-bold text-gray-800">Xếp lớp cho: {student?.name}</h2>
@@ -224,8 +251,8 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
               </div>
             ) : classes.length === 0 ? (
               <div className="text-center py-10">
-                <p className="text-gray-500 mb-2">Không tìm thấy lớp <b>{targetLevel}</b> nào đang mở hoặc còn chỗ.</p>
-                <button
+                <p className="text-gray-500 mb-2">Không tìm thấy lớp <b>{targetLevel}</b> nào phù hợp hoặc còn chỗ.</p>
+                <button 
                   onClick={fetchSuitableClasses}
                   className="text-purple-600 hover:underline text-sm"
                 >
@@ -258,17 +285,17 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
                         <Users className="w-4 h-4 mr-2 text-orange-500" />
                         <span>GV: {cls.preferredTeacher?.profile?.fullname || "Chưa xếp"}</span>
                       </div>
-
+                      
                       <div className="flex items-start mt-2">
                         <Clock className="w-4 h-4 mr-2 text-purple-500 mt-0.5" />
                         <div className="flex flex-wrap gap-1">
                           {cls.weeklySchedules && cls.weeklySchedules.length > 0 ? (
-                            cls.weeklySchedules.map((sch, idx) => (
-                              <span key={idx} className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs border border-purple-100">
-                                T{sch.dayOfWeek === 0 ? 'CN' : sch.dayOfWeek + 1}
-                                ({Math.floor(sch.startMinute / 60)}h{sch.startMinute % 60})
-                              </span>
-                            ))
+                             cls.weeklySchedules.map((sch, idx) => (
+                               <span key={idx} className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs border border-purple-100">
+                                 {sch.dayOfWeek === 0 ? 'CN' : 'T' + (sch.dayOfWeek + 1)} 
+                                 ({Math.floor(sch.startMinute/60)}h{String(sch.startMinute%60).padStart(2, '0')})
+                               </span>
+                             ))
                           ) : (
                             <span className="italic text-gray-400">Chưa có lịch</span>
                           )}
@@ -277,25 +304,25 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
                     </div>
 
                     <div className="pt-3 border-t border-gray-100 flex justify-between items-center mt-auto">
-                      <div className="text-xs text-gray-500">
-                        Sĩ số: <b className={(cls.student?.length || 0) >= cls.maxStudent ? "text-red-500" : "text-green-600"}>
-                          {cls.student?.length || 0}/{cls.maxStudent}
-                        </b>
-                      </div>
-                      <button
-                        onClick={() => handleAddToClassClick(cls._id, cls.name)}
-                        disabled={processingClassId === cls._id}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center disabled:opacity-70 transition-colors"
-                      >
-                        {processingClassId === cls._id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Chọn lớp này
-                          </>
-                        )}
-                      </button>
+                       <div className="text-xs text-gray-500">
+                          Sĩ số: <b className={(cls.student?.length || 0) >= cls.maxStudent ? "text-red-500" : "text-green-600"}>
+                             {cls.student?.length || 0}/{cls.maxStudent}
+                          </b>
+                       </div>
+                       <button
+                          onClick={() => handleAddToClassClick(cls._id, cls.name)}
+                          disabled={processingClassId === cls._id}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center disabled:opacity-70 transition-colors"
+                       >
+                          {processingClassId === cls._id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <>
+                              <UserPlus className="w-4 h-4 mr-2" />
+                              Chọn lớp này
+                            </>
+                          )}
+                       </button>
                     </div>
                   </div>
                 ))}

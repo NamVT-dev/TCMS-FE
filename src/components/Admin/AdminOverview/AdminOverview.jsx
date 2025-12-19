@@ -7,8 +7,17 @@ import {
   Calendar, ArrowRight, Loader2, RefreshCw
 } from 'lucide-react';
 
+// --- CẬP NHẬT HÀM NÀY ---
 const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  if (amount === undefined || amount === null) return '0 ₫';
+  
+  // Sử dụng en-US để có định dạng K, M, B
+  const formatter = new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1, // Giữ tối đa 1 số thập phân (VD: 1.2B thay vì 1.25B)
+  });
+
+  return `${formatter.format(amount)} ₫`;
 };
 
 const formatDate = (dateString) => {
@@ -31,30 +40,35 @@ const StatCard = ({ title, value, subValue, icon: Icon, color, to, loading }) =>
   const theme = colorClasses[color] || colorClasses.purple;
 
   return (
-    <div className={`relative bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 group`}>
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-          {loading ? (
-            <div className="h-8 w-24 bg-gray-200 rounded animate-pulse"></div>
-          ) : (
-            <h3 className="text-3xl font-bold text-gray-800">{value}</h3>
-          )}
+    <div className={`relative bg-white p-5 md:p-6 rounded-xl border border-gray-100 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 group h-full flex flex-col justify-between`}>
+      <div>
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex-1 min-w-0 pr-2">
+            <p className="text-sm font-medium text-gray-500 mb-1 truncate" title={title}>{title}</p>
+            {loading ? (
+              <div className="h-8 w-24 bg-gray-200 rounded animate-pulse"></div>
+            ) : (
+              // Tooltip (title) sẽ hiển thị số đầy đủ khi hover chuột vào
+              <h3 className="text-2xl lg:text-3xl font-bold text-gray-800 truncate" title={typeof value === 'string' && value.includes('₫') ? value : ''}>
+                {value}
+              </h3>
+            )}
+          </div>
+          <div className={`p-3 rounded-lg flex-shrink-0 ${theme}`}>
+            <Icon className="w-6 h-6" />
+          </div>
         </div>
-        <div className={`p-3 rounded-lg ${theme}`}>
-          <Icon className="w-6 h-6" />
-        </div>
-      </div>
 
-      {subValue && !loading && (
-        <div className="mt-4 flex items-center text-sm">
-          <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium flex items-center">
-            <TrendingUp className="w-3 h-3 mr-1" />
-            {subValue}
-          </span>
-          <span className="text-gray-400 ml-2">trong tháng này</span>
-        </div>
-      )}
+        {subValue && !loading && (
+          <div className="mt-2 flex items-center text-sm flex-wrap">
+            <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium flex items-center whitespace-nowrap">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              {subValue}
+            </span>
+            <span className="text-gray-400 ml-2 whitespace-nowrap">trong tháng</span>
+          </div>
+        )}
+      </div>
 
       {to && (
         <Link
@@ -62,7 +76,7 @@ const StatCard = ({ title, value, subValue, icon: Icon, color, to, loading }) =>
           className="absolute inset-0 flex items-end justify-end p-4 opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <span className={`inline-flex items-center text-xs font-semibold uppercase tracking-wider ${theme.split(' ')[1]}`}>
-            Xem chi tiết <ArrowRight className="w-4 h-4 ml-1" />
+            Chi tiết <ArrowRight className="w-4 h-4 ml-1" />
           </span>
         </Link>
       )}
@@ -78,7 +92,7 @@ const AdminOverview = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const res = await api.admin.getDashboardOverview(); 
+      const res = await api.admin.getDashboardOverview();
       if (res.data.status === 'success') {
         setStats(res.data.data);
       }
@@ -96,37 +110,39 @@ const AdminOverview = () => {
 
   if (error) {
     return (
-      <div className="p-8 text-center">
+      <div className="p-8 text-center flex flex-col items-center justify-center h-64">
         <p className="text-red-500 mb-4">{error}</p>
-        <button onClick={fetchDashboardData} className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Thử lại</button>
+        <button onClick={fetchDashboardData} className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center">
+          <RefreshCw className="w-4 h-4 mr-2" /> Thử lại
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Tổng quan hệ thống</h1>
-          <p className="text-gray-500 text-sm mt-1">Chào mừng trở lại, đây là tình hình hoạt động của trung tâm hôm nay.</p>
+          <p className="text-gray-500 text-sm mt-1">Tình hình hoạt động của trung tâm hôm nay.</p>
         </div>
         <button
           onClick={fetchDashboardData}
-          className="flex items-center bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100 
+          className="w-full md:w-auto flex items-center justify-center bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100 
              hover:bg-gray-50 active:scale-[0.98] transition"
         >
           <RefreshCw className={`w-4 h-4 text-gray-400 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          <span className="text-sm text-gray-600">
-            Cập nhật lúc: <strong>{stats ? formatDate(stats.lastUpdatedAt) : '...'}</strong>
+          <span className="text-sm text-gray-600 truncate">
+            Cập nhật: <strong>{stats ? formatDate(stats.lastUpdatedAt) : '...'}</strong>
           </span>
         </button>
-
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 mb-8">
         <StatCard
           title="Doanh thu tháng này"
-          value={stats ? formatCurrency(stats.totalRevenueThisMonth) : 0}
+          value={stats ? formatCurrency(stats.totalRevenueThisMonth) : formatCurrency(0)}
           icon={Wallet}
           color="green"
           to="/admin/finance/revenue"
@@ -163,57 +179,59 @@ const AdminOverview = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col h-full">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <UserCog className="w-5 h-5 mr-2 text-indigo-600" />
             Xếp lớp
           </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+          <div className="flex-1 space-y-4">
+            <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg border border-indigo-100 h-full">
               <div>
-                <p className="text-sm text-gray-600">Số học viên đơi xếp lớp</p>
-                <p className="text-2xl font-bold text-indigo-700">{loading ? '...' : stats?.newEnrollmentsThisMonth}</p>
+                <p className="text-sm text-gray-600">Học viên đợi xếp lớp</p>
+                <p className="text-2xl font-bold text-indigo-700 mt-1">{loading ? '...' : stats?.newEnrollmentsThisMonth}</p>
               </div>
-              <Link to="/admin/users/enrollments" className="text-sm text-indigo-600 hover:underline font-medium">Xử lý ngay</Link>
+              <Link to="/admin/users/enrollments" className="text-sm text-indigo-600 hover:underline font-medium whitespace-nowrap ml-2">Xử lý ngay</Link>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col h-full">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <AlertCircle className="w-5 h-5 mr-2 text-red-600" />
             Khiếu nại & Hỗ trợ
           </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-red-50 rounded-lg text-center border border-red-100">
-              <p className="text-2xl font-bold text-red-600">{loading ? '...' : stats?.unprocessedComplaints}</p>
-              <p className="text-xs text-gray-600 mt-1">Chưa xử lý</p>
+          <div className="flex-1 flex flex-col justify-between">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-red-50 rounded-lg text-center border border-red-100">
+                <p className="text-2xl font-bold text-red-600">{loading ? '...' : stats?.unprocessedComplaints}</p>
+                <p className="text-xs text-gray-600 mt-1">Chưa xử lý</p>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-100">
+                <p className="text-2xl font-bold text-gray-700">{loading ? '...' : stats?.processedComplaints}</p>
+                <p className="text-xs text-gray-500 mt-1">Đã giải quyết</p>
+              </div>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg text-center border border-gray-100">
-              <p className="text-2xl font-bold text-gray-700">{loading ? '...' : stats?.processedComplaints}</p>
-              <p className="text-xs text-gray-500 mt-1">Đã giải quyết</p>
+            <div className="mt-4 text-center">
+              <Link to="/admin/facility/complain" className="text-sm text-gray-500 hover:text-gray-700 underline">Xem danh sách yêu cầu</Link>
             </div>
-          </div>
-          <div className="mt-4 text-center">
-            <Link to="/admin/facility/complain" className="text-sm text-gray-500 hover:text-gray-700 underline">Xem danh sách yêu cầu</Link>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm md:col-span-2 xl:col-span-1 flex flex-col h-full">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <Calendar className="w-5 h-5 mr-2 text-gray-600" />
             Lối tắt quản lý
           </h3>
-          <div className="space-y-2">
-            <Link to="/admin/classes/create" className="block w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors text-sm font-medium text-gray-700">
+          <div className="flex-1 space-y-2">
+            <Link to="/admin/classes/create" className="block w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors text-sm font-medium text-gray-700 truncate">
               + Tạo lớp học mới
             </Link>
-            <Link to="/admin/scheduler/dashboard" className="block w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors text-sm font-medium text-gray-700">
+            <Link to="/admin/scheduler/dashboard" className="block w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors text-sm font-medium text-gray-700 truncate">
               ⚙️ Chạy xếp lịch tự động
             </Link>
-            <Link to="/admin/finance/transactions" className="block w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors text-sm font-medium text-gray-700">
+            <Link to="/admin/finance/transactions" className="block w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors text-sm font-medium text-gray-700 truncate">
               💰 Xem giao dịch gần đây
             </Link>
           </div>
