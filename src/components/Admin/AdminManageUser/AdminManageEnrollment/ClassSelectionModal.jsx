@@ -112,20 +112,47 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
       const level = getLevelFromScore(categoryName, score);
       setTargetLevel(level);
 
+      // 1. Lấy danh sách sơ bộ
       const res = await api.admin.class.listClasses({ 
         limit: 100, 
         status: 'approved',
       });
-
       const allClasses = res.data.data.classes || [];
+      const now = new Date();
 
-      const suitableClasses = allClasses.filter(cls => {
+      // 2. Lọc sơ bộ (Category + Level + Status + Ngày tương lai)
+      // Chưa lọc sĩ số ở đây vì currentSize có thể sai
+      const candidates = allClasses.filter(cls => {
         const isSameCategory = cls.course?.category === categoryId || cls.course?.category?._id === categoryId;
         const isSameLevel = level ? cls.course?.level === level : true;
-        const isNotFull = (cls.currentSize || 0) < cls.maxStudent;
         const isActive = cls.status === 'approved';
+        const isFuture = new Date(cls.startAt) > now; // Chỉ lấy lớp chưa khai giảng
 
-        return isSameCategory && isSameLevel && isActive && isNotFull;
+        return isSameCategory && isSameLevel && isActive && isFuture;
+      });
+
+      // 3. Gọi API chi tiết cho từng lớp để lấy danh sách học viên chính xác
+      const classesWithDetails = await Promise.all(candidates.map(async (cls) => {
+          try {
+              const detailRes = await api.admin.class.getClassDetail(cls._id);
+              const data = detailRes.data.data;
+              // Xử lý các trường hợp trả về của API
+              const studentsList = data.student || data.students || (data.class && data.class.student) || [];
+
+              return {
+                  ...cls,
+                  student: studentsList // Gán danh sách học viên chính xác
+              };
+          } catch (err) {
+              console.warn("Lỗi lấy chi tiết lớp:", cls.name);
+              return { ...cls, student: [] };
+          }
+      }));
+
+      // 4. Lọc bỏ các lớp đã đầy (Sĩ số < Max)
+      const suitableClasses = classesWithDetails.filter(cls => {
+          const currentCount = cls.student ? cls.student.length : 0;
+          return currentCount < cls.maxStudent;
       });
 
       setClasses(suitableClasses);
@@ -151,6 +178,7 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
     setProcessingClassId(classId);
     
     try {
+      // Payload thêm học viên
       const payload = {
         studentId: student._id
       };
@@ -265,8 +293,8 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
                           {cls.weeklySchedules && cls.weeklySchedules.length > 0 ? (
                              cls.weeklySchedules.map((sch, idx) => (
                                <span key={idx} className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded text-xs border border-purple-100">
-                                 T{sch.dayOfWeek === 0 ? 'CN' : sch.dayOfWeek + 1} 
-                                 ({Math.floor(sch.startMinute/60)}h{sch.startMinute%60})
+                                 {sch.dayOfWeek === 0 ? 'CN' : 'T' + (sch.dayOfWeek + 1)} 
+                                 ({Math.floor(sch.startMinute/60)}h{String(sch.startMinute%60).padStart(2, '0')})
                                </span>
                              ))
                           ) : (
@@ -278,6 +306,7 @@ const ClassSelectionModal = ({ isOpen, onClose, student, onSuccess }) => {
 
                     <div className="pt-3 border-t border-gray-100 flex justify-between items-center mt-auto">
                        <div className="text-xs text-gray-500">
+                          {/* Sĩ số hiển thị chính xác từ API Detail */}
                           Sĩ số: <b className={(cls.student?.length || 0) >= cls.maxStudent ? "text-red-500" : "text-green-600"}>
                              {cls.student?.length || 0}/{cls.maxStudent}
                           </b>
