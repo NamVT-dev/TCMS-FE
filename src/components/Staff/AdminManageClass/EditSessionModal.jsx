@@ -106,6 +106,9 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
   const [toast, setToast] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
 
+  // Lấy ngày hiện tại format YYYY-MM-DD để làm giá trị min cho input date
+  const today = moment().tz(TIMEZONE).format("YYYY-MM-DD");
+
   useEffect(() => {
     if (isOpen) {
       const fetchResources = async () => {
@@ -338,6 +341,7 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
                           <Calendar className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
                           <input 
                              type="date" 
+                             min={today} // Thêm min={today} ở đây để chặn ngày quá khứ
                              value={selectedDate}
                              onChange={(e) => { setSelectedDate(e.target.value); setSelectedShiftName(""); }} 
                              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"
