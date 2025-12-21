@@ -60,7 +60,7 @@ const VerifyOtp = () => {
       const res = await api.auth.confirmEmail(otp);
       
       if (res?.data?.status === "success") {
-        setMessage("✅ Xác thực thành công! Đang quay về trang đăng nhập...");
+        setMessage(" Xác thực thành công! Đang quay về trang đăng nhập...");
         toast.success("Xác thực email thành công!");
         localStorage.removeItem("pendingEmail");
 
