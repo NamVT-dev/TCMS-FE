@@ -5,7 +5,7 @@ import { Loader2, Save, ArrowLeft, Plus, X, Calendar, Clock, Info, CheckCircle2,
 import moment from 'moment-timezone';
 
 const inputClass = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm";
-const disabledInputClass = "mt-1 block w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed sm:text-sm";
+const readOnlyTextClass = "mt-1 block w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm bg-gray-100 text-gray-700 sm:text-sm truncate flex items-center h-[38px]"; 
 const TIMEZONE = "Asia/Ho_Chi_Minh";
 
 const ALL_DAYS = [
@@ -80,9 +80,8 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText
     );
 };
 
-// --- FIX: Đảm bảo totalSessions là số và logic dừng chính xác ---
 const calculateScheduleDates = (startDateStr, weeklySlots, totalSessionsRaw) => {
-    const totalSessions = Number(totalSessionsRaw); // Ép kiểu số
+    const totalSessions = Number(totalSessionsRaw);
     
     if (!startDateStr || !weeklySlots.length || !totalSessions || totalSessions <= 0) {
         return { dates: [], endDate: null };
@@ -97,10 +96,9 @@ const calculateScheduleDates = (startDateStr, weeklySlots, totalSessionsRaw) => 
     let currentSession = 0;
     let weekOffset = 0;
 
-    // Vòng lặp dừng chính xác khi đủ số buổi
-    while (currentSession < totalSessions && weekOffset < 260) { // Giới hạn 5 năm (260 tuần) để tránh treo
+    while (currentSession < totalSessions && weekOffset < 260) {
         for (const slot of slots) {
-            if (currentSession >= totalSessions) break; // Dừng ngay lập tức nếu đã đủ buổi
+            if (currentSession >= totalSessions) break;
 
             const dayDiff = (Number(slot.dayOfWeek) - anchorDate.day() + 7) % 7;
             const daysToAdd = dayDiff + (weekOffset * 7);
@@ -207,20 +205,24 @@ const AdminClassScheduleForm = () => {
     }, [id]);
 
     useEffect(() => {
-        if (classInfo && weeklySchedules.length > 0) {
-            // --- FIX: Đảm bảo truyền Number vào hàm tính toán ---
-            const totalSessions = Number(classInfo.course?.session) || 0;
-            
-            const validSlots = weeklySchedules.filter(s =>
-                s.dayOfWeek != null && s.startMinute != null && s.room && s.teacher
-            );
+        if (!classInfo) return;
 
-            if (validSlots.length > 0 && classInfo.startAt) {
-                const { dates } = calculateScheduleDates(classInfo.startAt, validSlots, totalSessions);
-                setCalculatedSessions(dates);
-            } else {
-                setCalculatedSessions([]);
-            }
+        if (weeklySchedules.length === 0) {
+            setCalculatedSessions([]);
+            return;
+        }
+
+        const totalSessions = Number(classInfo.course?.session) || 0;
+        
+        const validSlots = weeklySchedules.filter(s =>
+            s.dayOfWeek != null && s.startMinute != null && s.room && s.teacher
+        );
+
+        if (validSlots.length > 0 && classInfo.startAt) {
+            const { dates } = calculateScheduleDates(classInfo.startAt, validSlots, totalSessions);
+            setCalculatedSessions(dates);
+        } else {
+            setCalculatedSessions([]);
         }
     }, [classInfo, weeklySchedules]);
 
@@ -252,7 +254,6 @@ const AdminClassScheduleForm = () => {
     };
 
     const addScheduleSlot = () => {
-        // --- FIX: Ngăn chặn thêm quá nhiều slot vô lý ---
         if (weeklySchedules.length >= 14) { 
              setToast({ message: "Bạn đã thêm quá nhiều khung giờ trong tuần. Vui lòng kiểm tra lại.", type: "warning" });
              return;
@@ -283,7 +284,6 @@ const AdminClassScheduleForm = () => {
     const handleSubmitClick = () => {
         const maxSessions = Number(classInfo?.course?.session) || 0;
 
-        // Validation 1: Kiểm tra trùng lặp lịch trong tuần
         const seenSlots = new Set();
         for (let i = 0; i < weeklySchedules.length; i++) {
             const slot = weeklySchedules[i];
@@ -308,7 +308,6 @@ const AdminClassScheduleForm = () => {
             return;
         }
 
-        // --- FIX: Validation số lượng buổi chặt chẽ ---
         if (calculatedSessions.length > maxSessions) {
             setToast({ 
                 message: `LỖI LOGIC: Đã tạo ${calculatedSessions.length} buổi, nhưng khóa học chỉ có ${maxSessions} buổi. Vui lòng tải lại trang.`, 
@@ -317,13 +316,11 @@ const AdminClassScheduleForm = () => {
             return;
         }
 
-        // Cảnh báo nhẹ nếu chưa đủ buổi (optional)
         if (calculatedSessions.length < maxSessions) {
             setToast({ 
                 message: `Lưu ý: Lịch học hiện tại mới chỉ xếp cho ${calculatedSessions.length}/${maxSessions} buổi.`, 
                 type: "warning" 
             });
-            // Không return, vẫn cho tiếp tục
         }
 
         setConfirmDialog({
@@ -390,6 +387,9 @@ const AdminClassScheduleForm = () => {
 
     if (loading) return <div className="p-10 text-center"><Loader2 className="w-10 h-10 animate-spin text-purple-600 mx-auto" /></div>;
 
+    const currentTeacher = teachers.find(t => t._id === classInfo?.preferredTeacher);
+    const teacherName = currentTeacher ? (currentTeacher.profile?.fullname || currentTeacher.username) : "Chưa gán";
+
     return (
         <>
             <style>{`
@@ -433,7 +433,7 @@ const AdminClassScheduleForm = () => {
                         <div>
                             <p>Khóa học: <strong>{classInfo?.course?.name}</strong> ({classInfo?.course?.session} buổi).</p>
                             <p>Ngày khai giảng: {moment(classInfo?.startAt).format('DD/MM/YYYY')}</p>
-                            <p>GV Phụ trách: <strong>{teachers.find(t => t._id === classInfo?.preferredTeacher)?.profile?.fullname || 'Chưa gán'}</strong></p>
+                            <p>GV Phụ trách: <strong>{teacherName}</strong></p>
                         </div>
                     </div>
 
@@ -471,16 +471,11 @@ const AdminClassScheduleForm = () => {
 
                                         <div>
                                             <label className="text-xs text-gray-500">Giáo viên</label>
-                                            <select 
-                                                value={classInfo?.preferredTeacher || ''} 
-                                                disabled 
-                                                className={disabledInputClass} 
-                                                title="Giáo viên được lấy từ GV Phụ trách lớp"
-                                            >
-                                                <option value="">-- Chọn GV --</option>
-                                                {teachers.map(t => <option key={t._id} value={t._id}>{t.profile?.fullname || t.username}</option>)}
-                                            </select>
+                                            <div className={readOnlyTextClass} title="Giáo viên phụ trách lớp">
+                                                {teacherName}
+                                            </div>
                                         </div>
+
                                         <div>
                                             <label className="text-xs text-gray-500">Phòng</label>
                                             <select value={slot.room} onChange={e => handleScheduleChange(idx, 'room', e.target.value)} className={inputClass} required>
