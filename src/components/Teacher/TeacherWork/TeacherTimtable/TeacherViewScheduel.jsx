@@ -118,7 +118,14 @@ function TeacherViewSchedule() {
     const grouped = {};
     sessions.forEach(session => {
       const sessionDate = new Date(session.startAt);
-      const dayKey = sessionDate.toISOString().split('T')[0];
+      
+      // FIX: Tạo key theo ngày giờ địa phương (Local Time)
+      // Ví dụ: 2026-01-05 thay vì bị lùi về 2026-01-04 do UTC
+      const year = sessionDate.getFullYear();
+      const month = String(sessionDate.getMonth() + 1).padStart(2, '0');
+      const day = String(sessionDate.getDate()).padStart(2, '0');
+      const dayKey = `${year}-${month}-${day}`;
+
       if (!grouped[dayKey]) {
         grouped[dayKey] = [];
       }
@@ -133,11 +140,26 @@ function TeacherViewSchedule() {
   };
 
   const getSessionForShift = (date, shift) => {
-    const daySessions = getSessionsForDay(date);
+    // 1. Tạo key ngày tháng giống hệt format ở trên để tìm trong sessionsByDay
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const dayKey = `${year}-${month}-${d}`;
+    
+    // 2. Lấy danh sách session của ngày đó
+    const daySessions = sessionsByDay[dayKey] || [];
+
+    // 3. Tìm session có giờ bắt đầu trùng với giờ bắt đầu của Ca (Shift)
     return daySessions.find(session => {
       const sessionDate = new Date(session.startAt);
-      const timeStr = sessionDate.toTimeString().substring(0, 5);
-      return timeStr === shift.start;
+      const sessionHour = sessionDate.getHours();
+      const sessionMinute = sessionDate.getMinutes();
+
+      // Tách giờ phút từ string cấu hình (ví dụ "08:00")
+      const [shiftHour, shiftMinute] = shift.start.split(':').map(Number);
+      
+      // So sánh chính xác con số
+      return sessionHour === shiftHour && sessionMinute === shiftMinute;
     });
   };
 
