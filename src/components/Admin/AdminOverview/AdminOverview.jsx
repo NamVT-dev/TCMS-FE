@@ -189,10 +189,10 @@ const AdminOverview = () => {
           <div className="flex-1 space-y-4">
             <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg border border-indigo-100 h-full">
               <div>
-                <p className="text-sm text-gray-600">Học viên đợi xếp lớp</p>
+                <p className="text-sm text-gray-600">Học viên vào lớp trong tháng </p>
                 <p className="text-2xl font-bold text-indigo-700 mt-1">{loading ? '...' : stats?.newEnrollmentsThisMonth}</p>
               </div>
-              <Link to="/admin/users/enrollments" className="text-sm text-indigo-600 hover:underline font-medium whitespace-nowrap ml-2">Xử lý ngay</Link>
+              <Link to="/admin/users/enrollments" className="text-sm text-indigo-600 hover:underline font-medium whitespace-nowrap ml-2">Xem chi tiết</Link>
             </div>
           </div>
         </div>
