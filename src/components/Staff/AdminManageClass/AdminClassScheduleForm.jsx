@@ -5,6 +5,7 @@ import { Loader2, Save, ArrowLeft, Plus, X, Calendar, Clock, Info, CheckCircle2,
 import moment from 'moment-timezone';
 
 const inputClass = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm";
+const disabledInputClass = "mt-1 block w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed sm:text-sm";
 const TIMEZONE = "Asia/Ho_Chi_Minh";
 
 const ALL_DAYS = [
@@ -17,7 +18,6 @@ const ALL_DAYS = [
     { id: 0, label: "Chủ Nhật" },
 ];
 
-// Toast Component
 const Toast = ({ message, type = "success", onClose }) => {
     useEffect(() => {
         const timer = setTimeout(onClose, 4000);
@@ -44,7 +44,6 @@ const Toast = ({ message, type = "success", onClose }) => {
     );
 };
 
-// Confirmation Dialog Component
 const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText = "Xác nhận", cancelText = "Hủy bỏ" }) => {
     if (!isOpen) return null;
 
@@ -81,34 +80,42 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText
     );
 };
 
-const calculateScheduleDates = (startDateStr, weeklySlots, totalSessions) => {
-    if (!startDateStr || !weeklySlots.length || !totalSessions) return { dates: [], endDate: null };
+// --- FIX: Đảm bảo totalSessions là số và logic dừng chính xác ---
+const calculateScheduleDates = (startDateStr, weeklySlots, totalSessionsRaw) => {
+    const totalSessions = Number(totalSessionsRaw); // Ép kiểu số
+    
+    if (!startDateStr || !weeklySlots.length || !totalSessions || totalSessions <= 0) {
+        return { dates: [], endDate: null };
+    }
 
     const anchorDate = moment.tz(startDateStr, TIMEZONE).startOf('day');
-    const slots = [...weeklySlots].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+    const slots = [...weeklySlots].sort((a, b) => {
+        return a.dayOfWeek - b.dayOfWeek;
+    });
+
     const sessions = [];
     let currentSession = 0;
+    let weekOffset = 0;
 
-    for (let weekOffset = 0; currentSession < totalSessions && weekOffset < 260; weekOffset++) {
+    // Vòng lặp dừng chính xác khi đủ số buổi
+    while (currentSession < totalSessions && weekOffset < 260) { // Giới hạn 5 năm (260 tuần) để tránh treo
         for (const slot of slots) {
-            if (currentSession >= totalSessions) break;
+            if (currentSession >= totalSessions) break; // Dừng ngay lập tức nếu đã đủ buổi
 
-            let sessionMoment = anchorDate.clone().day(slot.dayOfWeek).startOf('day');
-            if (weekOffset === 0 && sessionMoment.isBefore(anchorDate, 'day')) {
-                sessionMoment.add(1, 'week');
-            }
-            if (weekOffset > 0) {
-                sessionMoment.add(weekOffset, 'weeks');
-            }
+            const dayDiff = (Number(slot.dayOfWeek) - anchorDate.day() + 7) % 7;
+            const daysToAdd = dayDiff + (weekOffset * 7);
+            const sessionDate = anchorDate.clone().add(daysToAdd, 'days');
 
             sessions.push({
                 sessionNo: currentSession + 1,
-                date: sessionMoment,
+                date: sessionDate,
                 slot: slot
             });
             currentSession++;
         }
+        weekOffset++;
     }
+    
     const lastSession = sessions[sessions.length - 1];
     return { dates: sessions, endDate: lastSession ? lastSession.date.toDate() : null };
 };
@@ -135,7 +142,6 @@ const AdminClassScheduleForm = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    // Toast & Confirm states
     const [toast, setToast] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, onConfirm: null, title: '', message: '' });
 
@@ -167,7 +173,7 @@ const AdminClassScheduleForm = () => {
                             ...s,
                             shiftName: shift ? shift.name : '',
                             room: s.room?._id || s.room,
-                            teacher: s.teacher?._id || s.teacher
+                            teacher: s.teacher?._id || s.teacher 
                         };
                     }));
                 } else {
@@ -202,7 +208,9 @@ const AdminClassScheduleForm = () => {
 
     useEffect(() => {
         if (classInfo && weeklySchedules.length > 0) {
-            const totalSessions = classInfo.course?.session || 0;
+            // --- FIX: Đảm bảo truyền Number vào hàm tính toán ---
+            const totalSessions = Number(classInfo.course?.session) || 0;
+            
             const validSlots = weeklySchedules.filter(s =>
                 s.dayOfWeek != null && s.startMinute != null && s.room && s.teacher
             );
@@ -244,6 +252,12 @@ const AdminClassScheduleForm = () => {
     };
 
     const addScheduleSlot = () => {
+        // --- FIX: Ngăn chặn thêm quá nhiều slot vô lý ---
+        if (weeklySchedules.length >= 14) { 
+             setToast({ message: "Bạn đã thêm quá nhiều khung giờ trong tuần. Vui lòng kiểm tra lại.", type: "warning" });
+             return;
+        }
+
         const firstActiveDay = centerConfig?.activeDaysOfWeek?.[0] ?? 1;
         const dayShiftRule = centerConfig?.dayShifts?.find(d => d.dayOfWeek === firstActiveDay);
         const firstShiftName = dayShiftRule?.shifts?.[0];
@@ -257,7 +271,7 @@ const AdminClassScheduleForm = () => {
                 startMinute: defaultShift?.startMinute,
                 endMinute: defaultShift?.endMinute,
                 room: '',
-                teacher: classInfo.preferredTeacher || ''
+                teacher: classInfo.preferredTeacher || '' 
             }
         ]);
     };
@@ -267,15 +281,55 @@ const AdminClassScheduleForm = () => {
     };
 
     const handleSubmitClick = () => {
+        const maxSessions = Number(classInfo?.course?.session) || 0;
+
+        // Validation 1: Kiểm tra trùng lặp lịch trong tuần
+        const seenSlots = new Set();
+        for (let i = 0; i < weeklySchedules.length; i++) {
+            const slot = weeklySchedules[i];
+            
+            if (slot.dayOfWeek !== null && slot.shiftName) {
+                const key = `${slot.dayOfWeek}-${slot.shiftName}`;
+                
+                if (seenSlots.has(key)) {
+                    const dayLabel = ALL_DAYS.find(d => d.id === Number(slot.dayOfWeek))?.label || "Ngày này";
+                    setToast({ 
+                        message: `LỖI: ${dayLabel} đang bị trùng ca học (${slot.shiftName}) ở nhiều dòng cấu hình. Vui lòng kiểm tra và xóa bớt!`, 
+                        type: "error" 
+                    });
+                    return; 
+                }
+                seenSlots.add(key);
+            }
+        }
+
         if (calculatedSessions.length === 0) {
             setToast({ message: "Vui lòng điền đầy đủ thông tin lịch học để tạo danh sách.", type: "warning" });
             return;
         }
 
+        // --- FIX: Validation số lượng buổi chặt chẽ ---
+        if (calculatedSessions.length > maxSessions) {
+            setToast({ 
+                message: `LỖI LOGIC: Đã tạo ${calculatedSessions.length} buổi, nhưng khóa học chỉ có ${maxSessions} buổi. Vui lòng tải lại trang.`, 
+                type: "error" 
+            });
+            return;
+        }
+
+        // Cảnh báo nhẹ nếu chưa đủ buổi (optional)
+        if (calculatedSessions.length < maxSessions) {
+            setToast({ 
+                message: `Lưu ý: Lịch học hiện tại mới chỉ xếp cho ${calculatedSessions.length}/${maxSessions} buổi.`, 
+                type: "warning" 
+            });
+            // Không return, vẫn cho tiếp tục
+        }
+
         setConfirmDialog({
             isOpen: true,
             title: "Xác nhận thiết lập lịch học",
-            message: `Bạn sắp tạo ${calculatedSessions.length} buổi học cho lớp ${classInfo?.name}. Bạn có chắc chắn muốn tiếp tục?`,
+            message: `Bạn sắp tạo ${calculatedSessions.length} buổi học cho lớp ${classInfo?.name} (Tổng khóa: ${maxSessions} buổi). Bạn có chắc chắn muốn tiếp tục?`,
             onConfirm: handleSubmit
         });
     };
@@ -323,7 +377,7 @@ const AdminClassScheduleForm = () => {
 
             setToast({ message: "Thiết lập lịch học thành công!", type: "success" });
             setTimeout(() => {
-                navigate(`/staff/classes/detail/${id}`);
+                navigate(`/admin/classes/detail/${id}`);
             }, 1500);
 
         } catch (err) {
@@ -370,7 +424,7 @@ const AdminClassScheduleForm = () => {
             <div className="p-6 bg-gray-50 min-h-screen">
                 <div className="flex items-center mb-6">
                     <button onClick={() => navigate(-1)} className="mr-4 text-gray-600 hover:text-purple-600"><ArrowLeft /></button>
-                    <h1 className="text-2xl font-bold text-gray-800">Thiết lập Lịch học: {classInfo?.name}</h1>
+                    <h1 className="text-2xl font-bold text-gray-800">Thiết lập lịch học: {classInfo?.name}</h1>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -417,7 +471,12 @@ const AdminClassScheduleForm = () => {
 
                                         <div>
                                             <label className="text-xs text-gray-500">Giáo viên</label>
-                                            <select value={slot.teacher} onChange={e => handleScheduleChange(idx, 'teacher', e.target.value)} className={inputClass} required>
+                                            <select 
+                                                value={classInfo?.preferredTeacher || ''} 
+                                                disabled 
+                                                className={disabledInputClass} 
+                                                title="Giáo viên được lấy từ GV Phụ trách lớp"
+                                            >
                                                 <option value="">-- Chọn GV --</option>
                                                 {teachers.map(t => <option key={t._id} value={t._id}>{t.profile?.fullname || t.username}</option>)}
                                             </select>
@@ -433,13 +492,15 @@ const AdminClassScheduleForm = () => {
                                     </div>
                                 );
                             })}
-                            <button onClick={addScheduleSlot} className="flex items-center text-sm font-medium text-purple-600 hover:text-purple-800 mt-2"><Plus className="w-4 h-4 mr-1" /> Thêm buổi</button>
+                            <button onClick={addScheduleSlot} className="flex items-center text-sm font-medium text-purple-600 hover:text-purple-800 mt-2"><Plus className="w-4 h-4 mr-1" /> Thêm buổi trong tuần</button>
                         </div>
                     </section>
 
                     {calculatedSessions.length > 0 && (
                         <section className="mt-6">
-                            <h2 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b">Xem trước ({calculatedSessions.length} buổi)</h2>
+                            <h2 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b">
+                                Xem trước ({calculatedSessions.length}/{classInfo?.course?.session} buổi)
+                            </h2>
                             <div className="max-h-64 overflow-y-auto border rounded-lg">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50 sticky top-0">
