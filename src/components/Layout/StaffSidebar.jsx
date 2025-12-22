@@ -3,8 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import {
     Users, UserCircle, GraduationCap, UserCog,
     School, ListChecks, MessageSquarePlus, LayoutList, ArrowRightLeft,
-    DoorOpen, Clock1, MessageSquareShare, ChevronRight, ChevronLeft,
-    UserStar, Building2, User
+    DoorOpen, Clock1,CalendarCog , MessageSquareShare, ChevronRight, ChevronLeft,
+    UserStar, Building2, User, PieChart 
 } from "lucide-react";
 
 const SidebarItem = ({ icon: Icon, title, items, currentPath, isCollapsed }) => {
@@ -107,6 +107,14 @@ const StaffSidebar = ({ isCollapsed, onToggle }) => {
                 { name: "Học viên", path: "/staff/users/students", icon: UserCircle },
                 { name: "Giáo viên", path: "/staff/users/teachers", icon: GraduationCap },
                 { name: "Xếp lớp học viên", path: "/staff/users/enrollments", icon: UserCog }
+            ]
+        },
+        {
+            icon: Clock1,
+            title: "Xếp Lịch Tự Động",
+            items: [
+                { name: "Tạo lịch tự động", path: "/staff/scheduler/dashboard", icon: CalendarCog },
+                { name: "Phân Tích", path: "/staff/scheduler/analytics", icon: PieChart }
             ]
         },
         {

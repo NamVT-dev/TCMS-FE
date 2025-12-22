@@ -30,6 +30,11 @@ import StaffViewListComplain from '../../components/Staff/AdminManageRequest/Adm
 // 5. Staff / StaffInformation
 import StaffViewUpdateProfile from '../../components/Staff/StaffInformation/StaffViewUpdateProfile';
 
+//6. Staff / AdminManageScheduler
+import AdminScheduleDashboard from '../../components/Staff/AdminManageShedule/AdminScheduleDashboard';
+import AdminScheduleJobDetail from '../../components/Staff/AdminManageShedule/AdminScheduleJobDetail';
+import AdminScheduleAnalytics from '../../components/Staff/AdminManageShedule/AdminScheduleAnalytics';
+
 
 const StaffDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -73,6 +78,9 @@ const StaffDashboard = () => {
             <Route path="/classes/:id/schedule-setup" element={<StaffClassScheduleForm />} />
             <Route path="/classes/:id/sessions" element={<StaffViewDetailSessionClass />} />
             <Route path="/classes/create" element={< StaffViewClassList />} />
+            <Route path="/scheduler/dashboard" element={<AdminScheduleDashboard />} />
+            <Route path="/scheduler/jobs/:jobId" element={<AdminScheduleJobDetail />} />
+            <Route path="/scheduler/analytics" element={<AdminScheduleAnalytics />} />
 
 
             <Route path="/facility/rooms" element={<StaffViewRoomList />} />

@@ -190,7 +190,7 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
             
             onSuccess();
             onClose();
-            navigate(`/staff/classes/detail/${newClassId}`);
+            navigate(`/admin/classes/detail/${newClassId}`);
         } catch (err) {
             toast.error(err.response?.data?.message || "Lỗi khi tạo lớp.");
         } finally {
@@ -309,7 +309,7 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
 
                             <div className="md:col-span-2">
                                 {/* Thêm dấu sao đỏ bắt buộc */}
-                                <label className="block text-sm font-medium text-gray-700">GV Phụ trách <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-gray-700">GV Phụ trách<span className="text-red-500">*</span></label>
                                 <select 
                                     name="preferredTeacher" 
                                     value={formData.preferredTeacher} 

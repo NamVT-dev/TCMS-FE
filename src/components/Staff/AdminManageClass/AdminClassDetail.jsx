@@ -325,9 +325,9 @@ const AdminClassDetail = () => {
 
     const handleScheduleAction = () => {
         if (sessions && sessions.length > 0) {
-            navigate(`/staff/classes/${id}/sessions`);
+            navigate(`/admin/classes/${id}/sessions`);
         } else {
-            navigate(`/staff/classes/${id}/schedule-setup`);
+            navigate(`/admin/classes/${id}/schedule-setup`);
         }
     };
 
@@ -359,7 +359,7 @@ const AdminClassDetail = () => {
 
             <div className="flex justify-between items-center mb-4">
                 <Link
-                    to="/staff/classes"
+                    to="/admin/classes"
                     className="flex items-center text-purple-600 hover:text-purple-800 font-medium mb-2"
                 >
                     <ArrowLeft className="h-5 w-5 mr-2" />

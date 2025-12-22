@@ -30,16 +30,7 @@ const AdminRequestDashboard = () => {
     }
   };
 
-  const handleCreateClass = (item) => {
-    navigate("/staff/classes/create", {
-      state: {
-        prefill: {
-          courseId: item.targetType === "Course" ? item.targetInfo._id : null,
-          categoryId: item.targetType === "Category" ? item.targetInfo._id : null,
-        }
-      }
-    });
-  };
+  
 
   const getPriorityColor = (count) => {
     if (count >= 5) return "border-red-500 bg-red-50 text-red-700"; 
@@ -125,16 +116,12 @@ const AdminRequestDashboard = () => {
                   </div>
                 </div>
 
-                {/* Body Card: Danh sách học viên (SCROLLABLE) */}
                 <div className="p-5 flex-1 flex flex-col">
                   <p className="text-xs font-semibold text-gray-500 mb-3 flex items-center uppercase tracking-wide">
                     Danh sách chờ ({item.studentCount})
                   </p>
                   
-                  {/* --- KHU VỰC CUỘN --- */}
-                  {/* max-h-[180px]: Chiều cao cố định khoảng 3-4 item */}
-                  {/* overflow-y-auto: Tự động hiện thanh cuộn nếu danh sách dài */}
-                  {/* custom-scrollbar: Class CSS tùy chỉnh thanh cuộn cho đẹp */}
+                 
                   <div className="max-h-[180px] overflow-y-auto custom-scrollbar pr-2 space-y-2">
                       {item.students.map((st) => (
                           <div key={st._id} className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
@@ -153,19 +140,9 @@ const AdminRequestDashboard = () => {
                           </div>
                       ))}
                   </div>
-                  {/* ------------------- */}
                 </div>
 
-                {/* Footer Action */}
-                <div className="p-4 pt-0 mt-auto bg-white border-t border-gray-50">
-                  <button
-                    onClick={() => handleCreateClass(item)}
-                    className="w-full mt-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex justify-center items-center group-hover:scale-[1.02]"
-                  >
-                    <CalendarPlus className="w-5 h-5 mr-2" />
-                    Tạo Lớp Cho Nhóm Này
-                  </button>
-                </div>
+                
 
               </div>
             );
