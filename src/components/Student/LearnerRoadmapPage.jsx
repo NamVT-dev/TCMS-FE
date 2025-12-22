@@ -2,11 +2,18 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import {
-    Loader2, Target, Calendar, User, CheckCircle,
+    Loader2, Target, Calendar as CalendarIcon, User, CheckCircle,
     BookOpen, Award, Map, ArrowRight, Flag, Star, X, AlertCircle, Mail
 } from 'lucide-react';
 import { LEVEL_RANGES, getLevelFromScore } from '../../utils/scoreToLevel';
 import Loading from '../UI/Loading';
+
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns';
+
+registerLocale('vi', vi);
 
 const LEVEL_ORDER = [
     "Starter",
@@ -102,7 +109,6 @@ const LearnerRoadmapPage = () => {
         loadInitialData();
     }, [loadInitialData]);
 
-    // Fetch Student Detail & Check Existing Roadmap
     useEffect(() => {
         const fetchStudentDetail = async () => {
             if (!selectedStudent) {
@@ -116,7 +122,6 @@ const LearnerRoadmapPage = () => {
                 const res = await api.user.getLearnerById(selectedStudent);
                 const data = res.data.data;
 
-                // --- KIỂM TRA ĐÃ TEST HAY CHƯA ---
                 if (data.tested === false) {
                     setIsNotTested(true);
 
@@ -135,9 +140,7 @@ const LearnerRoadmapPage = () => {
                 } else {
                     setIsNotTested(false);
                 }
-                // -------------------------------------
 
-                // Xử lý Category & Current Score (Test Score)
                 if (data.category && data.category.length > 0) {
                     const cat = data.category[0];
                     setSelectedCategory(cat._id);
@@ -150,7 +153,6 @@ const LearnerRoadmapPage = () => {
                     setCurrentLevel(calculatedLevel || 'Starter');
                 }
 
-                // Kiểm tra Roadmap đã tồn tại chưa
                 const goal = data.learningGoal;
 
                 if (goal && goal.targetScore) {
@@ -198,7 +200,6 @@ const LearnerRoadmapPage = () => {
         const type = selectedCategoryName.toUpperCase().includes('TOEIC') ? 'TOEIC' : 'IELTS';
         const ranges = LEVEL_RANGES[type] || [];
 
-        // Lấy index của level hiện tại
         const currentLevelIndex = LEVEL_ORDER.indexOf(currentLevel);
 
         return LEVEL_ORDER.map((lvl, index) => {
@@ -206,33 +207,25 @@ const LearnerRoadmapPage = () => {
             const rangeInfo = ranges.find(r => r.level === lvl);
             const rangeLabel = rangeInfo ? ` (${rangeInfo.min} - ${rangeInfo.max})` : '';
 
-            // 1. Level hiện tại
             const isCurrent = index === currentLevelIndex;
-
-            // 2. Level đã đạt (thấp hơn level hiện tại)
             const isAchieved = index < currentLevelIndex;
-
-
             const isDisabled = isAchieved;
 
             let statusLabel = "";
             let statusClass = "font-medium";
 
             if (isCurrent) {
-                // Cho phép chọn level hiện tại, đánh dấu là Đang học/Đang phấn đấu
                 statusLabel = "(Trình độ hiện tại)";
                 statusClass = "text-purple-600 font-bold bg-purple-50";
             } else if (isAchieved) {
-                // Vô hiệu hóa level đã đạt
                 statusLabel = "(Đã đạt)";
                 statusClass = "text-gray-400 bg-gray-100";
             }
-            // Level cao hơn không cần status đặc biệt
 
             return {
                 value: lvl,
                 label: `${lvl}${rangeLabel}`,
-                isDisabled: isDisabled, // Chỉ disabled level thấp hơn
+                isDisabled: isDisabled, 
                 statusLabel: statusLabel,
                 statusClass: statusClass,
             };
@@ -293,14 +286,16 @@ const LearnerRoadmapPage = () => {
 
     const roadmapSteps = generateRoadmapSteps();
 
-    if (loading) {
-  return (
-    <div className="flex items-center justify-center h-screen">
-      <Loading />
-    </div>
-  );
-}
+    const minDateValue = new Date();
+    minDateValue.setDate(minDateValue.getDate() + 1);
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <Loading />
+            </div>
+        );
+    }
 
     return (
         <>
@@ -325,7 +320,6 @@ const LearnerRoadmapPage = () => {
                 <div className="max-w-6xl mx-auto p-6 -mt-10">
                     <div className="bg-white p-8 rounded-lg shadow-xl border border-gray-200 space-y-8">
 
-                        {/* --- Section 1: Hồ Sơ --- */}
                         <section>
                             <h2 className="text-2xl font-semibold text-gray-800 mb-6 pb-3 border-b-2 border-purple-100 flex items-center">
                                 <User className="w-6 h-6 mr-2 text-purple-600" />
@@ -370,7 +364,6 @@ const LearnerRoadmapPage = () => {
                                 </div>
                             )}
 
-                            {/* Display Current Level */}
                             {selectedStudent && selectedCategory && currentLevel && !isNotTested && !isFetchingDetail && (
                                 <div className="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start space-x-4">
                                     <div className="p-2 bg-blue-100 rounded-full">
@@ -390,7 +383,6 @@ const LearnerRoadmapPage = () => {
                             )}
                         </section>
 
-                        {/* --- Section 2: Roadmap --- */}
                         <section className="pt-4">
                             <div className="flex justify-between items-center mb-6 pb-3 border-b-2 border-purple-100">
                                 <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
@@ -425,12 +417,10 @@ const LearnerRoadmapPage = () => {
                                     </div>
                                 </div>
                             ) : (
-                                // Chỉ hiển thị nếu không phải trạng thái loading chi tiết
                                 !isFetchingDetail && (
                                     existingTarget && !isEditing ? (
                                         <div className="transition-all duration-200">
                                             <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
-                                                {/* Info Header */}
                                                 <div className="flex flex-col md:flex-row justify-between mb-10 gap-4">
                                                     <div>
                                                         <p className="text-gray-500 text-sm uppercase font-semibold tracking-wider">Mục tiêu cuối cùng</p>
@@ -442,7 +432,7 @@ const LearnerRoadmapPage = () => {
                                                     <div className="md:text-right">
                                                         <p className="text-gray-500 text-sm uppercase font-semibold tracking-wider">Hạn hoàn thành</p>
                                                         <div className="flex items-center gap-2 md:justify-end">
-                                                            <Calendar className="w-5 h-5 text-gray-500" />
+                                                            <CalendarIcon className="w-5 h-5 text-gray-500" />
                                                             <p className="text-xl font-medium text-gray-800">
                                                                 {existingTarget.deadline ? new Date(existingTarget.deadline).toLocaleDateString('vi-VN') : 'N/A'}
                                                             </p>
@@ -450,7 +440,6 @@ const LearnerRoadmapPage = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* HORIZONTAL STEPPER */}
                                                 <div className="relative mt-8 mb-12 px-2 md:px-4">
                                                     <div className="hidden md:block absolute top-6 left-0 right-0 h-1 bg-gray-100 rounded-full -z-10">
                                                         <div className="h-full bg-gradient-to-r from-blue-400 to-purple-500 rounded-full opacity-30 w-full"></div>
@@ -497,7 +486,6 @@ const LearnerRoadmapPage = () => {
                                             </div>
                                         </div>
                                     ) : (
-                                        /* EDIT MODE: Form nhập liệu */
                                         <form onSubmit={handleSubmit} className="transition-all duration-200">
                                             {!existingTarget && selectedStudent && (
                                                 <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded mb-6 flex items-center">
@@ -541,17 +529,23 @@ const LearnerRoadmapPage = () => {
 
                                                 <div>
                                                     <label htmlFor="deadline" className="flex items-center text-sm font-medium text-gray-700 mb-1">
-                                                        <Calendar className="w-4 h-4 mr-2 text-purple-600" />
+                                                        <CalendarIcon className="w-4 h-4 mr-2 text-purple-600" />
                                                         Thời hạn (Deadline) <span className="text-red-500">*</span>
                                                     </label>
-                                                    <input
-                                                        type="date" id="deadline"
-                                                        value={deadline}
-                                                        onChange={(e) => setDeadline(e.target.value)}
-                                                        className={inputClass}
-                                                        min={new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                                                        required
-                                                    />
+                                                    <div className="relative">
+                                                        <DatePicker
+                                                            selected={deadline ? new Date(deadline) : null}
+                                                            onChange={(date) => setDeadline(date ? format(date, 'yyyy-MM-dd') : '')}
+                                                            dateFormat="dd/MM/yyyy"
+                                                            locale="vi"
+                                                            minDate={minDateValue}
+                                                            className={inputClass}
+                                                            wrapperClassName="w-full"
+                                                            required
+                                                            onKeyDown={(e) => e.preventDefault()}
+                                                        />
+                                                        <CalendarIcon className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                                                    </div>
                                                 </div>
                                             </div>
 

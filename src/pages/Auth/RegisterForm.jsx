@@ -1,9 +1,17 @@
 import React, { useState } from "react";
-import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Phone, Calendar as CalendarIcon } from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import toast from "react-hot-toast";
 import Navbar from "../../components/Layout/Navbar";
+
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns';
+
+// Đăng ký tiếng Việt
+registerLocale('vi', vi);
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -14,7 +22,6 @@ const RegisterForm = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  // State để lưu lỗi validation cho từng field
   const [fieldErrors, setFieldErrors] = useState({
     name: "",
     email: "",
@@ -28,12 +35,12 @@ const RegisterForm = () => {
     name: "",
     email: "",
     phoneNumber: "",
-    dob: "",
+    dob: "", 
     password: "",
     passwordConfirm: "",
   });
 
-  // Regex validation
+  // --- REGEX VALIDATION ---
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -48,48 +55,31 @@ const RegisterForm = () => {
     return password.length >= 6;
   };
 
-  // Validate từng field
   const validateField = (name, value) => {
     let errorMsg = "";
 
     switch (name) {
       case "name":
-        if (!value.trim()) {
-          errorMsg = "Vui lòng nhập họ và tên";
-        }
+        if (!value.trim()) errorMsg = "Vui lòng nhập họ và tên";
         break;
       case "email":
-        if (!value.trim()) {
-          errorMsg = "Vui lòng nhập email";
-        } else if (!validateEmail(value)) {
-          errorMsg = "Email chưa đúng định dạng";
-        }
+        if (!value.trim()) errorMsg = "Vui lòng nhập email";
+        else if (!validateEmail(value)) errorMsg = "Email chưa đúng định dạng";
         break;
       case "phoneNumber":
-        if (!value.trim()) {
-          errorMsg = "Vui lòng nhập số điện thoại";
-        } else if (!validatePhone(value)) {
-          errorMsg = "Số điện thoại phải có 10-11 chữ số";
-        }
+        if (!value.trim()) errorMsg = "Vui lòng nhập số điện thoại";
+        else if (!validatePhone(value)) errorMsg = "Số điện thoại phải có 10-11 chữ số";
         break;
       case "dob":
-        if (!value) {
-          errorMsg = "Vui lòng chọn ngày sinh";
-        }
+        if (!value) errorMsg = "Vui lòng chọn ngày sinh";
         break;
       case "password":
-        if (!value) {
-          errorMsg = "Vui lòng nhập mật khẩu";
-        } else if (!validatePassword(value)) {
-          errorMsg = "Mật khẩu phải có ít nhất 6 ký tự";
-        }
+        if (!value) errorMsg = "Vui lòng nhập mật khẩu";
+        else if (!validatePassword(value)) errorMsg = "Mật khẩu phải có ít nhất 6 ký tự";
         break;
       case "passwordConfirm":
-        if (!value) {
-          errorMsg = "Vui lòng xác nhận mật khẩu";
-        } else if (value !== formData.password) {
-          errorMsg = "Mật khẩu xác nhận không khớp";
-        }
+        if (!value) errorMsg = "Vui lòng xác nhận mật khẩu";
+        else if (value !== formData.password) errorMsg = "Mật khẩu xác nhận không khớp";
         break;
       default:
         break;
@@ -105,7 +95,6 @@ const RegisterForm = () => {
     setMessage("");
     setFormData({ ...formData, [name]: value });
     
-    // Clear error khi user bắt đầu nhập
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -116,36 +105,26 @@ const RegisterForm = () => {
     validateField(name, value);
   };
 
-  // Validate toàn bộ form
   const validateForm = () => {
-    const errors = {};
     let isValid = true;
-
     Object.keys(formData).forEach((key) => {
-      const value = formData[key];
-      if (!validateField(key, value)) {
+      if (!validateField(key, formData[key])) {
         isValid = false;
       }
     });
-
     return isValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form trước khi submit
     if (!validateForm()) {
       toast.error("Vui lòng kiểm tra lại thông tin!");
       return;
     }
 
-    // Kiểm tra mật khẩu khớp
     if (formData.password !== formData.passwordConfirm) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        passwordConfirm: "Mật khẩu xác nhận không khớp",
-      }));
+      setFieldErrors((prev) => ({ ...prev, passwordConfirm: "Mật khẩu xác nhận không khớp" }));
       toast.error("Mật khẩu xác nhận không khớp!");
       return;
     }
@@ -167,42 +146,22 @@ const RegisterForm = () => {
       }
     } catch (err) {
       console.error("Registration error:", err);
-
-      // Xử lý lỗi từ BE
       let errorMessage = "Đăng ký thất bại! Vui lòng kiểm tra lại thông tin.";
-      
       if (err?.response?.data?.message) {
         errorMessage = err.response.data.message;
-        
-        // Nếu có nhiều lỗi từ BE, tách ra và hiển thị từng dòng
-        const backendErrors = errorMessage.split(". ").filter(msg => msg.trim());
-        
-        if (backendErrors.length > 1) {
-          // Hiển thị từng lỗi
-          backendErrors.forEach((msg) => {
-            toast.error(msg);
-          });
-          setError(backendErrors.join("\n"));
-        } else {
-          toast.error(errorMessage);
-          setError(errorMessage);
-        }
-      } else {
-        toast.error(errorMessage);
-        setError(errorMessage);
       }
+      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const getTodayDateString = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  const commonInputClass = (hasError) => `w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 transition-all outline-none ${
+    hasError
+      ? "border-red-500 focus:ring-red-500"
+      : "border-gray-300 focus:ring-purple-500 focus:border-transparent"
+  }`;
 
   return (
     <div className="min-h-screen w-full flex flex-col">
@@ -275,18 +234,43 @@ const RegisterForm = () => {
                   error={fieldErrors.phoneNumber}
                   required
                 />
-                <InputField
-                  label="Ngày sinh"
-                  icon={<Calendar />}
-                  name="dob"
-                  type="date"
-                  value={formData.dob}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={fieldErrors.dob}
-                  required
-                  max={getTodayDateString()}
-                />
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 block">
+                    Ngày sinh <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <div className="relative">
+                    <DatePicker
+                      selected={formData.dob ? new Date(formData.dob) : null}
+                      onChange={(date) => {
+                        const val = date ? format(date, 'yyyy-MM-dd') : '';
+                        setFormData(prev => ({ ...prev, dob: val }));
+                        // Xóa lỗi nếu có
+                        if (fieldErrors.dob) setFieldErrors(prev => ({ ...prev, dob: '' }));
+                      }}
+                      onBlur={() => validateField('dob', formData.dob)}
+                      dateFormat="dd/MM/yyyy"
+                      locale="vi"
+                      showYearDropdown
+                      scrollableYearDropdown
+                      yearDropdownItemNumber={100} // Cho phép chọn 100 năm về trước
+                      maxDate={new Date()} // Không chọn ngày tương lai
+                      className={commonInputClass(fieldErrors.dob)}
+                      placeholderText="01/01/2000"
+                      wrapperClassName="w-full"
+                      onKeyDown={(e) => e.preventDefault()} // Chặn nhập tay
+                    />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
+                        <CalendarIcon className="w-5 h-5" />
+                    </div>
+                  </div>
+                  {fieldErrors.dob && (
+                    <p className="text-red-600 text-xs mt-1 ml-1 flex items-center">
+                      <span className="inline-block w-1 h-1 bg-red-600 rounded-full mr-1.5"></span>
+                      {fieldErrors.dob}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
@@ -347,33 +331,39 @@ const RegisterForm = () => {
   );
 };
 
-const InputField = ({ label, icon, error, onBlur, required, ...props }) => (
-  <div className="space-y-2">
-    <label className="text-sm font-medium text-gray-700 block">
-      {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
-    </label>
-    <div className="relative">
-      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{icon}</div>
-      <input
-        {...props}
-        onBlur={onBlur}
-        required={required}
-        className={`w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 transition-all outline-none ${
-          error
-            ? "border-red-500 focus:ring-red-500"
-            : "border-gray-300 focus:ring-purple-500 focus:border-transparent"
-        }`}
-      />
-    </div>
-    {error && (
-      <p className="text-red-600 text-xs mt-1 ml-1 flex items-center">
-        <span className="inline-block w-1 h-1 bg-red-600 rounded-full mr-1.5"></span>
-        {error}
-      </p>
-    )}
-  </div>
-);
+const InputField = ({ label, icon, error, onBlur, required, ...props }) => {
+    const inputClass = `w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 transition-all outline-none ${
+        error
+          ? "border-red-500 focus:ring-red-500"
+          : "border-gray-300 focus:ring-purple-500 focus:border-transparent"
+      }`;
+
+    return (
+        <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 block">
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                {React.cloneElement(icon, { className: "w-5 h-5" })}
+            </div>
+            <input
+                {...props}
+                onBlur={onBlur}
+                required={required}
+                className={inputClass}
+            />
+            </div>
+            {error && (
+            <p className="text-red-600 text-xs mt-1 ml-1 flex items-center">
+                <span className="inline-block w-1 h-1 bg-red-600 rounded-full mr-1.5"></span>
+                {error}
+            </p>
+            )}
+        </div>
+    );
+};
 
 const PasswordField = ({ label, name, value, onChange, onBlur, error, show, setShow, required }) => (
   <div className="space-y-2">

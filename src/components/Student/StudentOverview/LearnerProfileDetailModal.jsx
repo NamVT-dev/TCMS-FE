@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../../utils/api';
-import { Loader2, Save, X, User, BookOpen, Target, Trophy, Pencil, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Save, X, User, BookOpen, Trophy, Pencil, Calendar as CalendarIcon } from 'lucide-react';
 import showToast from "../../../utils/showToast";
 import moment from 'moment';
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns';
+
+registerLocale('vi', vi);
 
 const baseInputClass = "w-full px-3 py-2 border rounded-lg outline-none transition-all bg-white";
 const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
@@ -226,14 +232,37 @@ const LearnerProfileDetailModal = ({ isOpen, onClose, onSuccess, learnerId }) =>
 
                                     <div>
                                         <label className={labelClass}>Ngày sinh <span className="text-red-500">*</span></label>
-                                        <input
-                                            type="date" 
-                                            name="dob"
-                                            value={formData.dob} 
-                                            onChange={handleChange}
-                                            max={moment().format("YYYY-MM-DD")}
-                                            className={getInputClass('dob')}
-                                        />
+                                        <div className="relative">
+                                            <DatePicker
+                                                selected={formData.dob ? new Date(formData.dob) : null}
+                                                onChange={(date) => {
+                                                    const formattedDate = date ? format(date, 'yyyy-MM-dd') : '';
+                                                    setFormData(prev => ({ ...prev, dob: formattedDate }));
+                                                    if (errors.dob) {
+                                                        setErrors(prev => {
+                                                            const newErrs = { ...prev };
+                                                            delete newErrs.dob;
+                                                            return newErrs;
+                                                        });
+                                                    }
+                                                }}
+                                                dateFormat="dd/MM/yyyy"
+                                                locale="vi"
+                                                maxDate={new Date()} 
+                                                
+                                                showYearDropdown
+                                                showMonthDropdown
+                                                dropdownMode="select"
+                                                yearDropdownItemNumber={100}
+                                                scrollableYearDropdown
+                                                
+                                                className={`${getInputClass('dob')} pl-10`} 
+                                                wrapperClassName="w-full"
+                                                placeholderText="dd/mm/yyyy"
+                                                onKeyDown={(e) => e.preventDefault()}
+                                            />
+                                            <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none z-10" />
+                                        </div>
                                         {errors.dob && (
                                             <p className="text-red-500 text-xs mt-1 font-medium">{errors.dob}</p>
                                         )}

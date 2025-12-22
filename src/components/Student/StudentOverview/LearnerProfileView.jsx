@@ -17,23 +17,24 @@ const SCORE_RANGES = {
         "Expert": "7.5 - 9.0",
     },
     TOEIC: {
-        "Starter": "0 - 250",
-        "Beginner": "255 - 400",
-        "Elementary": "405 - 500",
-        "Pre-Intermediate": "505 - 600",
-        "Intermediate": "605 - 780",
-        "Upper-Intermediate": "785 - 900",
-        "Advanced": "905 - 950",
-        "Expert": "955 - 990",
+        "Starter": "0 - 249",
+        "Beginner": "250 - 399",
+        "Elementary": "400 - 499",
+        "Pre-Intermediate": "500 - 599",
+        "Intermediate": "600 - 779",
+        "Upper-Intermediate": "780 - 899",
+        "Advanced": "900 - 949",
+        "Expert": "950 - 990",
     }
+
 };
 
 const getScoreHint = (catName, level) => {
     if (!catName || !level) return null;
     const upperName = catName.toUpperCase();
-   
+
     if (upperName.includes("IELTS")) return SCORE_RANGES.IELTS[level];
-    
+
     if (upperName.includes("TOEIC")) return SCORE_RANGES.TOEIC[level];
     return null;
 };
@@ -41,7 +42,7 @@ const getScoreHint = (catName, level) => {
 const Pagination = ({ page, totalPages, onPageChange }) => {
     if (totalPages <= 1) return null;
     const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-    
+
     return (
         <div className="flex items-center space-x-1 justify-center mt-8">
             <button onClick={() => onPageChange(page - 1)} disabled={page === 1} className="px-3 py-1.5 rounded border text-gray-600 hover:bg-gray-50 disabled:opacity-40 text-sm font-medium transition-colors">Trước</button>
@@ -58,35 +59,35 @@ const LearnerProfileView = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearch = useDebounce(searchTerm, 500);
-    
+
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
-    const PAGE_SIZE = 9; 
+    const PAGE_SIZE = 9;
 
-    
+
     const [selectedLearnerId, setSelectedLearnerId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchLearners = useCallback(async () => {
         setLoading(true);
         try {
-            const params = { 
-                limit: PAGE_SIZE, 
+            const params = {
+                limit: PAGE_SIZE,
                 page: page,
-                search: debouncedSearch || undefined 
+                search: debouncedSearch || undefined
             };
-            
+
             const res = await api.user.getLearnerProfile(params);
             const data = res?.data?.data ?? [];
-            
+
             const list = Array.isArray(data) ? data : (data.data || []);
-            
+
             setLearners(list);
-            const total = res.data?.total || list.length; 
+            const total = res.data?.total || list.length;
             setTotalPages(Math.ceil(total / PAGE_SIZE) || 1);
             setTotalResults(total);
-            
+
         } catch (err) {
             console.error("Lỗi tải danh sách:", err);
         } finally {
@@ -114,7 +115,7 @@ const LearnerProfileView = () => {
                     </h1>
                     <p className="text-gray-500 mt-1 ml-11">Quản lý hồ sơ và theo dõi tiến độ học tập.</p>
                 </div>
-                
+
                 {/* Search Bar
                 <div className="relative w-full md:w-80">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -141,22 +142,22 @@ const LearnerProfileView = () => {
                     <p className="text-lg text-gray-500 font-medium">Không tìm thấy học viên nào</p>
                 </div>
             ) : (
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {learners.map((learner) => {
-                        
+
                         const targetLevel = learner.learningGoal?.targetScore;
-                        const categoryName = learner.category?.[0]?.name; 
+                        const categoryName = learner.category?.[0]?.name;
                         const scoreHint = getScoreHint(categoryName, targetLevel);
 
                         return (
-                            <div 
-                                key={learner._id} 
+                            <div
+                                key={learner._id}
                                 className="group bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col"
                             >
-                               
+
                                 <div className="h-24 bg-gradient-to-r from-purple-500 to-indigo-500 relative">
-                                   
+
                                     <div className="absolute top-3 right-3">
                                         <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide shadow-sm backdrop-blur-md border border-white/20 ${learner.enrolled ? 'bg-white/90 text-green-700' : 'bg-black/40 text-white'}`}>
                                             {learner.enrolled ? 'Đã nhập học' : 'Chưa nhập học'}
@@ -164,26 +165,26 @@ const LearnerProfileView = () => {
                                     </div>
                                 </div>
 
-                             
+
                                 <div className="px-5 pb-5 flex-1 flex flex-col relative">
-                                  
+
                                     <div className="-mt-12 mb-3 flex justify-center">
                                         <div className="w-20 h-20 rounded-2xl border-4 border-white shadow-md bg-white overflow-hidden">
-                                            <img 
-                                                src={learner.photo || `https://ui-avatars.com/api/?name=${learner.name}&background=random&size=128`} 
-                                                alt={learner.name} 
+                                            <img
+                                                src={learner.photo || `https://ui-avatars.com/api/?name=${learner.name}&background=random&size=128`}
+                                                alt={learner.name}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                             />
                                         </div>
                                     </div>
 
-                              
+
                                     <div className="text-center mb-4">
                                         <h3 className="font-bold text-gray-800 text-lg leading-tight mb-1 truncate" title={learner.name}>
                                             {learner.name}
                                         </h3>
                                         <p className="text-xs text-gray-400 capitalize">
-                                            {learner.gender === 'male' ? 'Nam' : learner.gender === 'female' ? 'Nữ' : 'Khác'} 
+                                            {learner.gender === 'male' ? 'Nam' : learner.gender === 'female' ? 'Nữ' : 'Khác'}
                                             {learner.dob ? ` • ${new Date().getFullYear() - new Date(learner.dob).getFullYear()} tuổi` : ''}
                                         </p>
                                     </div>
@@ -214,7 +215,7 @@ const LearnerProfileView = () => {
                                             <div className="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center justify-center gap-1">
                                                 <Target className="w-3 h-3" /> Mục tiêu
                                             </div>
-                                            
+
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-bold text-gray-700 truncate" title={targetLevel}>
                                                     {targetLevel || "N/A"}
@@ -232,7 +233,7 @@ const LearnerProfileView = () => {
 
                                 {/* Footer Action */}
                                 <div className="p-3 border-t border-gray-100 bg-gray-50/50">
-                                    <button 
+                                    <button
                                         onClick={() => handleViewDetail(learner._id)}
                                         className="w-full py-2 bg-white border border-gray-200 text-gray-600 hover:text-purple-600 hover:border-purple-200 hover:bg-purple-50 rounded-xl transition-all font-medium text-sm flex items-center justify-center shadow-sm group-hover:shadow-md"
                                     >
@@ -245,10 +246,10 @@ const LearnerProfileView = () => {
                 </div>
             )}
 
-            
+
 
             {/* Modal */}
-            <LearnerProfileDetailModal 
+            <LearnerProfileDetailModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 learnerId={selectedLearnerId}

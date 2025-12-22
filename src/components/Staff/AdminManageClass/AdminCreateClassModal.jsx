@@ -1,20 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../../utils/api';
-import { Loader2, Save, X, RefreshCw } from 'lucide-react';
+import { Loader2, Save, X, RefreshCw, Calendar as CalendarIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../../components/UI/Loading';
-import { toast } from 'react-toastify'; 
+import { toast } from 'react-toastify';
+
+// --- THÊM MỚI: Import Datepicker và CSS ---
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale'; // Import ngôn ngữ tiếng Việt
+import { format } from 'date-fns'; // Dùng để format dữ liệu gửi lên server
+
+// Đăng ký ngôn ngữ tiếng Việt cho lịch
+registerLocale('vi', vi);
 
 const inputClass = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm";
 const readOnlyClass = "mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-100 text-gray-700 font-medium rounded-md shadow-sm sm:text-sm cursor-not-allowed";
-
-const getTodayString = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
 
 const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
     const navigate = useNavigate();
@@ -25,7 +26,8 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
         minStudent: 8,
         maxStudent: 15,
         preferredTeacher: '',
-        startAt: '',
+        // THAY ĐỔI: Khởi tạo là Date object thay vì string, mặc định là hôm nay
+        startAt: new Date(),
     });
 
     const [categories, setCategories] = useState([]);
@@ -82,7 +84,7 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
                         nameSuffix: '',
                         minStudent: 8,
                         maxStudent: 15,
-                        startAt: getTodayString(),
+                        startAt: new Date(), // Reset về ngày hiện tại
                     }));
 
                 } catch (error) {
@@ -96,7 +98,7 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
         } else {
             setFormData({
                 nameSuffix: '', course: '', minStudent: 8, maxStudent: 15, preferredTeacher: '',
-                startAt: getTodayString()
+                startAt: new Date()
             });
             setSelectedCategory('');
             setNextClassNumber(1);
@@ -162,9 +164,20 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // VALIDATION: Kiểm tra giáo viên
+        // 1. VALIDATION: Kiểm tra giáo viên
         if (!formData.preferredTeacher) {
             toast.error("Vui lòng chọn Giáo viên phụ trách!");
+            return;
+        }
+
+        // 2. VALIDATION: Kiểm tra ngày trong tương lai (Logic chặt chẽ)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Đặt về 0h00 để so sánh chính xác ngày
+        const selectedDate = new Date(formData.startAt);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        if (selectedDate < today) {
+            toast.error("Ngày khai giảng không được ở trong quá khứ!");
             return;
         }
 
@@ -175,11 +188,15 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
                 finalName += ` | ${formData.nameSuffix.trim()}`;
             }
 
+            // Format ngày về chuẩn YYYY-MM-DD để gửi lên Backend
+            const formattedStartAt = format(formData.startAt, 'yyyy-MM-dd');
+
             const payload = {
                 ...formData,
                 name: finalName,
-                preferredTeacher: formData.preferredTeacher, // Đã validate ở trên nên chắc chắn có
+                preferredTeacher: formData.preferredTeacher,
                 weeklySchedules: [],
+                startAt: formattedStartAt, // Ghi đè bằng string đã format
             };
             delete payload.nameSuffix;
 
@@ -187,7 +204,7 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
             const newClassId = res.data.data.data._id;
 
             toast.success(`Tạo lớp "${finalName}" thành công!`);
-            
+
             onSuccess();
             onClose();
             navigate(`/admin/classes/detail/${newClassId}`);
@@ -213,7 +230,8 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
                 </div>
 
                 {loading ? (
-                    <div className="py-10">
+                    // --- THAY ĐỔI: Center Loading UI ---
+                    <div className="flex items-center justify-center h-64">
                         <Loading />
                     </div>
                 ) : (
@@ -302,20 +320,38 @@ const AdminCreateClassModal = ({ isOpen, onClose, onSuccess, prefillData }) => {
                                 <input type="number" name="maxStudent" value={formData.maxStudent} onChange={handleChange} className={inputClass} />
                             </div>
 
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700">Ngày Khai giảng <span className="text-red-500">*</span></label>
-                                <input type="date" name="startAt" value={formData.startAt} onChange={handleChange} className={inputClass} required />
+                            <div className="relative">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Ngày Khai giảng <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <DatePicker
+                                        selected={formData.startAt}
+                                        onChange={(date) => setFormData({ ...formData, startAt: date })}
+                                        dateFormat="dd/MM/yyyy"
+                                        locale="vi"
+                                        minDate={new Date()}
+                                        className={inputClass}
+
+                                        wrapperClassName="w-full" // Vẫn giữ cái này
+
+                                        placeholderText="Chọn ngày khai giảng"
+                                        required
+                                        onKeyDown={(e) => e.preventDefault()}
+                                    />
+                                    <CalendarIcon className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">Định dạng: ngày/tháng/năm</p>
                             </div>
 
                             <div className="md:col-span-2">
-                                {/* Thêm dấu sao đỏ bắt buộc */}
                                 <label className="block text-sm font-medium text-gray-700">GV Phụ trách<span className="text-red-500">*</span></label>
-                                <select 
-                                    name="preferredTeacher" 
-                                    value={formData.preferredTeacher} 
-                                    onChange={handleChange} 
+                                <select
+                                    name="preferredTeacher"
+                                    value={formData.preferredTeacher}
+                                    onChange={handleChange}
                                     className={inputClass}
-                                    required // Thêm thuộc tính required
+                                    required
                                 >
                                     <option value="">-- Chọn giáo viên --</option>
                                     {teachers.map(t => (

@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../../../utils/api';
-import { Loader2, Save, X, User, Mail, Phone, Calendar, Lock } from 'lucide-react';
+import { Loader2, Save, X, User, Mail, Phone, Calendar as CalendarIcon, Lock } from 'lucide-react';
 import showToast from "../../../../utils/showToast";
+
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns';
+
+registerLocale('vi', vi);
 
 const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white";
 const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
@@ -36,14 +43,7 @@ const AdminStaffModal = ({ isOpen, onClose, onSuccess }) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
     
-    const getTodayDateString = () => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-
-        return `${year}-${month}-${day}`;
-    };
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -80,7 +80,7 @@ const AdminStaffModal = ({ isOpen, onClose, onSuccess }) => {
             const createData = {
                 email: email,
                 name: name,
-                dob: dob,
+                dob: dob, 
                 phoneNumber: phoneNumber,
                 gender: gender,
             };
@@ -147,7 +147,6 @@ const AdminStaffModal = ({ isOpen, onClose, onSuccess }) => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         className={`${inputClass} pl-10`}
-                                        
                                         required
                                     />
                                 </div>
@@ -175,15 +174,29 @@ const AdminStaffModal = ({ isOpen, onClose, onSuccess }) => {
                             <div>
                                 <label className={labelClass}><span className="text-red-500">*</span> Ngày sinh</label>
                                 <div className="relative">
-                                    <input
-                                        type="date"
-                                        name="dob"
-                                        value={formData.dob}
-                                        onChange={handleChange}
-                                        className={`${inputClass}`}
+                                    <DatePicker
+                                        selected={formData.dob ? new Date(formData.dob) : null}
+                                        onChange={(date) => {
+                                            setFormData({
+                                                ...formData,
+                                                dob: date ? format(date, 'yyyy-MM-dd') : ''
+                                            });
+                                        }}
+                                        dateFormat="dd/MM/yyyy"
+                                        locale="vi"
+                                        maxDate={new Date()} 
+                                        showYearDropdown 
+                                        showMonthDropdown 
+                                        dropdownMode="select" 
+                                        yearDropdownItemNumber={100} 
+                                        scrollableYearDropdown 
+                                        
+                                        className={`${inputClass} pl-10`} 
+                                        wrapperClassName="w-full"
                                         required
-                                        max={getTodayDateString()}
+                                        onKeyDown={(e) => e.preventDefault()}
                                     />
+                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none z-10" />
                                 </div>
                             </div>
 
@@ -211,7 +224,6 @@ const AdminStaffModal = ({ isOpen, onClose, onSuccess }) => {
                     </form>
                 </div>
 
-                {/* Footer */}
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3">
                     <button
                         type="button"

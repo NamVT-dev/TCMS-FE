@@ -1,18 +1,20 @@
 import React, { useState } from "react";
 import api from "../../../../utils/api";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, Calendar as CalendarIcon } from "lucide-react";
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns';
+
+registerLocale('vi', vi);
 
 function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [classStartAnchor, setClassStartAnchor] = useState(""); 
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [classStartAnchor, setClassStartAnchor] = useState(null); 
   const [threshold, setThreshold] = useState(0.7);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-
-  // Lấy ngày hiện tại theo giờ địa phương và format thành YYYY-MM-DD
-  // Sử dụng 'en-CA' để đảm bảo format ra YYYY-MM-DD chuẩn cho input date
-  const today = new Date().toLocaleDateString('en-CA');
 
   if (!isOpen) {
     return null;
@@ -30,9 +32,9 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
     
     try {
       const res = await api.admin.schedule.runScheduler({
-        intakeStartDate: startDate,
-        intakeEndDate: endDate,
-        classStartAnchor: classStartAnchor,
+        intakeStartDate: format(startDate, 'yyyy-MM-dd'),
+        intakeEndDate: format(endDate, 'yyyy-MM-dd'),
+        classStartAnchor: format(classStartAnchor, 'yyyy-MM-dd'),
         threshold: Number(threshold),
       });
       onJobCreated(res.data.data.jobId);
@@ -41,6 +43,8 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
       setIsSubmitting(false); 
     }
   };
+
+  const inputClass = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm";
 
   return (
     <div 
@@ -67,51 +71,68 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
           </p>
           
           <div>
-            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700">
               Lấy học sinh từ ngày <span className="text-red-500 ml-1">*</span>
             </label>
-            <input
-              type="date"
-              id="startDate"
-              value={startDate}
-              max={today} // Chặn chọn ngày tương lai
-              onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-              required
-            />
+            <div className="relative">
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => setStartDate(date)}
+                dateFormat="dd/MM/yyyy"
+                locale="vi"
+                maxDate={new Date()}
+                className={inputClass}
+                wrapperClassName="w-full"
+                placeholderText="Chọn ngày bắt đầu"
+                required
+                onKeyDown={(e) => e.preventDefault()}
+              />
+              <CalendarIcon className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
           
           <div>
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700">
               Lấy học sinh đến ngày <span className="text-red-500 ml-1">*</span>
             </label>
-            <input
-              type="date"
-              id="endDate"
-              value={endDate}
-              max={today} // Chặn chọn ngày tương lai
-              min={startDate} // UX: Ngày kết thúc không được nhỏ hơn ngày bắt đầu
-              onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-              required
-            />
+            <div className="relative">
+              <DatePicker
+                selected={endDate}
+                onChange={(date) => setEndDate(date)}
+                dateFormat="dd/MM/yyyy"
+                locale="vi"
+                maxDate={new Date()}
+                minDate={startDate}
+                className={inputClass}
+                wrapperClassName="w-full"
+                placeholderText="Chọn ngày kết thúc"
+                required
+                disabled={!startDate}
+                onKeyDown={(e) => e.preventDefault()}
+              />
+              <CalendarIcon className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           <div>
-            <label htmlFor="classStartAnchor" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700">
               Ngày Khai Giảng (Dự kiến) <span className="text-red-500 ml-1">*</span>
             </label>
-            <input
-              type="date"
-              id="classStartAnchor"
-              value={classStartAnchor}
-              // Thường ngày khai giảng sẽ là tương lai nên tôi để min={today}. 
-              // Nếu bạn muốn chặn tương lai cho ô này luôn thì đổi thành max={today}
-              min={today} 
-              onChange={(e) => setClassStartAnchor(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-              required
-            />
+            <div className="relative">
+              <DatePicker
+                selected={classStartAnchor}
+                onChange={(date) => setClassStartAnchor(date)}
+                dateFormat="dd/MM/yyyy"
+                locale="vi"
+                minDate={new Date()}
+                className={inputClass}
+                wrapperClassName="w-full"
+                placeholderText="Chọn ngày khai giảng"
+                required
+                onKeyDown={(e) => e.preventDefault()}
+              />
+              <CalendarIcon className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           <div>
@@ -124,7 +145,7 @@ function NewScheduleModal({ isOpen, onClose, onJobCreated }) {
               step="0.05" min="0" max="1"
               value={threshold}
               onChange={(e) => setThreshold(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+              className={inputClass}
               required
             />
           </div>

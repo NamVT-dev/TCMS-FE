@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../utils/api";
-import moment from "moment"; 
+import moment from "moment";
+import { Calendar as CalendarIcon } from 'lucide-react';
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns';
+
+registerLocale('vi', vi);
 
 const StudentProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -162,7 +169,7 @@ const StudentProfile = () => {
         return baseClass + "bg-purple-50 border-purple-400 focus:ring-2 focus:ring-purple-400";
     }
 
-    return baseClass + "bg-gray-100 border-gray-300 text-gray-700";
+    return baseClass + "bg-gray-100 border-gray-300 text-gray-700 disabled:cursor-not-allowed";
   };
 
   return (
@@ -250,15 +257,40 @@ const StudentProfile = () => {
 
           <div>
             <label className="block text-gray-700 mb-2">Ngày sinh <span className="text-red-500">*</span></label>
-            <input
-              type="date"
-              name="dob"
-              value={profile.dob}
-              onChange={handleChange}
-              disabled={!isEditing}
-              max={moment().format("YYYY-MM-DD")}
-              className={getInputClass("dob")}
-            />
+            <div className="relative">
+              <DatePicker
+                selected={profile.dob ? new Date(profile.dob) : null}
+                onChange={(date) => {
+                  setProfile({
+                    ...profile,
+                    dob: date ? format(date, 'yyyy-MM-dd') : ''
+                  });
+                  // Xóa lỗi nếu có
+                  if (errors.dob) {
+                    setErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors.dob;
+                        return newErrors;
+                    });
+                  }
+                }}
+                dateFormat="dd/MM/yyyy"
+                locale="vi"
+                maxDate={new Date()} 
+                disabled={!isEditing}
+
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
+                yearDropdownItemNumber={100}
+                scrollableYearDropdown
+
+                className={`${getInputClass("dob")} pl-10`} 
+                wrapperClassName="w-full"
+                onKeyDown={(e) => e.preventDefault()}
+              />
+              <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none z-10" />
+            </div>
             {errors.dob && (
                 <p className="text-red-500 text-xs mt-1">{errors.dob}</p>
             )}

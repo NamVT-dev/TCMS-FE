@@ -3,9 +3,13 @@ import { X, Save, AlertCircle, User, Home, Clock, Calendar, Ban, RefreshCw, Chec
 import api from "../../../utils/api";
 import moment from "moment-timezone";
 
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+registerLocale('vi', vi);
+
 const TIMEZONE = "Asia/Ho_Chi_Minh";
 
-// Toast Component
 const Toast = ({ message, type = "success", onClose }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3500);
@@ -31,7 +35,6 @@ const Toast = ({ message, type = "success", onClose }) => {
   );
 };
 
-// Confirmation Dialog Component
 const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, type = "warning" }) => {
   if (!isOpen) return null;
 
@@ -87,7 +90,7 @@ const formatMinutes = (mins) => {
 };
 
 const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
   const [selectedShiftName, setSelectedShiftName] = useState("");
   const [selectedTeacher, setSelectedTeacher] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
@@ -102,12 +105,10 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  // Toast & Confirm states
   const [toast, setToast] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
 
-  // Lấy ngày hiện tại format YYYY-MM-DD để làm giá trị min cho input date
-  const today = moment().tz(TIMEZONE).format("YYYY-MM-DD");
+  const minDateValue = moment().tz(TIMEZONE).startOf('day').toDate();
 
   useEffect(() => {
     if (isOpen) {
@@ -137,7 +138,8 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
   useEffect(() => {
     if (isOpen && session && centerConfig) {
       const startMoment = moment(session.startAt).tz(TIMEZONE);
-      setSelectedDate(startMoment.format("YYYY-MM-DD"));
+      
+      setSelectedDate(startMoment.toDate());
 
       const currentStartMinute = startMoment.hours() * 60 + startMoment.minutes();
       const matchedShift = centerConfig.shifts.find(s => Math.abs(s.startMinute - currentStartMinute) < 5);
@@ -176,7 +178,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
 
   const toggleCancelStatus = () => {
     if (isCanceled) {
-      // Khôi phục buổi học
       setConfirmDialog({
         isOpen: true,
         type: 'success',
@@ -189,7 +190,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
         }
       });
     } else {
-      // Hủy buổi học
       setConfirmDialog({
         isOpen: true,
         type: 'danger',
@@ -336,17 +336,24 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
                  
                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                       <label className="block text-xs font-medium text-gray-500 mb-1">Ngày học <span className="text-red-500 ml-1">*</span></label>
-                       <div className="relative">
-                          <Calendar className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
-                          <input 
-                             type="date" 
-                             min={today} // Thêm min={today} ở đây để chặn ngày quá khứ
-                             value={selectedDate}
-                             onChange={(e) => { setSelectedDate(e.target.value); setSelectedShiftName(""); }} 
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Ngày học <span className="text-red-500 ml-1">*</span></label>
+                        <div className="relative">
+                          <DatePicker
+                             selected={selectedDate}
+                             onChange={(date) => { 
+                                 setSelectedDate(date); 
+                                 setSelectedShiftName(""); 
+                             }}
+                             dateFormat="dd/MM/yyyy"
+                             locale="vi"
+                             minDate={minDateValue} 
                              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"
+                             wrapperClassName="w-full" 
+                             placeholderText="Chọn ngày"
+                             onKeyDown={(e) => e.preventDefault()}
                           />
-                       </div>
+                          <Calendar className="w-4 h-4 absolute left-3 top-2.5 text-gray-400 pointer-events-none z-10" />
+                        </div>
                     </div>
                     <div>
                        <label className="block text-xs font-medium text-gray-500 mb-1">Ca học<span className="text-red-500 ml-1">*</span></label>
@@ -373,7 +380,6 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
                     </div>
                  </div>
 
-                 
                  <div className="grid grid-cols-2 gap-4">
                     <div>
                        <label className="block text-xs font-medium text-gray-500 mb-1">Giáo viên<span className="text-red-500 ml-1">*</span></label>
@@ -410,7 +416,7 @@ const EditSessionModal = ({ isOpen, onClose, session, onSessionUpdated }) => {
                  </div>
               </div>
             )}
-
+            
             <div className="mt-8 pt-4 border-t border-gray-100 flex justify-between items-center">
                
                <button

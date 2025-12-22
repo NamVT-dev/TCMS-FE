@@ -1,42 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../../../utils/api';
-import { Loader2, Save, X, Upload, User, CheckSquare, Check, HelpCircle, Info, ArrowDown, AlertCircle, CheckCircle, GraduationCap } from 'lucide-react';
+import { Loader2, Save, X, Upload, User, CheckSquare, Check, HelpCircle, Info, ArrowDown, AlertCircle, CheckCircle, GraduationCap, Calendar as CalendarIcon, Phone, Mail } from 'lucide-react';
+
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns';
+
+// Đăng ký tiếng Việt
+registerLocale('vi', vi);
 
 const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all bg-white";
 const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
 
 const LEVEL_OPTIONS = [
-    "Starter",
-    "Beginner",
-    "Elementary",
-    "Pre-Intermediate",
-    "Intermediate",
-    "Upper-Intermediate",
-    "Advanced",
-    "Expert"
+    "Starter", "Beginner", "Elementary", "Pre-Intermediate",
+    "Intermediate", "Upper-Intermediate", "Advanced", "Expert"
 ];
 
 const SCORE_RANGES = {
     IELTS: {
-        "Starter": "0.0 - 3.0",
-        "Beginner": "3.0 - 4.0",
-        "Elementary": "4.0 - 4.5",
-        "Pre-Intermediate": "4.5 - 5.0",
-        "Intermediate": "5.0 - 5.5",
-        "Upper-Intermediate": "5.5 - 6.5",
-        "Advanced": "6.5 - 7.5",
-        "Expert": "7.5 - 9.0",
+        "Starter": "0.0 - 3.0", "Beginner": "3.0 - 4.0", "Elementary": "4.0 - 4.5",
+        "Pre-Intermediate": "4.5 - 5.0", "Intermediate": "5.0 - 5.5", "Upper-Intermediate": "5.5 - 6.5",
+        "Advanced": "6.5 - 7.5", "Expert": "7.5 - 9.0",
     },
     TOEIC: {
-        "Starter": "0 - 250",
-        "Beginner": "255 - 400",
-        "Elementary": "405 - 500",
-        "Pre-Intermediate": "505 - 600",
-        "Intermediate": "605 - 780",
-        "Upper-Intermediate": "785 - 900",
-        "Advanced": "905 - 950",
-        "Expert": "955 - 990",
+        "Starter": "0 - 249", "Beginner": "250 - 399", "Elementary": "400 - 499",
+        "Pre-Intermediate": "500 - 599", "Intermediate": "600 - 779","Upper-Intermediate": "780 - 899",
+        "Advanced": "900 - 949", "Expert": "950 - 990",
     }
+
 };
 
 function Toast({ message, type = "success", onClose }) {
@@ -58,10 +51,7 @@ function Toast({ message, type = "success", onClose }) {
                 {icons[type]}
             </div>
             <p className="text-sm font-medium">{message}</p>
-            <button
-                onClick={onClose}
-                className="flex-shrink-0 ml-2 hover:opacity-70 transition-opacity"
-            >
+            <button onClick={onClose} className="flex-shrink-0 ml-2 hover:opacity-70 transition-opacity">
                 <X className="w-4 h-4" />
             </button>
         </div>
@@ -87,7 +77,6 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
     const [fetching, setFetching] = useState(false);
     const [toast, setToast] = useState(null);
     const [oldPhoto, setOldPhoto] = useState("");
-
 
     const showToast = (message, type = "success") => {
         setToast({ message, type });
@@ -115,7 +104,6 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                         });
                         setPhotoPreview(teacher.profile.photo || '');
                         setOldPhoto(teacher.profile.photo || "");
-
 
                         if (teacher.skills?.length > 0) {
                             setSkills(teacher.skills.map(s => ({
@@ -181,14 +169,11 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
     const handleModeChange = (categoryId, mode) => {
         setSkills(prev => prev.map(s => {
             if (s.category !== categoryId) return s;
-
             let updates = { anyLevel: false, includeLowerLevels: true };
-
             if (mode === 'all') {
                 updates.anyLevel = true;
                 updates.includeLowerLevels = false;
             }
-
             return { ...s, ...updates };
         }));
     };
@@ -196,9 +181,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
     const toggleLevel = (categoryId, level) => {
         setSkills(prev => prev.map(s => {
             if (s.category !== categoryId) return s;
-
             let currentLevels = [...s.levels];
-
             if (currentLevels.includes(level)) {
                 return { ...s, levels: [] };
             } else {
@@ -215,7 +198,6 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
         return null;
     };
 
-    // Hàm tiện ích để tạo FormData từ state hiện tại (Dùng cho Update)
     const createUpdateFormData = () => {
         const fd = new FormData();
         fd.append('profile[fullname]', formData.name);
@@ -224,11 +206,10 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
         fd.append('profile[gender]', formData.gender);
 
         if (photoFile) {
-            fd.append('profile[photo]', photoFile);   // ảnh mới
+            fd.append('profile[photo]', photoFile);
         } else if (oldPhoto) {
-            fd.append('profile[photo]', oldPhoto);    // ảnh cũ
+            fd.append('profile[photo]', oldPhoto);
         }
-
 
         skills.forEach((skill, idx) => {
             fd.append(`skills[${idx}][category]`, skill.category);
@@ -251,14 +232,10 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
         setLoading(true);
         try {
             if (isEditMode) {
-
                 const fd = createUpdateFormData();
                 await api.admin.updateTeacher(teacherId, fd);
                 showToast("Cập nhật giáo viên thành công!", "success");
             } else {
-
-
-                //  Tạo giáo viên bằng JSON thuần (để tránh lỗi 400 Bad Request)
                 const createPayload = {
                     email: formData.email,
                     name: formData.name,
@@ -268,9 +245,6 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                 };
 
                 const res = await api.admin.createTeacher(createPayload);
-
-                // Lấy ID của giáo viên vừa tạo
-                // Cấu trúc response thường là res.data.data._id hoặc res.data.data.teacher._id
                 const newTeacherData = res.data?.data?.teacher || res.data?.data;
                 const newId = newTeacherData?._id || newTeacherData?.id;
 
@@ -279,13 +253,10 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                     throw new Error("Tạo thành công nhưng không lấy được ID để cập nhật kỹ năng.");
                 }
 
-                //  Nếu có Ảnh hoặc Skill, gọi tiếp API Update ngay lập tức
                 if (photoFile || skills.length > 0) {
                     const fd = createUpdateFormData();
-                    // Lưu ý: Update API dùng FormData nên sẽ nhận được ảnh và skills
                     await api.admin.updateTeacher(newId, fd);
                 }
-
                 showToast("Tạo giáo viên và thiết lập kỹ năng thành công!", "success");
             }
 
@@ -295,15 +266,12 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
             }, 1000);
         } catch (err) {
             console.error(err);
-            // Hiển thị lỗi chi tiết hơn
             const msg = err.response?.data?.message || err.message || "Có lỗi xảy ra!";
             showToast(msg, "error");
         } finally {
             setLoading(false);
         }
     };
-    const today = new Date();
-    const maxDob = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     if (!isOpen) return null;
 
@@ -362,19 +330,53 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                     <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-2 gap-5">
                                         <div className="sm:col-span-2">
                                             <label className={labelClass}>Họ và tên<span className="text-red-500">*</span> </label>
-                                            <input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} required placeholder="VD: Nguyễn Văn A" />
+                                            <div className="relative">
+                                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                <input type="text" name="name" value={formData.name} onChange={handleChange} className={`${inputClass} pl-10`} required placeholder="VD: Nguyễn Văn A" />
+                                            </div>
                                         </div>
                                         <div>
                                             <label className={labelClass}>Email <span className="text-red-500">*</span> </label>
-                                            <input type="email" name="email" value={formData.email} onChange={handleChange} className={`${inputClass} ${isEditMode ? 'bg-gray-100 text-gray-500' : ''}`} required disabled={isEditMode} />
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                <input type="email" name="email" value={formData.email} onChange={handleChange} className={`${inputClass} pl-10 ${isEditMode ? 'bg-gray-100 text-gray-500' : ''}`} required disabled={isEditMode} />
+                                            </div>
                                         </div>
                                         <div>
                                             <label className={labelClass}>Số điện thoại <span className="text-red-500">*</span> </label>
-                                            <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className={inputClass} placeholder="09xx..." />
+                                            <div className="relative">
+                                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                                <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className={`${inputClass} pl-10`} placeholder="09xx..." />
+                                            </div>
                                         </div>
                                         <div>
                                             <label className={labelClass}>Ngày sinh <span className="text-red-500">*</span> </label>
-                                            <input type="date" name="dob" value={formData.dob} onChange={handleChange} className={inputClass} required max={maxDob} />
+                                            <div className="relative">
+                                                <DatePicker
+                                                    selected={formData.dob ? new Date(formData.dob) : null}
+                                                    onChange={(date) => {
+                                                        setFormData({
+                                                            ...formData,
+                                                            dob: date ? format(date, 'yyyy-MM-dd') : ''
+                                                        });
+                                                    }}
+                                                    dateFormat="dd/MM/yyyy"
+                                                    locale="vi"
+                                                    maxDate={new Date()}
+
+                                                    showYearDropdown
+                                                    showMonthDropdown
+                                                    dropdownMode="select"
+                                                    yearDropdownItemNumber={100}
+                                                    scrollableYearDropdown
+
+                                                    className={`${inputClass} pl-10`}
+                                                    wrapperClassName="w-full"
+                                                    required
+                                                    onKeyDown={(e) => e.preventDefault()}
+                                                />
+                                                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none z-10" />
+                                            </div>
                                         </div>
                                         <div>
                                             <label className={labelClass}>Giới tính <span className="text-red-500">*</span> </label>
@@ -428,7 +430,6 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                                                     Từ level này trở xuống (Chọn 1)
                                                                 </label>
 
-                                                                {/* CHỈ HIỂN THỊ KHI ĐANG EDIT */}
                                                                 {isEditMode && (
                                                                     <label className="flex items-center text-sm text-gray-700 cursor-pointer hover:text-purple-700">
                                                                         <input

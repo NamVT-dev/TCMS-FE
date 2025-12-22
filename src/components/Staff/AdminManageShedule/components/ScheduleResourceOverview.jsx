@@ -5,6 +5,14 @@ import {
     Filter, Calendar as CalendarIcon
 } from 'lucide-react';
 
+// --- THÊM MỚI: Import Datepicker ---
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns'; // Dùng để format date object thành string 'yyyy-MM-dd'
+
+registerLocale('vi', vi);
+
 const formatMinutes = (mins) => {
     if (typeof mins !== "number" || isNaN(mins)) return "00:00";
     const h = String(Math.floor(mins / 60)).padStart(2, "0");
@@ -23,27 +31,18 @@ const ScheduleResourceOverview = ({
     const [activeTab, setActiveTab] = useState('teachers');
     const [isCollapsed, setIsCollapsed] = useState(true);
 
-    // State cục bộ để người dùng nhập liệu trước khi bấm nút Lọc
+    // State cục bộ lưu String 'YYYY-MM-DD'
     const [localFilter, setLocalFilter] = useState({
         startDate: '',
         endDate: ''
     });
 
-    
-    // Lấy ngày hiện tại theo giờ địa phương (Việt Nam)
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const maxDate = `${yyyy}-${mm}-${dd}`;
-    // -----------------------------------------------------
-
     // Sync state cục bộ với props khi mới load
     useEffect(() => {
         if (studentFilter) {
             setLocalFilter({
-                startDate: studentFilter.startDate,
-                endDate: studentFilter.endDate
+                startDate: studentFilter.startDate || '',
+                endDate: studentFilter.endDate || ''
             });
         }
     }, [studentFilter]);
@@ -51,8 +50,8 @@ const ScheduleResourceOverview = ({
     const { teachers, rooms, courses, config, pendingStudents } = stats;
 
     const studentStats = useMemo(() => {
-        const newLeads = pendingStudents.filter(s => s.testScore !== undefined);
-        const waiting = pendingStudents.filter(s => !s.testScore);
+        const newLeads = pendingStudents.filter(s => s.testScore !== undefined && s.testScore !== null);
+        const waiting = pendingStudents.filter(s => s.testScore === undefined || s.testScore === null);
 
         const countByCategory = (list) => {
             return list.reduce((acc, s) => {
@@ -83,6 +82,9 @@ const ScheduleResourceOverview = ({
             onFilterStudents(localFilter.startDate, localFilter.endDate);
         }
     };
+
+    // Helper class cho input
+    const inputClass = "pl-9 block w-full md:w-40 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm border py-2";
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 transition-all duration-300">
@@ -141,39 +143,52 @@ const ScheduleResourceOverview = ({
                             <div>
                                 <label className="block text-xs font-medium text-gray-500 mb-1">Từ ngày</label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <CalendarIcon className="h-4 w-4 text-gray-400" />
-                                    </div>
-                                    <input
-                                        type="date"
-                                        max={maxDate} /* --- SỬA ĐỔI: Chặn ngày tương lai --- */
-                                        value={localFilter.startDate}
-                                        onChange={(e) => setLocalFilter({ ...localFilter, startDate: e.target.value })}
-                                        className="pl-9 block w-full md:w-40 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm border py-2"
+                                    <DatePicker
+                                        // Chuyển string 'yyyy-MM-dd' sang Date Object để hiển thị
+                                        selected={localFilter.startDate ? new Date(localFilter.startDate) : null}
+                                        onChange={(date) => setLocalFilter({
+                                            ...localFilter,
+                                            // Chuyển ngược Date Object về string 'yyyy-MM-dd' để lưu state
+                                            startDate: date ? format(date, 'yyyy-MM-dd') : ''
+                                        })}
+                                        dateFormat="dd/MM/yyyy"
+                                        locale="vi"
+                                        maxDate={new Date()}
+                                        className={inputClass}
+                                        wrapperClassName="w-full"
+                                        placeholderText="dd/mm/yyyy"
+                                        onKeyDown={(e) => e.preventDefault()}
                                     />
+                                    <CalendarIcon className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-xs font-medium text-gray-500 mb-1">Đến ngày</label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <CalendarIcon className="h-4 w-4 text-gray-400" />
-                                    </div>
-                                    <input
-                                        type="date"
-                                        max={maxDate} /* --- SỬA ĐỔI: Chặn ngày tương lai --- */
-                                        value={localFilter.endDate}
-                                        onChange={(e) => setLocalFilter({ ...localFilter, endDate: e.target.value })}
-                                        className="pl-9 block w-full md:w-40 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm border py-2"
+                                    <DatePicker
+                                        selected={localFilter.endDate ? new Date(localFilter.endDate) : null}
+                                        onChange={(date) => setLocalFilter({
+                                            ...localFilter,
+                                            endDate: date ? format(date, 'yyyy-MM-dd') : ''
+                                        })}
+                                        dateFormat="dd/MM/yyyy"
+                                        locale="vi"
+                                        maxDate={new Date()}
+                                        minDate={localFilter.startDate ? new Date(localFilter.startDate) : null}
+                                        className={inputClass}
+                                        wrapperClassName="w-full"
+                                        placeholderText="dd/mm/yyyy"
+                                        onKeyDown={(e) => e.preventDefault()}
                                     />
+                                    <CalendarIcon className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
                                 </div>
                             </div>
 
                             <button
                                 onClick={handleApplyFilter}
                                 disabled={isStudentLoading}
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:bg-purple-300 transition-colors"
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:bg-purple-300 transition-colors h-[38px]"
                             >
                                 {isStudentLoading ? (
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />

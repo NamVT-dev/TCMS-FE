@@ -1,7 +1,15 @@
-
 import React, { useEffect, useState, useCallback } from "react";
 import api from "../../../utils/api";
-import { Loader2, Save, Edit, X, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, Save, Edit, X, CheckCircle, AlertCircle, Calendar as CalendarIcon } from "lucide-react";
+
+// --- THÊM MỚI: Import Datepicker ---
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format, parseISO, isValid } from 'date-fns';
+
+// Đăng ký ngôn ngữ tiếng Việt
+registerLocale('vi', vi);
 
 const DAY_NAMES = [
   { id: 0, label: "CN" },
@@ -15,10 +23,7 @@ const DAY_NAMES = [
 
 const todayISO = () => {
   const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return format(d, 'yyyy-MM-dd');
 };
 
 const normalizeSlots = (rawSlots = []) =>
@@ -222,6 +227,8 @@ export default function TeacherRegisterSchedule() {
     .filter((s) => slotIsCurrentlyActive(s))
     .sort((a, b) => a.dayOfWeek - b.dayOfWeek);
 
+  const inputClass = "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:text-gray-500 bg-white";
+
   if (loading) return (
     <div className="p-8 text-center text-gray-600 flex justify-center items-center h-64">
       <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
@@ -289,7 +296,7 @@ export default function TeacherRegisterSchedule() {
                       </div>
                       <div className="text-sm text-gray-500">
                         {s.effective?.start || s.effective?.end
-                          ? `${s.effective?.start || "?"} → ${s.effective?.end || "Không giới hạn"}`
+                          ? `${s.effective?.start ? format(parseISO(s.effective.start), 'dd/MM/yyyy') : "?"} → ${s.effective?.end ? format(parseISO(s.effective.end), 'dd/MM/yyyy') : "Không giới hạn"}`
                           : "Không giới hạn"}
                       </div>
                     </div>
@@ -351,6 +358,10 @@ export default function TeacherRegisterSchedule() {
                     centerConfig?.dayShifts?.find((d) => d.dayOfWeek === slot.dayOfWeek)?.shifts ||
                     [];
 
+                  // Convert string date to Date object for DatePicker
+                  const startDateObj = slot.effective?.start ? parseISO(slot.effective.start) : null;
+                  const endDateObj = slot.effective?.end ? parseISO(slot.effective.end) : null;
+
                   return (
                     <div key={slot.dayOfWeek} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3">
@@ -377,8 +388,8 @@ export default function TeacherRegisterSchedule() {
                                 <label
                                   key={sk}
                                   className={`px-3 py-2 rounded-md border cursor-pointer ${checked
-                                      ? "bg-purple-600 text-white border-purple-600"
-                                      : "bg-white text-gray-700 border-gray-300 hover:bg-purple-50"
+                                    ? "bg-purple-600 text-white border-purple-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-purple-50"
                                     } ${!editing ? 'opacity-70 cursor-not-allowed' : ''}`}
                                 >
                                   <input
@@ -402,31 +413,47 @@ export default function TeacherRegisterSchedule() {
                         )}
                       </div>
 
-                      {/* effective */}
+                      {/* effective - DatePicker */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <div className="text-sm text-gray-600 mb-1">Bắt đầu từ ngày</div>
-                          <input
-                            value={slot.effective?.start || ""}
-                            onChange={(e) =>
-                              setEffective(slot.dayOfWeek, "start", e.target.value)
-                            }
-                            type="date"
-                            disabled={!editing}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100"
-                          />
+                          <div className="relative">
+                            <DatePicker
+                              selected={isValid(startDateObj) ? startDateObj : null}
+                              onChange={(date) =>
+                                setEffective(slot.dayOfWeek, "start", date ? format(date, 'yyyy-MM-dd') : "")
+                              }
+                              dateFormat="dd/MM/yyyy"
+                              locale="vi"
+                              disabled={!editing}
+                              className={inputClass}
+                              wrapperClassName="w-full"
+                              placeholderText="Chọn ngày bắt đầu"
+                              onKeyDown={(e) => e.preventDefault()}
+                            />
+                            <CalendarIcon className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                          </div>
                         </div>
                         <div>
                           <div className="text-sm text-gray-600 mb-1">Kết thúc vào ngày</div>
-                          <input
-                            value={slot.effective?.end || ""}
-                            onChange={(e) =>
-                              setEffective(slot.dayOfWeek, "end", e.target.value)
-                            }
-                            type="date"
-                            disabled={!editing}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100"
-                          />
+                          <div className="relative">
+                            <DatePicker
+                              selected={isValid(endDateObj) ? endDateObj : null}
+                              onChange={(date) =>
+                                setEffective(slot.dayOfWeek, "end", date ? format(date, 'yyyy-MM-dd') : "")
+                              }
+                              dateFormat="dd/MM/yyyy"
+                              locale="vi"
+                              minDate={startDateObj} // Chặn chọn ngày kết thúc nhỏ hơn ngày bắt đầu
+                              disabled={!editing}
+                              className={inputClass}
+                              wrapperClassName="w-full"
+                              placeholderText="Không giới hạn"
+                              isClearable={editing} // Cho phép xóa ngày kết thúc
+                              onKeyDown={(e) => e.preventDefault()}
+                            />
+                            <CalendarIcon className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                          </div>
                         </div>
                       </div>
                     </div>

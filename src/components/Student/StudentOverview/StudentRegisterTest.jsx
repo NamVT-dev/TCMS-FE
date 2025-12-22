@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { User, Users, FileText, Calendar, BookOpen, Plus, Trash2, Rocket, Loader2, CheckCircle, XCircle, Sparkles, AlertTriangle, Info, Ban } from "lucide-react";
+import { User, Users, FileText, Calendar as CalendarIcon, BookOpen, Plus, Trash2, Rocket, Loader2, CheckCircle, XCircle, Sparkles, AlertTriangle, Info, Ban } from "lucide-react";
 import api from "../../../utils/api";
+
+// --- THÊM MỚI: Import Datepicker ---
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { vi } from 'date-fns/locale';
+import { format } from 'date-fns';
+
+registerLocale('vi', vi);
 
 const StudentRegisterTest = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -19,15 +27,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
   const [existingStudentCount, setExistingStudentCount] = useState(0);
   const MAX_STUDENTS = 3;
 
-  // Lấy ngày hiện tại theo format YYYY-MM-DD để làm giới hạn max
-  const getCurrentDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-  const maxDate = getCurrentDate();
+
 
   // Lấy danh sách category khi modal mở
   useEffect(() => {
@@ -313,7 +313,6 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
-                  {/* --- Input Name --- */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4 text-purple-600" />
@@ -336,30 +335,52 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                     )}
                   </div>
 
-                  {/* --- Input DOB --- */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-purple-600" />
+                      <CalendarIcon className="w-4 h-4 text-purple-600" />
                       Ngày sinh <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="date"
-                      name="dob"
-                      max={maxDate} // Disable ngày tương lai
-                      value={student.dob}
-                      onChange={(e) => handleChange(index, e)}
-                      disabled={isForSelf}
-                      className={`w-full border-2 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all 
-                        ${isForSelf ? "bg-gray-100 cursor-not-allowed" : "bg-white"}
-                        ${validationErrors[`dob_${index}`] ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
-                      `}
-                    />
+                    <div className="relative">
+                        <DatePicker
+                            selected={student.dob ? new Date(student.dob) : null}
+                            onChange={(date) => {
+                                const updated = [...students];
+                                updated[index].dob = date ? format(date, 'yyyy-MM-dd') : '';
+                                setStudents(updated);
+
+                                if (validationErrors[`dob_${index}`]) {
+                                    setValidationErrors(prev => {
+                                        const newErrors = { ...prev };
+                                        delete newErrors[`dob_${index}`];
+                                        return newErrors;
+                                    });
+                                }
+                            }}
+                            dateFormat="dd/MM/yyyy"
+                            locale="vi"
+                            maxDate={new Date()} 
+                            disabled={isForSelf}
+                            
+                            showYearDropdown
+                            showMonthDropdown
+                            dropdownMode="select"
+                            yearDropdownItemNumber={100}
+                            scrollableYearDropdown
+
+                            className={`w-full border-2 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all pl-10
+                                ${isForSelf ? "bg-gray-100 cursor-not-allowed text-gray-500" : "bg-white"}
+                                ${validationErrors[`dob_${index}`] ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                            `}
+                            wrapperClassName="w-full"
+                            onKeyDown={(e) => e.preventDefault()}
+                        />
+                        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none z-10" />
+                    </div>
                     {validationErrors[`dob_${index}`] && (
                         <p className="text-red-500 text-xs mt-1 font-medium">{validationErrors[`dob_${index}`]}</p>
                     )}
                   </div>
 
-                  {/* --- Input Category --- */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-purple-600" />
@@ -370,7 +391,7 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
                       value={student.categoryId}
                       onChange={(e) => handleChange(index, e)}
                       className={`w-full border-2 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all
-                         ${validationErrors[`categoryId_${index}`] ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                          ${validationErrors[`categoryId_${index}`] ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
                       `}
                     >
                       <option value="">-- Chọn khóa học --</option>
@@ -428,7 +449,6 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
               </div>
             )}
 
-            {/* Submit button */}
             <button
               type="submit"
               disabled={loading || (!isForSelf && remainingSlots <= 0 && students.length > 0 && students[0].name === "")}
@@ -448,7 +468,6 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
             </button>
           </form>
 
-          {/* Message */}
           {message && (
             <div
               className={`mt-6 p-4 rounded-xl font-medium text-center animate-slideDown flex items-center justify-center gap-2 ${message.includes("thành công")
@@ -467,7 +486,6 @@ const StudentRegisterTest = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      {/* Style css animation */}
       <style dangerouslySetInnerHTML={{
         __html: `
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
