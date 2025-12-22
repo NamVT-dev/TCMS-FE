@@ -5,11 +5,10 @@ import {
     Filter, Calendar as CalendarIcon
 } from 'lucide-react';
 
-// --- THÊM MỚI: Import Datepicker ---
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { vi } from 'date-fns/locale';
-import { format } from 'date-fns'; // Dùng để format date object thành string 'yyyy-MM-dd'
+import { format } from 'date-fns';
 
 registerLocale('vi', vi);
 
@@ -23,38 +22,45 @@ const formatMinutes = (mins) => {
 const ScheduleResourceOverview = ({
     stats,
     isLoadingStats,
-    // Props nhận từ cha
     studentFilter,
     onFilterStudents,
     isStudentLoading
 }) => {
     const [activeTab, setActiveTab] = useState('teachers');
     const [isCollapsed, setIsCollapsed] = useState(true);
+    const [localFilter, setLocalFilter] = useState({ startDate: '', endDate: '' });
 
-    // State cục bộ lưu String 'YYYY-MM-DD'
-    const [localFilter, setLocalFilter] = useState({
-        startDate: '',
-        endDate: ''
-    });
-
-    // Sync state cục bộ với props khi mới load
     useEffect(() => {
         if (studentFilter) {
             setLocalFilter({
-                startDate: studentFilter.startDate || '',
-                endDate: studentFilter.endDate || ''
+                startDate: studentFilter.startDate,
+                endDate: studentFilter.endDate
             });
         }
     }, [studentFilter]);
 
-    const { teachers, rooms, courses, config, pendingStudents } = stats;
+    // 1. Lấy dữ liệu từ stats. Bây giờ stats từ cha đã có đủ newLeads và waitingStudents
+    // Xử lý trường hợp stats có thể bọc trong data hoặc không (tuỳ cách gọi API gốc)
+    const coreData = stats?.data || stats || {};
+
+    const {
+        teachers = [],
+        rooms = [],
+        courses = [],
+        config,
+        newLeads = { count: 0, students: [] },
+        waitingStudents = { count: 0, students: [] }
+    } = coreData;
 
     const studentStats = useMemo(() => {
-        const newLeads = pendingStudents.filter(s => s.testScore !== undefined && s.testScore !== null);
-        const waiting = pendingStudents.filter(s => s.testScore === undefined || s.testScore === null);
+        // Lấy danh sách học viên an toàn
+        const newLeadsList = newLeads?.students || [];
+        const waitingList = waitingStudents?.students || [];
 
         const countByCategory = (list) => {
+            if (!Array.isArray(list)) return {};
             return list.reduce((acc, s) => {
+                // Kiểm tra kỹ cấu trúc category bên trong từng student
                 const catName = s.category?.[0]?.name || 'Khác';
                 acc[catName] = (acc[catName] || 0) + 1;
                 return acc;
@@ -62,18 +68,24 @@ const ScheduleResourceOverview = ({
         };
 
         return {
-            totalNew: newLeads.length,
-            totalWaiting: waiting.length,
-            newByCategory: countByCategory(newLeads),
-            waitingByCategory: countByCategory(waiting)
+            totalNew: newLeads.count || 0,
+            totalWaiting: waitingStudents.count || 0,
+            newByCategory: countByCategory(newLeadsList),
+            waitingByCategory: countByCategory(waitingList)
         };
-    }, [pendingStudents]);
+    }, [newLeads, waitingStudents]);
 
     const tabs = [
         { id: 'teachers', name: 'Giáo viên Sẵn sàng', icon: Users, count: teachers.length },
         { id: 'rooms', name: 'Phòng học Sẵn sàng', icon: DoorOpen, count: rooms.length },
         { id: 'courses', name: 'Tổng Khóa học', icon: BookOpen, count: courses.length },
-        { id: 'students', name: 'Hàng đợi Học viên', icon: User, count: pendingStudents.length },
+        {
+            id: 'students',
+            name: 'Hàng đợi Học viên',
+            icon: User,
+            // Tổng cộng 2 loại
+            count: (newLeads.count || 0) + (waitingStudents.count || 0)
+        },
         { id: 'config', name: 'Lịch Trung tâm', icon: Clock, count: null },
     ];
 
@@ -83,7 +95,6 @@ const ScheduleResourceOverview = ({
         }
     };
 
-    // Helper class cho input
     const inputClass = "pl-9 block w-full md:w-40 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm border py-2";
 
     return (
@@ -144,11 +155,9 @@ const ScheduleResourceOverview = ({
                                 <label className="block text-xs font-medium text-gray-500 mb-1">Từ ngày</label>
                                 <div className="relative">
                                     <DatePicker
-                                        // Chuyển string 'yyyy-MM-dd' sang Date Object để hiển thị
                                         selected={localFilter.startDate ? new Date(localFilter.startDate) : null}
                                         onChange={(date) => setLocalFilter({
                                             ...localFilter,
-                                            // Chuyển ngược Date Object về string 'yyyy-MM-dd' để lưu state
                                             startDate: date ? format(date, 'yyyy-MM-dd') : ''
                                         })}
                                         dateFormat="dd/MM/yyyy"
@@ -213,7 +222,7 @@ const ScheduleResourceOverview = ({
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {teachers.map((t) => (
                                             <div key={t._id} className="flex items-center space-x-3 p-4 bg-white rounded-lg border border-purple-200 hover:shadow-md transition-shadow">
-                                                <img className="h-10 w-10 rounded-full object-cover flex-shrink-0" src={t.profile.photo} alt="" />
+                                                <img className="h-10 w-10 rounded-full object-cover flex-shrink-0" src={t.profile?.photo || "https://ui-avatars.com/api/?name=" + t.username} alt="" />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-medium text-purple-900 truncate">{t.profile?.fullname || t.username}</p>
                                                     <p className="text-sm text-purple-500 truncate">{t.email}</p>
@@ -344,7 +353,7 @@ const ScheduleResourceOverview = ({
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-100 bg-white">
-                                                    {config?.dayShifts.map((d) => {
+                                                    {config?.dayShifts?.map((d) => {
                                                         const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
                                                         const dayName = dayNames[d.dayOfWeek];
                                                         return (

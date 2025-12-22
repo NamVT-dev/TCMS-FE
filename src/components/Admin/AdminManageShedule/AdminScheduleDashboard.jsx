@@ -27,17 +27,19 @@ function AdminScheduleDashboard() {
     endDate: moment().format('YYYY-MM-DD')
   });
 
+  // Khởi tạo stats với đúng cấu trúc API trả về
   const [stats, setStats] = useState({
     teachers: [],
     rooms: [],
     courses: [],
     config: null,
-    pendingStudents: [],
+    newLeads: { count: 0, students: [] },       // Sửa: Tách riêng
+    waitingStudents: { count: 0, students: [] } // Sửa: Tách riêng
   });
 
   const navigate = useNavigate();
 
-  // Hàm riêng để fetch dữ liệu học viên, dùng cho cả load ban đầu và khi filter
+  // Hàm riêng để fetch dữ liệu học viên
   const fetchStudentDemand = async (start, end) => {
     setIsStudentLoading(true);
     try {
@@ -47,22 +49,26 @@ function AdminScheduleDashboard() {
         endDate: end 
       });
 
-      let allPending = [];
+      // Mặc định là object rỗng có cấu trúc chuẩn
+      let newLeadsData = { count: 0, students: [] };
+      let waitingStudentsData = { count: 0, students: [] };
+
+      // Gán dữ liệu nếu API trả về thành công
       if (studentRes.data && studentRes.data.data) {
         const data = studentRes.data.data;
-        const newLeads = data.newLeads?.students || [];
-        const waiting = data.waitingStudents?.students || [];
-        allPending = [...newLeads, ...waiting];
+        if (data.newLeads) newLeadsData = data.newLeads;
+        if (data.waitingStudents) waitingStudentsData = data.waitingStudents;
       }
 
-      // Cập nhật lại list pendingStudents trong stats
+      // Cập nhật vào stats, giữ nguyên các key khác
       setStats(prev => ({
         ...prev,
-        pendingStudents: allPending
+        newLeads: newLeadsData,
+        waitingStudents: waitingStudentsData
       }));
+
     } catch (err) {
       console.error("Lỗi khi tải dữ liệu học viên:", err);
-      // Có thể hiển thị toast lỗi ở đây nếu cần
     } finally {
       setIsStudentLoading(false);
     }
@@ -97,12 +103,14 @@ function AdminScheduleDashboard() {
       }
 
       // 2. Set dữ liệu tĩnh vào state
+      // Lưu ý: Khởi tạo newLeads và waitingStudents rỗng để tránh lỗi trước khi fetchStudentDemand chạy xong
       const newStats = {
         teachers: teacherRes.status === 'fulfilled' ? teacherRes.value.data.data.teachers : [],
         rooms: roomRes.status === 'fulfilled' ? roomRes.value.data.data.rooms : [],
         courses: courseRes.status === 'fulfilled' ? courseRes.value.data.data.courses : [],
         config: configRes.status === 'fulfilled' ? configRes.value.data.data.config : null,
-        pendingStudents: [] // Sẽ được update bởi fetchStudentDemand ngay sau đây
+        newLeads: { count: 0, students: [] },
+        waitingStudents: { count: 0, students: [] }
       };
       setStats(newStats);
 
@@ -118,7 +126,7 @@ function AdminScheduleDashboard() {
       setIsLoadingStats(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Chỉ chạy 1 lần khi mount, studentFilter dùng giá trị khởi tạo
+  }, []); // Chỉ chạy 1 lần khi mount
 
   useEffect(() => {
     fetchData();
@@ -209,7 +217,7 @@ function AdminScheduleDashboard() {
         stats={stats}
         isLoadingStats={isLoadingStats}
         
-        // Truyền props mới xuống con
+        // Truyền props filter xuống con
         studentFilter={studentFilter}
         onFilterStudents={handleFilterStudents}
         isStudentLoading={isStudentLoading}
