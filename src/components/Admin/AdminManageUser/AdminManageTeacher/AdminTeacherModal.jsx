@@ -251,12 +251,12 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
         setLoading(true);
         try {
             if (isEditMode) {
-              
+
                 const fd = createUpdateFormData();
                 await api.admin.updateTeacher(teacherId, fd);
                 showToast("Cập nhật giáo viên thành công!", "success");
             } else {
-               
+
 
                 //  Tạo giáo viên bằng JSON thuần (để tránh lỗi 400 Bad Request)
                 const createPayload = {
@@ -302,6 +302,8 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
             setLoading(false);
         }
     };
+    const today = new Date();
+    const maxDob = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     if (!isOpen) return null;
 
@@ -372,7 +374,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                         </div>
                                         <div>
                                             <label className={labelClass}>Ngày sinh <span className="text-red-500">*</span> </label>
-                                            <input type="date" name="dob" value={formData.dob} onChange={handleChange} className={inputClass} required max={new Date().toISOString().split('T')[0]} />
+                                            <input type="date" name="dob" value={formData.dob} onChange={handleChange} className={inputClass} required max={maxDob} />
                                         </div>
                                         <div>
                                             <label className={labelClass}>Giới tính <span className="text-red-500">*</span> </label>
@@ -425,7 +427,7 @@ const AdminTeacherModal = ({ isOpen, onClose, onSuccess, teacherId }) => {
                                                                     />
                                                                     Từ level này trở xuống (Chọn 1)
                                                                 </label>
-                                                                
+
                                                                 {/* CHỈ HIỂN THỊ KHI ĐANG EDIT */}
                                                                 {isEditMode && (
                                                                     <label className="flex items-center text-sm text-gray-700 cursor-pointer hover:text-purple-700">

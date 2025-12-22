@@ -13,7 +13,13 @@ const DAY_NAMES = [
   { id: 6, label: "T7" },
 ];
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const normalizeSlots = (rawSlots = []) =>
   (rawSlots || []).map((s) => ({
@@ -22,9 +28,9 @@ const normalizeSlots = (rawSlots = []) =>
     effective:
       s.effective && (s.effective.start || s.effective.end)
         ? {
-            start: s.effective.start ? s.effective.start.slice(0, 10) : "",
-            end: s.effective.end ? s.effective.end.slice(0, 10) : "",
-          }
+          start: s.effective.start ? s.effective.start.slice(0, 10) : "",
+          end: s.effective.end ? s.effective.end.slice(0, 10) : "",
+        }
         : { start: "", end: "" },
   }));
 
@@ -128,11 +134,11 @@ export default function TeacherRegisterSchedule() {
       prev.map((s) =>
         s.dayOfWeek === dayId
           ? {
-              ...s,
-              shifts: s.shifts.includes(shiftKey)
-                ? s.shifts.filter((sh) => sh !== shiftKey)
-                : [...s.shifts, shiftKey],
-            }
+            ...s,
+            shifts: s.shifts.includes(shiftKey)
+              ? s.shifts.filter((sh) => sh !== shiftKey)
+              : [...s.shifts, shiftKey],
+          }
           : s
       )
     );
@@ -370,11 +376,10 @@ export default function TeacherRegisterSchedule() {
                               return (
                                 <label
                                   key={sk}
-                                  className={`px-3 py-2 rounded-md border cursor-pointer ${
-                                    checked
+                                  className={`px-3 py-2 rounded-md border cursor-pointer ${checked
                                       ? "bg-purple-600 text-white border-purple-600"
                                       : "bg-white text-gray-700 border-gray-300 hover:bg-purple-50"
-                                  } ${!editing ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    } ${!editing ? 'opacity-70 cursor-not-allowed' : ''}`}
                                 >
                                   <input
                                     type="checkbox"

@@ -36,9 +36,9 @@ const isToday = (date) => isSameDay(date, new Date());
 
 const getWeekDays = (currDate) => {
   const current = new Date(currDate);
-  const dayOfWeek = current.getDay(); 
-  
-  
+  const dayOfWeek = current.getDay();
+
+
   const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
 
   const monday = new Date(current);
@@ -63,19 +63,24 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
   const [weekDays, setWeekDays] = useState([]);
   const [weekRange, setWeekRange] = useState({ start: "", end: "" });
 
-  
+
   useEffect(() => {
     const days = getWeekDays(currentWeek);
 
-    const startISO = days[0].toISOString().split("T")[0];
-    const endISO = days[6].toISOString().split("T")[0];
+    // Helper để format YYYY-MM-DD theo giờ địa phương
+    const formatLocal = (d) => {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
+    const startISO = formatLocal(days[0]);
+    const endISO = formatLocal(days[6]);
 
     setWeekDays(days);
     setWeekRange({ start: startISO, end: endISO });
   }, [currentWeek]);
 
-  
-  
+
+
   useEffect(() => {
     if (!isOpen || !studentId || !weekRange.start) return;
 
@@ -100,11 +105,12 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
     fetchSchedule();
   }, [isOpen, studentId, weekRange.start, weekRange.end]);
 
-  
+
   const sessionsByDay = useMemo(() => {
     const map = {};
     sessions.forEach(s => {
-      const key = s.startAt.split("T")[0];
+      const d = new Date(s.startAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       if (!map[key]) map[key] = [];
       map[key].push(s);
     });
@@ -112,17 +118,30 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
   }, [sessions]);
 
   const getSessionsForShift = (date, shift) => {
-    const key = date.toISOString().split("T")[0];
+    // 1. Tạo key ngày theo giờ địa phương 
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const key = `${year}-${month}-${day}`;
+
+    // 2. Lấy danh sách buổi học trong ngày đó
     const daySessions = sessionsByDay[key] || [];
+
+    // 3. So sánh giờ và phút 
     return daySessions.find(s => {
-      const timeStr = new Date(s.startAt).toTimeString().substring(0, 5);
-      return timeStr === shift.start;
+      const sessionDate = new Date(s.startAt);
+      const sessionHour = sessionDate.getHours();
+      const sessionMinute = sessionDate.getMinutes();
+
+      const [shiftHour, shiftMinute] = shift.start.split(':').map(Number);
+
+      return sessionHour === shiftHour && sessionMinute === shiftMinute;
     });
   };
 
   const totalSessionsInWeek = sessions.length;
 
-  
+
 
   const goPrev = () => {
     const d = new Date(currentWeek);
@@ -138,7 +157,7 @@ const StudentScheduleModal = ({ isOpen, onClose, studentId }) => {
 
   const goToToday = () => setCurrentWeek(new Date());
 
-  
+
 
   if (!isOpen) return null;
 

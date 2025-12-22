@@ -12,25 +12,30 @@ const formatMinutes = (mins) => {
     return `${h}:${m}`;
 };
 
-const ScheduleResourceOverview = ({ 
-    stats, 
-    isLoadingStats, 
+const ScheduleResourceOverview = ({
+    stats,
+    isLoadingStats,
     // Props nhận từ cha
-    studentFilter, 
-    onFilterStudents, 
-    isStudentLoading 
+    studentFilter,
+    onFilterStudents,
+    isStudentLoading
 }) => {
     const [activeTab, setActiveTab] = useState('teachers');
     const [isCollapsed, setIsCollapsed] = useState(true);
-    
+
     // State cục bộ để người dùng nhập liệu trước khi bấm nút Lọc
     const [localFilter, setLocalFilter] = useState({
         startDate: '',
         endDate: ''
     });
 
-    // --- SỬA ĐỔI: Lấy ngày hiện tại để làm giới hạn max ---
-    const maxDate = new Date().toISOString().split("T")[0];
+    
+    // Lấy ngày hiện tại theo giờ địa phương (Việt Nam)
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const maxDate = `${yyyy}-${mm}-${dd}`;
     // -----------------------------------------------------
 
     // Sync state cục bộ với props khi mới load
@@ -46,8 +51,8 @@ const ScheduleResourceOverview = ({
     const { teachers, rooms, courses, config, pendingStudents } = stats;
 
     const studentStats = useMemo(() => {
-        const newLeads = pendingStudents.filter(s => s.testScore !== undefined); 
-        const waiting = pendingStudents.filter(s => !s.testScore); 
+        const newLeads = pendingStudents.filter(s => s.testScore !== undefined);
+        const waiting = pendingStudents.filter(s => !s.testScore);
 
         const countByCategory = (list) => {
             return list.reduce((acc, s) => {
@@ -97,7 +102,7 @@ const ScheduleResourceOverview = ({
             </div>
 
             <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "max-h-0 opacity-0" : "max-h-[1200px] opacity-100"}`}>
-                
+
                 {/* Navigation Tabs */}
                 <div className="border-b border-gray-200">
                     <nav className="-mb-px flex space-x-6 px-6 overflow-x-auto" aria-label="Tabs">
@@ -115,9 +120,9 @@ const ScheduleResourceOverview = ({
                                 {tab.name}
                                 {tab.count !== null && !isLoadingStats && (
                                     <span className={`ml-2 py-0.5 px-2 rounded-full text-xs font-medium ${activeTab === tab.id
-                                            ? "bg-purple-100 text-purple-600"
-                                            : "bg-gray-100 text-gray-600"
-                                    }`}
+                                        ? "bg-purple-100 text-purple-600"
+                                        : "bg-gray-100 text-gray-600"
+                                        }`}
                                     >
                                         {tab.count}
                                     </span>
@@ -129,7 +134,7 @@ const ScheduleResourceOverview = ({
 
                 {/* Nội dung tab */}
                 <div className="p-6">
-                    
+
                     {/* FILTER SECTION: Chỉ hiện khi ở tab Students */}
                     {activeTab === 'students' && (
                         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100 flex flex-col md:flex-row md:items-end gap-4 animate-fadeIn">
@@ -148,7 +153,7 @@ const ScheduleResourceOverview = ({
                                     />
                                 </div>
                             </div>
-                            
+
                             <div>
                                 <label className="block text-xs font-medium text-gray-500 mb-1">Đến ngày</label>
                                 <div className="relative">
